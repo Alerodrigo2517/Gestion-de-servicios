@@ -1,0 +1,21 @@
+{
+  "name": "pagina-de-servicios",
+  "version": "1.0.0",
+  "description": "App web con buenas prácticas y CI/CD",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,css,html,md}\""
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
