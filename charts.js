@@ -12,12 +12,12 @@ function renderProjectionChart() {
     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
     let colorIndex = 0;
 
-    // Agrupar items activos por nombre
-    const itemNames = [...new Set(services.filter(s => !s.isPaid).map(s => s.name))];
+    // Agrupar items activos por nombre (excluyendo ingresos)
+    const itemNames = [...new Set(services.filter(s => s.type !== 'income' && !s.isPaid).map(s => s.name))];
 
     itemNames.forEach(name => {
         const data = months.map((_, mIndex) => {
-            const itemsInMonth = services.filter(s => s.paymentMonth === mIndex && s.name === name && !s.isPaid);
+            const itemsInMonth = services.filter(s => s.paymentMonth === mIndex && s.name === name && s.type !== 'income' && !s.isPaid);
             return itemsInMonth.reduce((sum, item) => sum + item.amount, 0);
         });
 

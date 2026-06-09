@@ -348,7 +348,7 @@ function renderInsightsAndReminders(currentItems) {
 }
 
 function updateSimulationView() {
-    const currentMonthItems = services.filter(s => s.paymentMonth === currentMonthIndex);
+    const currentMonthItems = services.filter(s => s.paymentMonth === currentMonthIndex && s.type !== 'income');
     const totalGeneral = currentMonthItems.reduce((sum, s) => sum + s.amount, 0);
     
     const simulatedItemsData = simulationCart.map(cartItem => {

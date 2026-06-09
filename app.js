@@ -233,7 +233,7 @@ window.editItem = function(id) {
 
 window.togglePaid = function(id) {
     const item = services.find(s => s.id === id);
-    if (item) {
+    if (item && item.type !== 'income') {
         item.isPaid = !item.isPaid;
         if (item.isPaid) {
             item.paymentDate = new Date().toLocaleDateString('es-AR');
