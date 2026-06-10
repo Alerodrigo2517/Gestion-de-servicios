@@ -124,70 +124,82 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
   );
 
   return (
-    <div id="cancel-simulation-modal" className="modal fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
-      <div className="backdrop-blur-md bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-xl w-full relative overflow-y-auto max-h-[90vh]">
+    <div id="cancel-simulation-modal" className="modal fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[1000] p-4 animate-fade-in">
+      <div className="glass-premium border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-xl w-full relative overflow-y-auto max-h-[90vh] animate-slide-up">
+        {/* Glow corner */}
+        <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
         <button
-          className="close-modal absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors text-2xl"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors text-2xl"
           onClick={onClose}
           type="button"
         >
           &times;
         </button>
-        <h2 className="text-xl font-bold text-white mb-5">Simulación de Baja Múltiple</h2>
+        <h2 className="text-xl font-black text-white mb-5 tracking-tight flex items-center gap-2">
+          <svg className="text-sky-400 animate-pulse" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Simulador de Bajas / Altas
+        </h2>
 
         <div className="space-y-4 mb-6">
-          <h4 className="text-sm font-semibold text-slate-300">Servicios en esta simulación:</h4>
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Servicios en simulación:</h4>
           
           {simulationCart.length === 0 && simulatedNewItems.length === 0 ? (
-            <p className="text-xs text-slate-500 italic py-2">No hay servicios en simulación. Añade uno abajo.</p>
+            <p className="text-xs text-slate-500 italic py-3 text-center bg-slate-900/20 rounded-xl border border-white/5 select-none">
+              No hay servicios en simulación. Agrega bajas o altas a continuación.
+            </p>
           ) : (
-            <ul id="sim-selected-list" className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
+            <ul id="sim-selected-list" className="space-y-2.5 max-h-[190px] overflow-y-auto pr-1">
               {simulatedExpensesData.map((s) => (
-                <li key={s.id} className="flex flex-col p-3 bg-white/5 border-l-4 border-emerald-500 rounded-lg space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-200 font-medium">
-                      {s.name} <span className="text-xs text-slate-400">(Original: {formatCurrency(s.amount)})</span>
+                <li key={s.id} className="flex flex-col p-3.5 bg-slate-950/40 border border-white/5 border-l-4 border-emerald-500 rounded-xl space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-200 font-bold">
+                      {s.name} <span className="text-[10px] text-slate-400 font-normal">(Original: {formatCurrency(s.amount)})</span>
                     </span>
                     <button
-                      className="p-1 text-slate-400 hover:text-red-400 transition"
+                      className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
                       onClick={() => handleRemoveService(s.id)}
                       title="Quitar de la simulación"
                       type="button"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                       </svg>
                     </button>
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="text-xs text-slate-400 font-medium whitespace-nowrap m-0">Nuevo Valor ($):</label>
+                    <label className="text-[10px] text-slate-400 font-bold whitespace-nowrap uppercase m-0">Simulado ($):</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={s.simulatedAmount}
                       onChange={(e) => handleUpdateSimulatedAmount(s.id, e.target.value)}
-                      className="flex-1 px-3 py-1 rounded bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+                      className="flex-1 px-3 py-1 bg-slate-950/80 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:ring-1 focus:ring-sky-500/50"
                     />
                   </div>
                 </li>
               ))}
 
               {simulatedNewItems.map((s) => (
-                <li key={s.id} className="flex justify-between items-center p-3 bg-white/5 border-l-4 border-red-500 rounded-lg">
-                  <span className="text-sm text-slate-200">
-                    {s.name} <span className="text-xs text-red-400 font-semibold">[Alta Nueva]</span>
+                <li key={s.id} className="flex justify-between items-center p-3.5 bg-slate-950/40 border border-white/5 border-l-4 border-rose-500 rounded-xl">
+                  <span className="text-xs font-bold text-slate-200">
+                    {s.name} <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/25 ml-2 font-extrabold uppercase">ALTA NUEVA</span>
                   </span>
                   <div className="flex items-center gap-3">
-                    <strong className="text-red-400 text-sm font-bold">{formatCurrency(s.amount)}</strong>
+                    <strong className="text-rose-400 text-sm font-black">{formatCurrency(s.amount)}</strong>
                     <button
-                      className="p-1 text-slate-400 hover:text-red-400 transition"
+                      className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
                       onClick={() => handleRemoveNewService(s.id)}
                       title="Quitar Alta"
                       type="button"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                       </svg>
@@ -199,22 +211,22 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
           )}
 
           {/* Add existing service selector */}
-          <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
+          <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-3 border-t border-white/5">
             <select
               id="sim-add-select"
               value={selectedAddId}
               onChange={(e) => setSelectedAddId(e.target.value)}
-              className="flex-1 px-3 py-2 rounded-lg bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+              className="flex-1 px-3 py-2 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/50 cursor-pointer"
             >
-              <option value="" className="bg-slate-950 text-white">-- Seleccionar otro servicio --</option>
+              <option value="" className="bg-slate-950 text-white">-- Seleccionar servicio existente --</option>
               {availableOptions.map((s) => (
                 <option key={s.id} value={s.id} className="bg-slate-950 text-white">
-                  {s.name} - {formatCurrency(s.amount)}
+                  {s.name} ({formatCurrency(s.amount)})
                 </option>
               ))}
             </select>
             <button
-              className="px-4 py-2 text-sm font-semibold border border-white/10 bg-slate-900/40 hover:bg-white/10 text-white rounded-lg transition duration-200 whitespace-nowrap active:scale-[0.98]"
+              className="px-4 py-2 text-xs font-bold bg-slate-900 border border-white/10 hover:bg-white/10 text-white rounded-xl transition duration-200 whitespace-nowrap active:scale-[0.98] cursor-pointer"
               onClick={handleAddService}
               type="button"
             >
@@ -223,25 +235,25 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
           </div>
 
           {/* Add fictive item inputs */}
-          <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
-              placeholder="Alta Ficticia (Ej. Netflix)"
+              placeholder="Alta Ficticia (Ej. Netflix Premium)"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="flex-[2] px-3 py-2 rounded-lg bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+              className="flex-[2] px-3 py-2 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/50"
             />
             <input
               type="number"
-              placeholder="$ Monto"
+              placeholder="$ Cuota"
               min="0"
               step="0.01"
               value={newAmount}
               onChange={(e) => setNewAmount(e.target.value)}
-              className="flex-1 px-3 py-2 rounded-lg bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+              className="flex-1 px-3 py-2 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/50"
             />
             <button
-              className="px-4 py-2 text-sm font-semibold border border-white/10 bg-slate-900/40 hover:bg-white/10 text-white rounded-lg transition duration-200 whitespace-nowrap active:scale-[0.98]"
+              className="px-4 py-2 text-xs font-bold bg-slate-900 border border-white/10 hover:bg-white/10 text-white rounded-xl transition duration-200 whitespace-nowrap active:scale-[0.98] cursor-pointer"
               onClick={handleAddNewService}
               type="button"
             >
@@ -251,71 +263,95 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
         </div>
 
         {/* Totales de simulación */}
-        <div className="bg-white/5 border border-white/10 p-4 rounded-xl space-y-2 mb-6">
+        <div className="glass-premium bg-gradient-to-br from-slate-900/60 to-slate-950 border border-white/15 p-4 rounded-xl space-y-3 mb-6 glow-sky">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-slate-400">Balance Final:</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Balance Final:</span>
             <strong
-              className="text-base font-bold"
-              style={{ color: netSaved >= 0 ? '#10b981' : '#ef4444' }}
+              className="text-base font-black flex items-center gap-1.5"
+              style={{ color: netSaved >= 0 ? '#10b981' : '#f43f5e' }}
             >
-              {formatCurrency(Math.abs(netSaved))} {netSaved >= 0 ? '(Ahorro)' : '(Aumento)'}
+              {netSaved >= 0 ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                    <polyline points="17 6 23 6 23 12"></polyline>
+                  </svg>
+                  {formatCurrency(Math.abs(netSaved))} (Ahorro)
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                    <polyline points="17 18 23 18 23 12"></polyline>
+                  </svg>
+                  {formatCurrency(Math.abs(netSaved))} (Aumento)
+                </>
+              )}
             </strong>
           </div>
-          <p className="text-xs text-slate-400">
+          
+          <div className="w-full bg-black/40 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${netSaved >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}
+              style={{ width: `${Math.min(100, Math.round(percentage))}%` }}
+            ></div>
+          </div>
+
+          <p className="text-[10px] text-slate-400 font-medium">
             {netSaved >= 0 ? (
-              <>El ahorro representa el <strong>{percentage}%</strong> de tus gastos de este mes.</>
+              <>El ahorro representa el <strong className="text-emerald-400 font-extrabold">{percentage}%</strong> de tus gastos fijos de este mes.</>
             ) : (
-              <>Tus gastos aumentarán un <strong>{percentage}%</strong> este mes.</>
+              <>Los nuevos gastos aumentarán un <strong className="text-rose-400 font-extrabold">{percentage}%</strong> de tus gastos de este mes.</>
             )}
           </p>
-          <div className="border-t border-white/5 pt-2 mt-2 flex justify-between items-center">
-            <span className="text-sm text-slate-400">Nuevo Total Mensual Estimado:</span>
-            <strong className="text-base font-bold text-sky-400">{formatCurrency(newTotalGeneral)}</strong>
+          <div className="border-t border-white/5 pt-2 mt-2 flex justify-between items-center text-xs">
+            <span className="text-slate-400 font-bold uppercase tracking-wider">Total Estimado Simulado:</span>
+            <strong className="text-sm font-black text-sky-400">{formatCurrency(newTotalGeneral)}</strong>
           </div>
         </div>
 
         {/* Recomendaciones de cobertura */}
-        <h4 className="text-sm font-semibold text-slate-300 mb-3">Con este saldo podrías cubrir (sugerencia):</h4>
+        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Con el ahorro sugerimos cubrir:</h4>
         <div id="sim-suggestions" className="max-h-[160px] overflow-y-auto pr-1">
           {netSaved <= 0 ? (
-            <p className="text-sm text-red-400 font-semibold text-center py-2">
-              Tu balance es negativo o nulo. El aumento de gastos no permite cubrir otras deudas.
+            <p className="text-xs text-rose-400 font-bold text-center py-3 bg-rose-500/5 rounded-xl border border-rose-500/10">
+              Tu balance es negativo o neutro. No hay margen de cobertura disponible.
             </p>
           ) : (suggestedItems.length === 0 && partialItems.length === 0) ? (
-            <p className="text-sm text-slate-500 italic">
+            <p className="text-xs text-slate-500 italic py-2 text-center">
               {currentMonthExpenses.filter(s => !s.isPaid).length === 0
-                ? 'No tienes otros servicios pendientes registrados este mes.'
-                : 'No hay ahorro suficiente para cubrir otros servicios.'}
+                ? 'No quedan otros servicios pendientes por pagar este mes.'
+                : 'No hay margen suficiente para cubrir otros servicios.'}
             </p>
           ) : (
-            <ul className="space-y-1.5">
+            <ul className="space-y-2">
               {suggestedItems.map((s) => (
-                <li key={s.id} className="py-2 px-3 bg-white/5 border border-white/5 rounded-lg flex justify-between items-center text-sm text-slate-200">
-                  <span>{s.name}</span>
-                  <span className="font-bold text-red-400">{formatCurrency(s.amount)}</span>
+                <li key={s.id} className="py-2.5 px-3.5 bg-slate-950/30 border border-white/5 rounded-xl flex justify-between items-center text-xs">
+                  <span className="text-slate-300 font-bold">{s.name}</span>
+                  <span className="font-extrabold text-rose-400">{formatCurrency(s.amount)}</span>
                 </li>
               ))}
               
               {remainingBudget > 0 && (
-                <li className="text-right text-xs text-slate-500 py-1">Sobra: {formatCurrency(remainingBudget)}</li>
+                <li className="text-right text-[10px] text-slate-500 font-bold">Excedente sobrante: {formatCurrency(remainingBudget)}</li>
               )}
 
               {remainingBudget > 0 && partialItems.length > 0 && (
                 <>
-                  <li className="text-xs font-semibold text-slate-400 pt-2 pb-1 border-t border-dashed border-white/10 mt-2">
-                    {suggestedItems.length > 0 ? 'Con el sobrante también podrías cubrir:' : 'Tu ahorro cubre este porcentaje de tus otros servicios:'}
+                  <li className="text-[10px] font-bold text-slate-500 pt-2 pb-1 border-t border-dashed border-white/10 mt-2 select-none uppercase tracking-wider">
+                    {suggestedItems.length > 0 ? 'Con el sobrante también podrías abonar:' : 'Tu ahorro puede abonar parcialmente:'}
                   </li>
-                  {partialItems.slice(0, 5).map((s) => {
+                  {partialItems.slice(0, 3).map((s) => {
                     const partialPercent = Math.round((remainingBudget / s.amount) * 100);
                     return (
-                      <li key={s.id} className="py-1.5 px-3 bg-white/5 border border-white/5 rounded-lg flex justify-between items-center text-xs text-slate-300">
+                      <li key={s.id} className="py-2 px-3.5 bg-slate-950/20 border border-white/5 rounded-xl flex justify-between items-center text-[11px] text-slate-400">
                         <span>{s.name}</span>
-                        <span className="text-amber-400 font-semibold">{partialPercent}%</span>
+                        <span className="text-amber-400 font-extrabold">{partialPercent}% cubierto</span>
                       </li>
                     );
                   })}
-                  {partialItems.length > 5 && (
-                    <li className="text-center text-[10px] text-slate-500 pt-1">...y otros {partialItems.length - 5} servicios más.</li>
+                  {partialItems.length > 3 && (
+                    <li className="text-center text-[9px] text-slate-600 font-medium">... y otros {partialItems.length - 3} servicios.</li>
                   )}
                 </>
               )}

@@ -55,6 +55,8 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
             label: name,
             data: data,
             backgroundColor: colors[colorIndex % colors.length],
+            borderRadius: 4,
+            borderSkipped: false
           });
           colorIndex++;
         }
@@ -70,11 +72,35 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { stacked: true },
-            y: { stacked: true },
+            x: { 
+              stacked: true,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10, weight: '500' } }
+            },
+            y: { 
+              stacked: true,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10, weight: '500' } }
+            },
           },
           plugins: {
-            legend: { labels: { color: '#f8fafc' } },
+            legend: { 
+              labels: { 
+                color: '#cbd5e1', 
+                boxWidth: 10, 
+                boxHeight: 10,
+                font: { family: 'var(--font-inter)', size: 11, weight: '600' } 
+              } 
+            },
+            tooltip: {
+              backgroundColor: 'rgba(9, 13, 22, 0.95)',
+              titleFont: { family: 'var(--font-inter)', size: 12, weight: 'bold' },
+              bodyFont: { family: 'var(--font-inter)', size: 11 },
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 8
+            }
           },
         },
       });
@@ -96,12 +122,24 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
         });
 
         if (data.some((val) => val !== null)) {
+          // Gradient fill under lines
+          const colorHex = colors[index % colors.length];
+          const fillGradient = ctx.createLinearGradient(0, 0, 0, 320);
+          fillGradient.addColorStop(0, `${colorHex}25`); // 15% opacity
+          fillGradient.addColorStop(1, `${colorHex}00`); // Transparent
+
           datasets.push({
             label: `${name} (Consumo Físico)`,
             data: data,
-            borderColor: colors[index % colors.length],
-            backgroundColor: colors[index % colors.length],
-            tension: 0.3,
+            borderColor: colorHex,
+            backgroundColor: fillGradient,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: colorHex,
+            pointBorderColor: '#090d16',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
             spanGaps: true,
           });
         }
@@ -117,17 +155,33 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: '#f8fafc' } },
+            legend: { 
+              labels: { 
+                color: '#cbd5e1', 
+                boxWidth: 10,
+                boxHeight: 10,
+                font: { family: 'var(--font-inter)', size: 11, weight: '600' } 
+              } 
+            },
+            tooltip: {
+              backgroundColor: 'rgba(9, 13, 22, 0.95)',
+              titleFont: { family: 'var(--font-inter)', size: 12, weight: 'bold' },
+              bodyFont: { family: 'var(--font-inter)', size: 11 },
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 8
+            }
           },
           scales: {
             y: {
               beginAtZero: true,
-              grid: { color: 'rgba(255,255,255,0.1)' },
-              ticks: { color: '#94a3b8' },
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10 } },
             },
             x: {
-              grid: { color: 'rgba(255,255,255,0.1)' },
-              ticks: { color: '#94a3b8' },
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10 } },
             },
           },
         },
@@ -145,19 +199,19 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
-      <div className="backdrop-blur-md bg-slate-900/80 border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-4xl w-full relative">
+    <div className="modal fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000] p-4 animate-fade-in">
+      <div className="glass-premium border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-4xl w-full relative animate-slide-up">
         <button
-          className="close-modal absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors text-2xl"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors text-2xl"
           onClick={onClose}
           type="button"
         >
           &times;
         </button>
-        <h2 className="text-xl font-bold text-white mb-4">
-          {type === 'projection' ? 'Proyección Anual de Gastos' : 'Historial de Consumo Físico (Luz / Gas)'}
+        <h2 className="text-lg font-black text-white mb-4 tracking-tight">
+          {type === 'projection' ? 'Proyección Anual de Gastos' : 'Historial de Consumo Físico'}
         </h2>
-        <div className="w-full h-[400px] mt-4">
+        <div className="w-full h-[380px] mt-4">
           <canvas ref={canvasRef}></canvas>
         </div>
       </div>

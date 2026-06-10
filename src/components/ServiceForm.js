@@ -15,9 +15,10 @@ export default function ServiceForm({
   showImportButton,
   previousMonthName
 }) {
-  const [type, setType] = useState('income'); // Changed default to 'income' (Ingreso)
+  const [type, setType] = useState('income');
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
+  const [isCollapsed, setIsCollapsed] = useState(true);
   
   // Service-specific states
   const [consumptionMonth, setConsumptionMonth] = useState(currentMonthIndex);
@@ -33,8 +34,8 @@ export default function ServiceForm({
   const [titular, setTitular] = useState('');
 
   // Detect dynamic fields based on name text
-  const isEnergyRelated = name.toLowerCase().includes('luz') || name.toLowerCase().includes('gas') || name.toLowerCase().includes('energia');
-  const isInternetRelated = name.toLowerCase().includes('internet') || name.toLowerCase().includes('wifi') || name.toLowerCase().includes('cable');
+  const isEnergyRelated = name.toLowerCase().includes('luz') || name.toLowerCase().includes('gas') || name.toLowerCase().includes('energia') || name.toLowerCase().includes('edesur') || name.toLowerCase().includes('edenor') || name.toLowerCase().includes('metrogas') || name.toLowerCase().includes('camuzzi') || name.toLowerCase().includes('aysa') || name.toLowerCase().includes('agua');
+  const isInternetRelated = name.toLowerCase().includes('internet') || name.toLowerCase().includes('wifi') || name.toLowerCase().includes('cable') || name.toLowerCase().includes('flow') || name.toLowerCase().includes('fibertel') || name.toLowerCase().includes('telecentro') || name.toLowerCase().includes('netflix') || name.toLowerCase().includes('spotify') || name.toLowerCase().includes('disney');
   const showDynamicFields = (type === 'service' || type === 'overdue') && (isEnergyRelated || isInternetRelated);
 
   // Sync state if editingItem changes
@@ -78,6 +79,25 @@ export default function ServiceForm({
       setConsumptionMonth(currentMonthIndex);
     }
   }, [currentMonthIndex, editingItem]);
+
+  // Resize listener to expand form on desktop automatically
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsCollapsed(false);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Force expand on editing state
+  useEffect(() => {
+    if (editingItem) {
+      setIsCollapsed(false);
+    }
+  }, [editingItem]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -134,299 +154,393 @@ export default function ServiceForm({
   const getFocusRing = () => {
     switch (type) {
       case 'income':
-        return 'focus:ring-emerald-500/50 focus:border-emerald-500/50 hover:border-emerald-500/30';
+        return 'focus:ring-emerald-500/30 focus:border-emerald-500 hover:border-emerald-500/40 focus:bg-emerald-950/10';
       case 'service':
-        return 'focus:ring-sky-500/50 focus:border-sky-500/50 hover:border-sky-500/30';
+        return 'focus:ring-sky-500/30 focus:border-sky-500 hover:border-sky-500/40 focus:bg-sky-950/10';
       case 'loan':
-        return 'focus:ring-purple-500/50 focus:border-purple-500/50 hover:border-purple-500/30';
+        return 'focus:ring-purple-500/30 focus:border-purple-500 hover:border-purple-500/40 focus:bg-purple-950/10';
       case 'overdue':
-        return 'focus:ring-rose-500/50 focus:border-rose-500/50 hover:border-rose-500/30';
+        return 'focus:ring-rose-500/30 focus:border-rose-500 hover:border-rose-500/40 focus:bg-rose-950/10';
       default:
-        return 'focus:ring-sky-500/50 focus:border-sky-500/50';
+        return 'focus:ring-sky-500/30 focus:border-sky-500';
     }
   };
 
   const getSubmitBtnClass = () => {
-    const base = "flex-[2] py-3 text-white font-semibold rounded-lg shadow-lg active:scale-[0.98] transition-all duration-300 ";
+    const base = "flex-[2] py-3 text-xs font-bold text-white rounded-xl shadow-lg active:scale-[0.98] transition-all duration-300 cursor-pointer ";
     switch (type) {
       case 'income':
-        return base + "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-emerald-500/20";
+        return base + "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-emerald-500/10";
       case 'service':
-        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/20";
+        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/10";
       case 'loan':
-        return base + "bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 shadow-purple-500/20";
+        return base + "bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 shadow-purple-500/10";
       case 'overdue':
-        return base + "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 shadow-rose-500/20";
+        return base + "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 shadow-rose-500/10";
       default:
-        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/20";
+        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/10";
     }
   };
 
   return (
-    <section className="backdrop-blur-md bg-slate-900/60 border border-white/10 rounded-2xl p-6 self-start shadow-2xl relative overflow-hidden transition-all duration-300 hover:border-white/15">
-      {/* Decorative colored glow on top of form */}
+    <section className="glass-premium rounded-2xl p-6 self-start shadow-2xl relative overflow-hidden transition-all duration-300 hover:border-white/10 w-full animate-slide-up">
+      {/* Glow Line indicator on top */}
       <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r transition-all duration-500 ${
-        type === 'income' ? 'from-emerald-500 to-teal-500' :
-        type === 'service' ? 'from-sky-500 to-indigo-500' :
-        type === 'loan' ? 'from-purple-500 to-indigo-500' :
-        'from-rose-500 to-red-500'
+        type === 'income' ? 'from-emerald-400 to-teal-500' :
+        type === 'service' ? 'from-sky-400 to-indigo-500' :
+        type === 'loan' ? 'from-purple-400 to-indigo-500' :
+        'from-rose-400 to-red-500'
       }`}></div>
 
-      {/* Tabs Selector with 'Ingreso' in the first position */}
-      <div className="flex p-1 bg-black/20 rounded-xl mb-6 gap-1 border border-white/5">
-        {[
-          { key: 'income', label: 'Ingreso', activeClass: 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-500/5' },
-          { key: 'service', label: 'Servicio', activeClass: 'bg-sky-500/20 border border-sky-500/30 text-sky-400 shadow-md shadow-sky-500/5' },
-          { key: 'loan', label: 'Préstamo', activeClass: 'bg-purple-500/20 border border-purple-500/30 text-purple-400 shadow-md shadow-purple-500/5' },
-          { key: 'overdue', label: 'Atrasado', activeClass: 'bg-rose-500/20 border border-rose-500/30 text-rose-400 shadow-md shadow-rose-500/5' }
-        ].map((tab) => {
-          const isActive = type === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setType(tab.key)}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent ${
-                isActive ? tab.activeClass + ' scale-[1.02]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Collapsible Header */}
+      <div 
+        className="flex items-center justify-between cursor-pointer lg:cursor-default lg:pointer-events-none select-none"
+        onClick={() => {
+          if (window.innerWidth < 1024) {
+            setIsCollapsed(!isCollapsed);
+          }
+        }}
+      >
+        <h3 className="text-sm font-black text-slate-200 tracking-wider uppercase flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full transition-all duration-500 bg-gradient-to-r ${
+            type === 'income' ? 'from-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]' :
+            type === 'service' ? 'from-sky-400 to-indigo-500 shadow-[0_0_8px_rgba(56,189,248,0.7)]' :
+            type === 'loan' ? 'from-purple-400 to-indigo-500 shadow-[0_0_8px_rgba(168,85,247,0.7)]' :
+            'from-rose-400 to-red-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
+          }`}></span>
+          {editingItem ? 'Editar Registro' : 'Nuevo Registro'}
+        </h3>
+        <span className="lg:hidden text-slate-400 p-1 hover:text-white transition">
+          {isCollapsed ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+          )}
+        </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Nombre del Registro */}
-        <div>
-          <label htmlFor="item-name" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-            {type === 'income' ? 'Origen del Ingreso (Ej: Sueldo, Venta)' : (type === 'loan' ? 'Nombre del Préstamo' : 'Nombre del Servicio')}
-          </label>
-          <input
-            type="text"
-            id="item-name"
-            placeholder={type === 'income' ? 'Ej. Sueldo Principal...' : (type === 'loan' ? 'Ej. Auto, Celular...' : 'Ej. Luz, Agua, Tarjeta Visa...')}
-            required
-            autoComplete="off"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-          />
+      {/* Collapsible Body */}
+      <div className={`${isCollapsed ? 'hidden lg:block' : 'block'} mt-5 animate-fade-in`}>
+        {/* Tabs Selector Segmented Control */}
+        <div className="flex p-1 bg-black/30 rounded-xl mb-6 gap-1 border border-white/5">
+          {[
+            { key: 'income', label: 'Ingreso', activeClass: 'bg-emerald-500/25 border-emerald-500/30 text-emerald-400 font-black' },
+            { key: 'service', label: 'Servicio', activeClass: 'bg-sky-500/25 border-sky-500/30 text-sky-400 font-black' },
+            { key: 'loan', label: 'Préstamo', activeClass: 'bg-purple-500/25 border-purple-500/30 text-purple-400 font-black' },
+            { key: 'overdue', label: 'Atrasado', activeClass: 'bg-rose-500/25 border-rose-500/30 text-rose-400 font-black' }
+          ].map((tab) => {
+            const isActive = type === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setType(tab.key)}
+                className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent cursor-pointer ${
+                  isActive ? tab.activeClass + ' scale-[1.01]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Monto del Registro */}
-        <div>
-          <label htmlFor="item-amount" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-            {type === 'income' ? 'Monto Ingresado ($)' : (type === 'loan' ? 'Monto de la Cuota ($)' : 'Monto Estimado ($)')}
-          </label>
-          <input
-            type="number"
-            id="item-amount"
-            placeholder="0.00"
-            required
-            step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-          />
-        </div>
-
-        {/* Campos de Servicio / Atrasado */}
-        {(type === 'service' || type === 'overdue') && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="consumption-month" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                  Mes Consumo
-                </label>
-                <select
-                  id="consumption-month"
-                  value={consumptionMonth}
-                  onChange={(e) => setConsumptionMonth(parseInt(e.target.value))}
-                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                >
-                  {months.map((m, idx) => (
-                    <option key={idx} value={idx} className="bg-slate-950 text-white">
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="consumption-month-end" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                  Hasta (Opcional)
-                </label>
-                <select
-                  id="consumption-month-end"
-                  value={consumptionMonthEnd}
-                  onChange={(e) => setConsumptionMonthEnd(e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                >
-                  <option value="" className="bg-slate-950 text-white">-- Mismo mes --</option>
-                  {months.map((m, idx) => (
-                    <option key={idx} value={idx} className="bg-slate-950 text-white">
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Campos Dinámicos (Luz, Gas, Internet) */}
-            {showDynamicFields && (
-              <div className="space-y-4 pt-2 border-t border-white/5">
-                {isEnergyRelated && (
-                  <>
-                    <div>
-                      <label htmlFor="consumption-unit" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                        Consumo Físico (kWh / m³)
-                      </label>
-                      <input
-                        type="number"
-                        id="consumption-unit"
-                        placeholder="Ej. 150"
-                        step="0.1"
-                        value={consumptionUnit}
-                        onChange={(e) => setConsumptionUnit(e.target.value)}
-                        className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="next-visit-date" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                        Día Medición (1-31)
-                      </label>
-                      <input
-                        type="number"
-                        id="next-visit-date"
-                        min="1"
-                        max="31"
-                        placeholder="Ej. 15"
-                        value={nextMeasurementDate}
-                        onChange={(e) => setNextMeasurementDate(e.target.value)}
-                        className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                      />
-                    </div>
-                  </>
-                )}
-                {isInternetRelated && (
-                  <div>
-                    <label htmlFor="internet-close-date" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                      Día Cierre Factura (1-31)
-                    </label>
-                    <input
-                      type="number"
-                      id="internet-close-date"
-                      min="1"
-                      max="31"
-                      placeholder="Ej. 20"
-                      value={billingCloseDate}
-                      onChange={(e) => setBillingCloseDate(e.target.value)}
-                      className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Campos de Préstamo */}
-        {type === 'loan' && (
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="loan-creditor" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                Acreedor / Entidad
-              </label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name Field */}
+          <div>
+            <label htmlFor="item-name" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+              {type === 'income' ? 'Origen del Ingreso' : (type === 'loan' ? 'Detalle Préstamo' : 'Nombre Servicio')}
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+              </span>
               <input
                 type="text"
-                id="loan-creditor"
-                placeholder="Ej. Banco Galicia, Juan..."
-                value={creditor}
-                onChange={(e) => setCreditor(e.target.value)}
-                className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="loan-current-installment" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                  Cuota Actual
-                </label>
-                <input
-                  type="number"
-                  id="loan-current-installment"
-                  min="1"
-                  placeholder="1"
-                  value={currentInstallment}
-                  onChange={(e) => setCurrentInstallment(e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                />
-              </div>
-              <div>
-                <label htmlFor="loan-total-installments" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                  Total de Cuotas
-                </label>
-                <input
-                  type="number"
-                  id="loan-total-installments"
-                  min="1"
-                  placeholder="12"
-                  value={totalInstallments}
-                  onChange={(e) => setTotalInstallments(e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="loan-titular" className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-                Titular
-              </label>
-              <input
-                type="text"
-                id="loan-titular"
-                placeholder="Ej. Rodrigo"
-                value={titular}
-                onChange={(e) => setTitular(e.target.value)}
-                className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                id="item-name"
+                placeholder={type === 'income' ? 'Ej. Sueldo Principal...' : (type === 'loan' ? 'Ej. Cuota Auto...' : 'Ej. Luz Edesur, Internet...')}
+                required
+                autoComplete="off"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
               />
             </div>
           </div>
-        )}
 
-        <div className="flex gap-2">
-          {editingItem && (
-            <button
-              type="button"
-              onClick={onCancelEdit}
-              className="flex-1 py-3 border border-white/10 hover:bg-white/5 text-slate-300 font-semibold rounded-lg transition-all"
-            >
-              Cancelar
-            </button>
+          {/* Amount Field */}
+          <div>
+            <label htmlFor="item-amount" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+              {type === 'income' ? 'Monto neto ($)' : (type === 'loan' ? 'Monto de la Cuota ($)' : 'Monto Estimado ($)')}
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 font-bold text-xs select-none">
+                $
+              </span>
+              <input
+                type="number"
+                id="item-amount"
+                placeholder="0.00"
+                required
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+              />
+            </div>
+          </div>
+
+          {/* Service/Overdue Specific Fields */}
+          {(type === 'service' || type === 'overdue') && (
+            <div className="space-y-4 pt-2 border-t border-white/5 animate-fade-in">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="consumption-month" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                    Consumo De
+                  </label>
+                  <select
+                    id="consumption-month"
+                    value={consumptionMonth}
+                    onChange={(e) => setConsumptionMonth(parseInt(e.target.value))}
+                    className={`w-full px-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                  >
+                    {months.map((m, idx) => (
+                      <option key={idx} value={idx} className="bg-slate-950 text-white">
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="consumption-month-end" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                    Hasta (Opc.)
+                  </label>
+                  <select
+                    id="consumption-month-end"
+                    value={consumptionMonthEnd}
+                    onChange={(e) => setConsumptionMonthEnd(e.target.value)}
+                    className={`w-full px-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                  >
+                    <option value="" className="bg-slate-950 text-white">-- Mismo mes --</option>
+                    {months.map((m, idx) => (
+                      <option key={idx} value={idx} className="bg-slate-950 text-white">
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Dynamic Fields for Energy (Luz/Gas/Agua) */}
+              {showDynamicFields && (
+                <div className="space-y-3 pt-3 border-t border-white/5 animate-slide-up">
+                  {isEnergyRelated && (
+                    <>
+                      <div>
+                        <label htmlFor="consumption-unit" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                          Consumo Físico (kWh / m³ / etc.)
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <line x1="19" y1="5" x2="5" y2="19"></line>
+                              <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                              <circle cx="17.5" cy="17.5" r="2.5"></circle>
+                            </svg>
+                          </span>
+                          <input
+                            type="number"
+                            id="consumption-unit"
+                            placeholder="Ej. 320"
+                            step="0.1"
+                            value={consumptionUnit}
+                            onChange={(e) => setConsumptionUnit(e.target.value)}
+                            className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="next-visit-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                          Día de Medición (1-31)
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                              <line x1="16" y1="2" x2="16" y2="6"></line>
+                              <line x1="8" y1="2" x2="8" y2="6"></line>
+                              <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                          </span>
+                          <input
+                            type="number"
+                            id="next-visit-date"
+                            min="1"
+                            max="31"
+                            placeholder="Ej. 15"
+                            value={nextMeasurementDate}
+                            onChange={(e) => setNextMeasurementDate(e.target.value)}
+                            className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {isInternetRelated && (
+                    <div>
+                      <label htmlFor="internet-close-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                        Día Cierre de Facturación (1-31)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                        </span>
+                        <input
+                          type="number"
+                          id="internet-close-date"
+                          min="1"
+                          max="31"
+                          placeholder="Ej. 22"
+                          value={billingCloseDate}
+                          onChange={(e) => setBillingCloseDate(e.target.value)}
+                          className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
-          <button
-            type="submit"
-            className={getSubmitBtnClass()}
-          >
-            {editingItem ? 'Actualizar' : 'Guardar'}
-          </button>
-        </div>
-      </form>
 
-      {showImportButton && (
-        <div id="import-prev-container" className="mt-6">
-          <button
-            onClick={onImportPrevious}
-            type="button"
-            className="w-full py-2.5 px-4 rounded-xl text-sm font-medium border border-white/10 bg-slate-900/40 hover:bg-white/10 text-slate-300 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.99] shadow-md"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Importar registros de {previousMonthName}
-          </button>
-        </div>
-      )}
+          {/* Loan specific fields */}
+          {type === 'loan' && (
+            <div className="space-y-4 pt-2 border-t border-white/5 animate-fade-in">
+              <div>
+                <label htmlFor="loan-creditor" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  Entidad / Acreedor
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="9" y1="21" x2="9" y2="9"></line>
+                      <line x1="15" y1="21" x2="15" y2="9"></line>
+                      <line x1="3" y1="9" x2="21" y2="9"></line>
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    id="loan-creditor"
+                    placeholder="Ej. Banco Galicia, Amigo..."
+                    value={creditor}
+                    onChange={(e) => setCreditor(e.target.value)}
+                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="loan-current-installment" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                    Cuota N°
+                  </label>
+                  <input
+                    type="number"
+                    id="loan-current-installment"
+                    min="1"
+                    placeholder="1"
+                    value={currentInstallment}
+                    onChange={(e) => setCurrentInstallment(e.target.value)}
+                    className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="loan-total-installments" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                    Total Cuotas
+                  </label>
+                  <input
+                    type="number"
+                    id="loan-total-installments"
+                    min="1"
+                    placeholder="12"
+                    value={totalInstallments}
+                    onChange={(e) => setTotalInstallments(e.target.value)}
+                    className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="loan-titular" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  Nombre del Titular
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    id="loan-titular"
+                    placeholder="Ej. Rodrigo..."
+                    value={titular}
+                    onChange={(e) => setTitular(e.target.value)}
+                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-2">
+            {editingItem && (
+              <button
+                type="button"
+                onClick={onCancelEdit}
+                className="flex-1 py-3 border border-white/10 hover:bg-white/5 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+            )}
+            <button
+              type="submit"
+              className={getSubmitBtnClass()}
+            >
+              {editingItem ? 'Actualizar' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+
+        {showImportButton && (
+          <div id="import-prev-container" className="mt-6 border-t border-white/5 pt-4">
+            <button
+              onClick={onImportPrevious}
+              type="button"
+              className="w-full py-3 px-4 rounded-xl text-xs font-bold border border-white/10 bg-slate-900/60 hover:bg-white/10 text-slate-300 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.99] shadow-md cursor-pointer"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Importar de {previousMonthName}
+            </button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

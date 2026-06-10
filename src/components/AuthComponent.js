@@ -36,7 +36,7 @@ export default function AuthComponent() {
 
         if (data.user && data.session === null) {
           alert(
-            '¡Registro exitoso! Por favor, verifica tu correo electrónico para confirmar la cuenta (si está configurada la confirmación por correo) o intenta iniciar sesión directamente.'
+            '¡Registro exitoso! Por favor, verifica tu correo electrónico para confirmar tu cuenta o intenta iniciar sesión directamente.'
           );
           setMode('login');
         }
@@ -56,90 +56,109 @@ export default function AuthComponent() {
   };
 
   return (
-    <div id="auth-container" className="flex items-center justify-center min-h-screen p-4">
-      <div className="w-full max-w-md p-8 backdrop-blur-md bg-slate-900/60 border border-white/10 rounded-2xl shadow-2xl transition-all duration-300">
-        {/* Logo y Encabezado */}
+    <div id="auth-container" className="flex items-center justify-center min-h-screen p-4 animate-fade-in relative">
+      {/* Decorative Glow Blobs */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }}></div>
+
+      <div className="w-full max-w-md p-8 glass-premium border-white/10 rounded-2xl shadow-2xl relative z-10 hover:border-white/15 transition-all duration-300">
+        {/* Logo and Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center items-center gap-2 mb-3">
-            <svg
-              className="text-sky-400 animate-pulse"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
+          <div className="flex justify-center items-center gap-3 mb-2.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+            <h2 className="text-3xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent tracking-tight">
               ServiTrack
             </h2>
           </div>
-          <p id="auth-subtitle" className="text-slate-400 text-sm font-medium">
-            {mode === 'login' && 'Inicia sesión para gestionar tus servicios'}
-            {mode === 'signup' && 'Crea una cuenta nueva en ServiTrack'}
-            {mode === 'forgot' && 'Ingresa tu correo para restablecer la contraseña'}
+          <p id="auth-subtitle" className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            {mode === 'login' && 'Gestión Financiera Premium'}
+            {mode === 'signup' && 'Crea tu Cuenta Premium'}
+            {mode === 'forgot' && 'Recuperación de Acceso'}
           </p>
         </div>
 
-        {/* Alerta de Error */}
+        {/* Error Alert */}
         {error && (
           <div
             id="auth-error-alert"
-            className="mb-5 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm"
+            className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in"
           >
             {error}
           </div>
         )}
 
-        {/* Formulario de Autenticación */}
-        <form id="auth-form" onSubmit={handleSubmit} className="space-y-5">
+        {/* Authentication Form */}
+        <form id="auth-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-slate-300 text-sm font-medium mb-1.5" htmlFor="auth-email">
+            <label className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-widest" htmlFor="auth-email">
               Correo Electrónico
             </label>
-            <input
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
-              type="email"
-              id="auth-email"
-              placeholder="ejemplo@correo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+              </span>
+              <input
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 hover:border-white/20 transition-all duration-200"
+                type="email"
+                id="auth-email"
+                placeholder="ejemplo@correo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
           </div>
 
           {mode !== 'forgot' && (
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-slate-300 text-sm font-medium" htmlFor="auth-password">
+                <label className="text-slate-400 text-[10px] font-bold uppercase tracking-widest" htmlFor="auth-password">
                   Contraseña
                 </label>
                 {mode === 'login' && (
                   <button
                     type="button"
                     onClick={() => { setError(''); setMode('forgot'); }}
-                    className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                    className="text-[10px] font-bold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
                 )}
               </div>
-              <input
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
-                type="password"
-                id="auth-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                </span>
+                <input
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 hover:border-white/20 transition-all duration-200"
+                  type="password"
+                  id="auth-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
             </div>
           )}
 
@@ -147,7 +166,7 @@ export default function AuthComponent() {
             type="submit"
             disabled={loading}
             id="auth-submit-btn"
-            className="w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-500/10 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 cursor-pointer mt-2"
           >
             {loading
               ? mode === 'login'
@@ -163,26 +182,26 @@ export default function AuthComponent() {
           </button>
         </form>
 
-        {/* Toggle de Vista */}
-        <div className="mt-6 text-center text-sm text-slate-400">
+        {/* View toggles */}
+        <div className="mt-6 text-center text-xs text-slate-400 font-semibold select-none border-t border-white/5 pt-5">
           {mode === 'forgot' ? (
             <button
               onClick={() => { setError(''); setMode('login'); }}
-              className="text-sky-400 hover:text-sky-300 font-semibold focus:outline-none underline decoration-sky-400/30"
+              className="text-sky-400 hover:text-sky-300 font-bold focus:outline-none cursor-pointer"
             >
               Volver al inicio de sesión
             </button>
           ) : (
-            <>
+            <div className="flex justify-center gap-1.5">
               <span>{mode === 'login' ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}</span>
               <button
                 id="auth-toggle-btn"
                 onClick={toggleMode}
-                className="text-sky-400 hover:text-sky-300 font-semibold ml-1 focus:outline-none underline decoration-sky-400/30"
+                className="text-sky-400 hover:text-sky-300 font-bold focus:outline-none cursor-pointer"
               >
                 {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
