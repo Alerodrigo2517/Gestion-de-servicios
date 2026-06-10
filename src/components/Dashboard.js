@@ -280,8 +280,8 @@ export default function Dashboard({
           </div>
         </div>
 
-        {/* Action Controls list (Scrollable horizontally on mobile, static on desktop) */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto overflow-x-auto justify-start sm:justify-end scrollbar-none py-1">
+        {/* Action Controls list (Flex wrap layout, static on desktop) */}
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end py-1">
           <input
             type="file"
             id="import-excel"
