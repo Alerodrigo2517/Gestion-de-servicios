@@ -7,11 +7,11 @@ class MockDatabase {
   }
   connect() {
     this.connected = true;
-    return Promise.resolve("Conectado");
+    return Promise.resolve('Conectado');
   }
   getUser(id) {
-    if (!this.connected) throw new Error("No hay conexión a la BD");
-    return Promise.resolve({ id, nombre: "Usuario Prueba" });
+    if (!this.connected) throw new Error('No hay conexión a la BD');
+    return Promise.resolve({ id, nombre: 'Usuario Prueba' });
   }
 }
 
@@ -30,7 +30,7 @@ describe('Integración con Base de Datos', () => {
 
   test('Puede obtener un usuario por ID de la base de datos', async () => {
     const user = await db.getUser(1);
-    expect(user.nombre).toBe("Usuario Prueba");
+    expect(user.nombre).toBe('Usuario Prueba');
     expect(user.id).toBe(1);
   });
 });

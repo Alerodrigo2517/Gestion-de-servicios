@@ -3,7 +3,7 @@
 // Función de ejemplo (podrías importarla de otro archivo)
 function calculateDiscount(price, discountPercentage) {
   if (price < 0 || discountPercentage < 0) throw new Error('Valores inválidos');
-  return price - (price * (discountPercentage / 100));
+  return price - price * (discountPercentage / 100);
 }
 
 describe('Lógica de Negocio: calculateDiscount', () => {

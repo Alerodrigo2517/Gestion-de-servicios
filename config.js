@@ -17,11 +17,15 @@ const config = {
 // Validación básica (No levanta la app si faltan credenciales vitales en prod)
 if (config.env === 'production') {
   if (!config.db.user || !config.db.pass) {
-    throw new Error("⚠️ ERROR CRÍTICO: Credenciales de BD no definidas para Producción.");
+    throw new Error(
+      '⚠️ ERROR CRÍTICO: Credenciales de BD no definidas para Producción.'
+    );
   }
 } else {
   if (!config.db.user || !config.db.pass) {
-    console.warn("⚠️ ADVERTENCIA: Credenciales de BD no definidas en el entorno local.");
+    console.warn(
+      '⚠️ ADVERTENCIA: Credenciales de BD no definidas en el entorno local.'
+    );
   }
 }
 
