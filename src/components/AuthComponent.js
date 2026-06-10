@@ -27,7 +27,7 @@ export default function AuthComponent() {
           password,
         });
         if (error) throw error;
-      } else {
+      } else if (mode === 'signup') {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -40,6 +40,13 @@ export default function AuthComponent() {
           );
           setMode('login');
         }
+      } else if (mode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/`,
+        });
+        if (error) throw error;
+        alert('Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico.');
+        setMode('login');
       }
     } catch (err) {
       setError(err.message || 'Ocurrió un error inesperado durante la autenticación.');
@@ -73,7 +80,9 @@ export default function AuthComponent() {
             </h2>
           </div>
           <p id="auth-subtitle" className="text-slate-400 text-sm font-medium">
-            {mode === 'login' ? 'Inicia sesión para gestionar tus servicios' : 'Crea una cuenta nueva en ServiTrack'}
+            {mode === 'login' && 'Inicia sesión para gestionar tus servicios'}
+            {mode === 'signup' && 'Crea una cuenta nueva en ServiTrack'}
+            {mode === 'forgot' && 'Ingresa tu correo para restablecer la contraseña'}
           </p>
         </div>
 
@@ -105,21 +114,34 @@ export default function AuthComponent() {
             />
           </div>
 
-          <div>
-            <label className="block text-slate-300 text-sm font-medium mb-1.5" htmlFor="auth-password">
-              Contraseña
-            </label>
-            <input
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
-              type="password"
-              id="auth-password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </div>
+          {mode !== 'forgot' && (
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-slate-300 text-sm font-medium" htmlFor="auth-password">
+                  Contraseña
+                </label>
+                {mode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => { setError(''); setMode('forgot'); }}
+                    className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                )}
+              </div>
+              <input
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                type="password"
+                id="auth-password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+          )}
 
           <button
             type="submit"
@@ -127,20 +149,41 @@ export default function AuthComponent() {
             id="auth-submit-btn"
             className="w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
           >
-            {loading ? (mode === 'login' ? 'Iniciando sesión...' : 'Registrando cuenta...') : (mode === 'login' ? 'Iniciar Sesión' : 'Registrarse')}
+            {loading
+              ? mode === 'login'
+                ? 'Iniciando sesión...'
+                : mode === 'signup'
+                ? 'Registrando cuenta...'
+                : 'Enviando enlace...'
+              : mode === 'login'
+              ? 'Iniciar Sesión'
+              : mode === 'signup'
+              ? 'Registrarse'
+              : 'Restablecer Contraseña'}
           </button>
         </form>
 
         {/* Toggle de Vista */}
         <div className="mt-6 text-center text-sm text-slate-400">
-          <span>{mode === 'login' ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}</span>
-          <button
-            id="auth-toggle-btn"
-            onClick={toggleMode}
-            className="text-sky-400 hover:text-sky-300 font-semibold ml-1 focus:outline-none underline decoration-sky-400/30"
-          >
-            {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
-          </button>
+          {mode === 'forgot' ? (
+            <button
+              onClick={() => { setError(''); setMode('login'); }}
+              className="text-sky-400 hover:text-sky-300 font-semibold focus:outline-none underline decoration-sky-400/30"
+            >
+              Volver al inicio de sesión
+            </button>
+          ) : (
+            <>
+              <span>{mode === 'login' ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}</span>
+              <button
+                id="auth-toggle-btn"
+                onClick={toggleMode}
+                className="text-sky-400 hover:text-sky-300 font-semibold ml-1 focus:outline-none underline decoration-sky-400/30"
+              >
+                {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

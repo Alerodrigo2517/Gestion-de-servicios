@@ -6,8 +6,16 @@ const months = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, currentMonthIndex, onImportPrevious, showImportButton, previousMonthName }) {
-  const [type, setType] = useState('service');
+export default function ServiceForm({
+  onSubmit,
+  editingItem,
+  onCancelEdit,
+  currentMonthIndex,
+  onImportPrevious,
+  showImportButton,
+  previousMonthName
+}) {
+  const [type, setType] = useState('income'); // Changed default to 'income' (Ingreso)
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   
@@ -32,7 +40,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
   // Sync state if editingItem changes
   useEffect(() => {
     if (editingItem) {
-      setType(editingItem.type || 'service');
+      setType(editingItem.type || 'income');
       setName(editingItem.name || '');
       setAmount(editingItem.amount ? String(editingItem.amount) : '');
       
@@ -123,26 +131,69 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
     }
   };
 
+  const getFocusRing = () => {
+    switch (type) {
+      case 'income':
+        return 'focus:ring-emerald-500/50 focus:border-emerald-500/50 hover:border-emerald-500/30';
+      case 'service':
+        return 'focus:ring-sky-500/50 focus:border-sky-500/50 hover:border-sky-500/30';
+      case 'loan':
+        return 'focus:ring-purple-500/50 focus:border-purple-500/50 hover:border-purple-500/30';
+      case 'overdue':
+        return 'focus:ring-rose-500/50 focus:border-rose-500/50 hover:border-rose-500/30';
+      default:
+        return 'focus:ring-sky-500/50 focus:border-sky-500/50';
+    }
+  };
+
+  const getSubmitBtnClass = () => {
+    const base = "flex-[2] py-3 text-white font-semibold rounded-lg shadow-lg active:scale-[0.98] transition-all duration-300 ";
+    switch (type) {
+      case 'income':
+        return base + "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-emerald-500/20";
+      case 'service':
+        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/20";
+      case 'loan':
+        return base + "bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 shadow-purple-500/20";
+      case 'overdue':
+        return base + "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 shadow-rose-500/20";
+      default:
+        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/20";
+    }
+  };
+
   return (
-    <section className="bg-slate-900/20 border border-white/5 rounded-2xl p-6 self-start shadow-xl">
-      <div className="flex p-1 bg-black/20 rounded-xl mb-6 gap-1">
+    <section className="backdrop-blur-md bg-slate-900/60 border border-white/10 rounded-2xl p-6 self-start shadow-2xl relative overflow-hidden transition-all duration-300 hover:border-white/15">
+      {/* Decorative colored glow on top of form */}
+      <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r transition-all duration-500 ${
+        type === 'income' ? 'from-emerald-500 to-teal-500' :
+        type === 'service' ? 'from-sky-500 to-indigo-500' :
+        type === 'loan' ? 'from-purple-500 to-indigo-500' :
+        'from-rose-500 to-red-500'
+      }`}></div>
+
+      {/* Tabs Selector with 'Ingreso' in the first position */}
+      <div className="flex p-1 bg-black/20 rounded-xl mb-6 gap-1 border border-white/5">
         {[
-          { key: 'service', label: 'Servicio' },
-          { key: 'loan', label: 'Préstamo' },
-          { key: 'overdue', label: 'Atrasado' },
-          { key: 'income', label: 'Ingreso', styleClass: 'text-emerald-400 hover:text-emerald-300' }
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setType(tab.key)}
-            className={`tab-btn flex-1 py-2 text-center text-xs font-semibold rounded-lg transition-all ${
-              type === tab.key ? 'active' : ''
-            } ${tab.styleClass || ''}`}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { key: 'income', label: 'Ingreso', activeClass: 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-500/5' },
+          { key: 'service', label: 'Servicio', activeClass: 'bg-sky-500/20 border border-sky-500/30 text-sky-400 shadow-md shadow-sky-500/5' },
+          { key: 'loan', label: 'Préstamo', activeClass: 'bg-purple-500/20 border border-purple-500/30 text-purple-400 shadow-md shadow-purple-500/5' },
+          { key: 'overdue', label: 'Atrasado', activeClass: 'bg-rose-500/20 border border-rose-500/30 text-rose-400 shadow-md shadow-rose-500/5' }
+        ].map((tab) => {
+          const isActive = type === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setType(tab.key)}
+              className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent ${
+                isActive ? tab.activeClass + ' scale-[1.02]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,7 +210,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
             autoComplete="off"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+            className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
           />
         </div>
 
@@ -176,7 +227,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+            className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
           />
         </div>
 
@@ -192,7 +243,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                   id="consumption-month"
                   value={consumptionMonth}
                   onChange={(e) => setConsumptionMonth(parseInt(e.target.value))}
-                  className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                 >
                   {months.map((m, idx) => (
                     <option key={idx} value={idx} className="bg-slate-950 text-white">
@@ -209,7 +260,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                   id="consumption-month-end"
                   value={consumptionMonthEnd}
                   onChange={(e) => setConsumptionMonthEnd(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                 >
                   <option value="" className="bg-slate-950 text-white">-- Mismo mes --</option>
                   {months.map((m, idx) => (
@@ -237,7 +288,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                         step="0.1"
                         value={consumptionUnit}
                         onChange={(e) => setConsumptionUnit(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                        className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                       />
                     </div>
                     <div>
@@ -252,7 +303,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                         placeholder="Ej. 15"
                         value={nextMeasurementDate}
                         onChange={(e) => setNextMeasurementDate(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                        className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                       />
                     </div>
                   </>
@@ -270,7 +321,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                       placeholder="Ej. 20"
                       value={billingCloseDate}
                       onChange={(e) => setBillingCloseDate(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                      className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                     />
                   </div>
                 )}
@@ -292,7 +343,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                 placeholder="Ej. Banco Galicia, Juan..."
                 value={creditor}
                 onChange={(e) => setCreditor(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -307,7 +358,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                   placeholder="1"
                   value={currentInstallment}
                   onChange={(e) => setCurrentInstallment(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                 />
               </div>
               <div>
@@ -321,7 +372,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                   placeholder="12"
                   value={totalInstallments}
                   onChange={(e) => setTotalInstallments(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                 />
               </div>
             </div>
@@ -335,7 +386,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
                 placeholder="Ej. Rodrigo"
                 value={titular}
                 onChange={(e) => setTitular(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-950/60 border border-white/10 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all"
+                className={`w-full px-4 py-2.5 bg-slate-950/40 border border-white/10 hover:border-white/20 rounded-lg text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
               />
             </div>
           </div>
@@ -353,7 +404,7 @@ export default function ServiceForm({ onSubmit, editingItem, onCancelEdit, curre
           )}
           <button
             type="submit"
-            className="flex-[2] py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all"
+            className={getSubmitBtnClass()}
           >
             {editingItem ? 'Actualizar' : 'Guardar'}
           </button>

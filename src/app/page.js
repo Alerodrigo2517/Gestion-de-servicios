@@ -5,6 +5,8 @@ import AuthComponent from '@/components/AuthComponent';
 import Dashboard from '@/components/Dashboard';
 import SimulationModal from '@/components/SimulationModal';
 import ChartsModal from '@/components/ChartsModal';
+import ResetPasswordView from '@/components/ResetPasswordView';
+import ChangePasswordModal from '@/components/ChangePasswordModal';
 
 const STORAGE_KEY = 'household_services_v3';
 
@@ -15,6 +17,8 @@ export default function Home() {
   const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
   const [editingItem, setEditingItem] = useState(null);
   const [activeModal, setActiveModal] = useState(null); // 'projection' | 'consumption' | 'simulation' | null
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   // 1. Authenticate user and setup session listener
   useEffect(() => {
@@ -28,14 +32,22 @@ export default function Home() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovering(true);
+      }
       if (session) {
         loadData();
       } else {
         setServices([]);
         setEditingItem(null);
         setActiveModal(null);
+        setIsRecovering(false);
       }
     });
+
+    if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('type=recovery')) {
+      setIsRecovering(true);
+    }
 
     return () => subscription.unsubscribe();
   }, []);
@@ -133,7 +145,7 @@ export default function Home() {
 
   const handleTogglePaid = (id) => {
     if (!session) return;
-    
+
     const updatedServices = services.map((item) => {
       if (item.id === id && item.type !== 'income') {
         const nextPaidState = !item.isPaid;
@@ -146,7 +158,7 @@ export default function Home() {
         } else {
           delete updatedItem.paymentDate;
         }
-        
+
         saveItemToDatabase(updatedItem, false, session.user.id);
         return updatedItem;
       }
@@ -164,9 +176,9 @@ export default function Home() {
     const currentNames = services
       .filter((s) => s.paymentMonth === currentMonthIndex)
       .map((s) => s.name.toLowerCase());
-    
+
     const importableItems = prevMonthItems.filter((s) => !currentNames.includes(s.name.toLowerCase()));
-    
+
     if (importableItems.length === 0) return;
 
     const importedItems = importableItems.map((item) => {
@@ -176,7 +188,7 @@ export default function Home() {
         paymentMonth: currentMonthIndex,
         isPaid: false,
       };
-      
+
       delete newItem.paymentDate;
 
       if (newItem.type === 'service' || newItem.type === 'overdue') {
@@ -215,6 +227,142 @@ export default function Home() {
     });
   };
 
+  const handleGenerateDemoData = async () => {
+    if (!session) return;
+    const userId = session.user.id;
+
+    const cleanFirst = confirm(
+      '¿Deseas vaciar la base de datos antes de cargar los servicios de demo anual?\n\n' +
+      'Aceptar: Borrar todo y cargar demo limpia.\n' +
+      'Cancelar: Conservar datos actuales y añadir demo.'
+    );
+
+    let updatedServices = [];
+    if (cleanFirst) {
+      try {
+        const { error } = await supabase.from('services').delete().eq('user_id', userId);
+        if (error) throw error;
+        updatedServices = [];
+      } catch (err) {
+        console.error('Error al limpiar base de datos:', err);
+        alert('Hubo un error al limpiar la base de datos. Intenta nuevamente.');
+        return;
+      }
+    } else {
+      updatedServices = [...services];
+    }
+
+    const demoServices = [];
+    const baseId = Date.now().toString();
+
+    // Luz seasonal pricing (0: Enero to 11: Diciembre)
+    const luzPrices = [18000, 17000, 10000, 9000, 11000, 14000, 16000, 15000, 10000, 9000, 9500, 15000];
+    const luzKwh    = [350, 330, 200, 180, 220, 280, 320, 300, 200, 180, 190, 300];
+
+    // Gas seasonal pricing
+    const gasPrices = [3500, 3500, 4000, 6000, 14000, 22000, 25000, 23000, 12000, 6000, 4500, 3500];
+    const gasM3     = [25, 25, 30, 50, 120, 200, 230, 210, 100, 50, 35, 25];
+
+    // Agua seasonal pricing
+    const aguaPrices = [6500, 6500, 5000, 4500, 4500, 4500, 4500, 4500, 4500, 4500, 5000, 6500];
+
+    for (let month = 0; month < 12; month++) {
+      // 1. Sueldo (Income)
+      demoServices.push({
+        id: `${baseId}-sueldo-${month}`,
+        user_id: userId,
+        type: 'income',
+        name: 'Sueldo',
+        amount: 150000,
+        paymentMonth: month,
+        isPaid: false,
+      });
+
+      // 2. Luz (Service)
+      demoServices.push({
+        id: `${baseId}-luz-${month}`,
+        user_id: userId,
+        type: 'service',
+        name: 'Luz Edesur',
+        amount: luzPrices[month],
+        paymentMonth: month,
+        isPaid: false,
+        consumptionMonth: month,
+        consumptionMonthEnd: null,
+        consumptionUnit: luzKwh[month],
+        nextMeasurementDate: 15,
+      });
+
+      // 3. Gas (Service)
+      demoServices.push({
+        id: `${baseId}-gas-${month}`,
+        user_id: userId,
+        type: 'service',
+        name: 'Gas Metrogas',
+        amount: gasPrices[month],
+        paymentMonth: month,
+        isPaid: false,
+        consumptionMonth: month,
+        consumptionMonthEnd: null,
+        consumptionUnit: gasM3[month],
+        nextMeasurementDate: 20,
+      });
+
+      // 4. Agua (Service)
+      demoServices.push({
+        id: `${baseId}-agua-${month}`,
+        user_id: userId,
+        type: 'service',
+        name: 'Agua AySA',
+        amount: aguaPrices[month],
+        paymentMonth: month,
+        isPaid: false,
+        consumptionMonth: month,
+        consumptionMonthEnd: null,
+      });
+
+      // 5. Internet (Service)
+      demoServices.push({
+        id: `${baseId}-internet-${month}`,
+        user_id: userId,
+        type: 'service',
+        name: 'Internet Fibertel',
+        amount: 12000,
+        paymentMonth: month,
+        isPaid: false,
+        consumptionMonth: month,
+        consumptionMonthEnd: null,
+        billingCloseDate: 22,
+      });
+
+      // 6. TV/Cable (Service)
+      demoServices.push({
+        id: `${baseId}-tv-${month}`,
+        user_id: userId,
+        type: 'service',
+        name: 'Cablevisión Flow',
+        amount: 8500,
+        paymentMonth: month,
+        isPaid: false,
+        consumptionMonth: month,
+        consumptionMonthEnd: null,
+      });
+    }
+
+    try {
+      const { error } = await supabase.from('services').upsert(demoServices);
+      if (error) throw error;
+
+      const finalServices = [...updatedServices, ...demoServices];
+      setServices(finalServices);
+      syncLocalBackup(finalServices);
+      alert('¡Demo cargada exitosamente! Se generaron 6 servicios mensuales (incluyendo ingresos) para todo el año con precios estacionales realistas.');
+    } catch (err) {
+      console.error('Error al guardar la demo en Supabase:', err);
+      alert('Ocurrió un error al guardar los datos en Supabase.');
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -238,6 +386,19 @@ export default function Home() {
     return <AuthComponent />;
   }
 
+  if (isRecovering) {
+    return (
+      <ResetPasswordView
+        onComplete={() => {
+          setIsRecovering(false);
+          if (typeof window !== 'undefined') {
+            window.location.hash = '';
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <Dashboard
@@ -254,6 +415,8 @@ export default function Home() {
         onOpenModal={(type) => setActiveModal(type)}
         onBulkImport={handleBulkImport}
         onEdit={handleEditItem}
+        onGenerateDemoData={handleGenerateDemoData}
+        onChangePassword={() => setIsChangePasswordOpen(true)}
       />
 
       {/* Simulador de Bajas Modal */}
@@ -270,6 +433,12 @@ export default function Home() {
         onClose={() => setActiveModal(null)}
         type={activeModal}
         services={services}
+      />
+
+      {/* Modal Cambiar Contraseña */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
       />
     </>
   );
