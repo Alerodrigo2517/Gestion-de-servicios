@@ -6,10 +6,11 @@ Este documento detalla la evolución técnica y de características de **ServiTr
 
 ## 📌 Versión Actual del Sistema: **v1.3.0**
 
-Basándonos en la nomenclatura de **Versionado Semántico (SemVer)** y la evolución del proyecto, la versión actual de ServiTrack es la **v1.3.0**. 
+Basándonos en la nomenclatura de **Versionado Semántico (SemVer)** y la evolución del proyecto, la versión actual de ServiTrack es la **v1.3.0**.
 
+*   **Autor Principal:** **Rodrigo Alejandro Aguirre Tevez**
 *   **Mayor (`1`):** Refleja la estabilidad del sistema migrado a un framework de producción moderna (Next.js, React, Supabase) listo para producción, superando la etapa inicial de prototipo.
-*   **Menor (`3`):** Incorporación del campo unificado de vencimiento de facturas en todo el sistema y la sección visual cronológica de "Próximos Vencimientos del Mes" en el Dashboard.
+*   **Menor (`3`):** Incorporación de la columna `dueDate` (`DATE` en PostgreSQL), el componente independiente `<CalendarWidget />`, la centralización en `statusHelper.js`, el Banner Global de alertas, y lógica robusta de límites de fecha y años bisiestos.
 *   **Parche (`0`):** Refleja el inicio del ciclo de la versión menor 1.3 con limpieza previa de fallbacks de credenciales expuestas y linter warnings eliminados.
 
 ---
@@ -27,7 +28,7 @@ El desarrollo del sistema ha transitado por tres fases principales: **Prototipo 
 | **v1.1.0** | Menor | `6301a40` | 10 de Junio, 2026 | Implementación de cambio/recuperación de contraseña y mejoras de formulario. |
 | **v1.2.0** | Menor | `fc1834c` | 10 de Junio, 2026 | Rediseño visual UI/UX Glassmorphic premium y optimizaciones móviles. |
 | **v1.2.1** | Parche | `32f3f02` | 10 de Junio, 2026 | Corrección de bug de maquetación en el dropdown de herramientas. |
-| **v1.3.0** | Menor | `f7ca11d` | 11 de Junio, 2026 | Limpieza de credenciales, integración de logger custom y soporte de vencimientos unificados en MVP. |
+| **v1.3.0** | Menor | `f7ca11d` | 11 de Junio, 2026 | Mejoras del Arquitecto, fecha DATE PostgreSQL, CalendarWidget, Banner Global, bisiestos y créditos Rodrigo Aguirre Tevez. |
 
 ---
 
@@ -81,14 +82,24 @@ El desarrollo del sistema ha transitado por tres fases principales: **Prototipo 
 
 ---
 
-### 📅 v1.3.0: Seguridad, Limpieza y Alineación del MVP
+### 📅 v1.3.0: Mejoras del Arquitecto, Autoría y Consolidación del Sistema
 *   **Estado / Fecha de Implementación:** 11 de Junio, 2026.
+*   **Autor Principal:** **Rodrigo Alejandro Aguirre Tevez**
 *   **Cambios Clave:**
-    *   **Seguridad de Credenciales:** Remoción de claves de Supabase fijas como fallbacks en [supabase.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/supabase.js). Se migró la configuración a variables de entorno en el archivo [.env.local](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/.env.local), que está listado en `.gitignore`.
-    *   **Limpieza de Consolas (ESLint):** Se creó la utilidad [logger.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/logger.js) para evitar la salida de consolas no deseadas en entornos productivos y eliminar 9 avisos de linter de `no-console`.
-    *   **Día de Vencimiento Generalizado:** Se implementó el campo de fecha de vencimiento en [ServiceForm.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ServiceForm.js) para cualquier servicio cargado por el usuario, reutilizando las columnas de base de datos sin alterar el esquema físico.
-    *   **Widget "Próximos Vencimientos":** Rediseño en [Dashboard.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/Dashboard.js) para listar ordenados de manera cronológica (del día 1 al 31) todos los servicios impagos del periodo seleccionado.
-    *   **Metadata en Tarjetas:** Se modificó [ServiceCard.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ServiceCard.js) para renderizar dinámicamente la leyenda `| Vence el día X`.
+    *   **Seguridad y Linter:** Remoción de claves de Supabase fijas en [supabase.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/supabase.js) migrándolas a [.env.local](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/.env.local) y creación de [logger.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/logger.js) para ESLint.
+    *   **PostgreSQL DATE y dueDate:** Uso del tipo nativo `DATE` en Supabase para `dueDate` como fuente única de verdad, manteniendo de forma segura retrocompatibilidad con las columnas legacy (`nextMeasurementDate`/`billingCloseDate`).
+    *   **statusHelper Centralizado:** Se implementó [statusHelper.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/statusHelper.js) para calcular de forma unificada la urgencia, alertas y diferencia de días normalizados a medianoche local.
+    *   **Calendario Widget (roadmap):** Se creó [CalendarWidget.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/CalendarWidget.js) para desacoplar el calendario y mostrar contadores numéricos agregados por día. Se decidió desactivarlo (comentarlo) en la UI principal del Dashboard de la versión **v1.3.0** final para acotar el alcance al MVP según determinaciones del Arquitecto, manteniéndose disponible en el repositorio para futuras fases.
+    *   **Panel de Vencimientos Acotado:** Se limitó a los 5 vencimientos más urgentes en el Dashboard con un botón dinámico para "Ver todos", manteniendo la visualización limpia.
+    *   **Visibilidad de la Autoría en UI:** Se inyectó el footer visible `"ServiTrack v1.3.0 | Creado por Rodrigo Alejandro Aguirre Tevez"` tanto en el Dashboard como en el formulario de Login de [AuthComponent.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/AuthComponent.js).
+    *   **Banner Global de Alerta:** Integración de aviso persistente en el encabezado del Dashboard que detecta y lista todos los servicios impagos y vencidos/venciendo hoy a lo largo de todo el historial.
+    *   **Importaciones y Casos Límite:** Cálculo robusto en la clonación de periodos mensuales (ej. 31/01 a 28/02) y años bisiestos usando utilidades de clip de fecha.
+    *   **Origen de Fondos (paymentSource):** Incorporación de la columna `paymentSource` en base de datos. Se agregó un control segmentado en [ServiceForm.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ServiceForm.js) con la etiqueta *"¿Quién pagó este servicio?"* y ayuda contextual. Si está marcado como financiado por terceros (`THIRD_PARTY`), el servicio no resta de la liquidez ni de la proyección del usuario.
+    *   **Badges de Terceros:** Integración de un badge secundario gris `TERCEROS` junto al de `PAGADO` en [ServiceCard.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ServiceCard.js) para reflejar visualmente el origen.
+    *   **Lógica Centralizada (affectsLiquidity):** Encapsulación de la regla contable en la función `affectsLiquidity(service)` dentro de [statusHelper.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/statusHelper.js).
+    *   **Configuración de Tests (jest.config.js):** Creación del archivo [jest.config.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/jest.config.js) para habilitar de manera limpia el soporte de ESModules utilizando Next.js SWC.
+    *   **Pruebas Robustas:** Ampliación en [logic.test.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/tests/logic.test.js) probando años bisiestos, desbordes de fin de mes, virtualización de deudas antiguas, estados de urgencia, comportamiento de registros legacy e impactos de edición de origen de fondos.
+
 
 ---
 

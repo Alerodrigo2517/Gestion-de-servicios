@@ -1,5 +1,6 @@
 'use client';
 import { formatCurrency } from '@/lib/utils';
+import { getServiceStatus } from '@/lib/statusHelper';
 
 const months = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -139,6 +140,7 @@ const getCategoryIconAndColor = (name, type) => {
 export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSimulate }) {
   const isPaid = item.isPaid;
   const type = item.type;
+  const statusInfo = getServiceStatus(item);
   
   let cardClass = 'flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-2xl transition-all duration-300 gap-4 ';
   if (isPaid) {
@@ -182,9 +184,14 @@ export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSi
     if (item.consumptionUnit) {
       metaText += ` | ${item.consumptionUnit} unds.`;
     }
-    const dueDay = item.nextMeasurementDate || item.billingCloseDate;
-    if (dueDay) {
-      metaText += ` | Vence el día ${dueDay}`;
+    if (item.dueDate) {
+      const [y, m, d] = item.dueDate.split('-');
+      metaText += ` | Vence: ${d}/${m}/${y}`;
+    } else {
+      const dueDay = item.nextMeasurementDate || item.billingCloseDate;
+      if (dueDay) {
+        metaText += ` | Vence el día ${dueDay}`;
+      }
     }
   }
 
@@ -220,19 +227,22 @@ export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSi
             {/* Status Badge */}
             {type !== 'income' && (
               isPaid ? (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5 shrink-0">
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  PAGADO
-                </span>
+                <div className="flex gap-1.5 shrink-0 flex-wrap">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5">
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    PAGADO
+                  </span>
+                  {item.paymentSource === 'THIRD_PARTY' && (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-500/20 text-slate-400 border border-white/10 flex items-center gap-0.5">
+                      TERCEROS
+                    </span>
+                  )}
+                </div>
               ) : (
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border flex items-center gap-1 shrink-0 ${
-                  type === 'overdue' 
-                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 animate-pulse' 
-                    : 'bg-slate-500/10 text-slate-400 border-slate-500/15'
-                }`}>
-                  {type === 'overdue' ? 'VENCIDO' : 'PENDIENTE'}
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border flex items-center gap-1 shrink-0 ${statusInfo.colorClass}`}>
+                  {statusInfo.badgeText.toUpperCase()}
                 </span>
               )
             )}

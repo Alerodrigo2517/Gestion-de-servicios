@@ -2,8 +2,10 @@
 import { useRef, useState, useEffect } from 'react';
 import ServiceForm from './ServiceForm';
 import ServiceList from './ServiceList';
+// import CalendarWidget from './CalendarWidget';
 import { formatCurrency } from '@/lib/utils';
 import { exportToExcel, importFromExcel } from '@/lib/excelHelper';
+import { getServiceDueDate, getServiceStatus, affectsLiquidity } from '@/lib/statusHelper';
 import logger from '@/lib/logger';
 
 const months = [
@@ -31,9 +33,41 @@ export default function Dashboard({
   const fileInputRef = useRef(null);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [showAllVencimientos, setShowAllVencimientos] = useState(false);
   const toolsRef = useRef(null);
   const profileRef = useRef(null);
   const profileRefDesktop = useRef(null);
+
+  // Reset selected day filter when active month changes
+  useEffect(() => {
+    setSelectedDay(null);
+  }, [currentMonthIndex]);
+
+  // Scan all services across all months for unpaid overdues or today-due items (global banner)
+  const globalAlertServices = services.filter((s) => {
+    if (s.isPaid || s.type === 'income') return false;
+    const statusInfo = getServiceStatus(s);
+    return statusInfo.status === 'VENCIDO' || statusInfo.status === 'VENCE_HOY';
+  });
+
+  // Filter items by type and selected day
+  const getFilteredItems = (type) => {
+    return currentItems.filter((item) => {
+      if (item.type !== type) return false;
+      if (selectedDay === null) return true;
+      if (type === 'income') return true;
+      const dueDateObj = getServiceDueDate(item);
+      return dueDateObj.getDate() === selectedDay && dueDateObj.getMonth() === currentMonthIndex;
+    });
+  };
+
+  const getListTitle = (baseTitle, type) => {
+    if (selectedDay !== null && type !== 'income') {
+      return `${baseTitle} (Vence el día ${selectedDay})`;
+    }
+    return baseTitle;
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -68,20 +102,20 @@ export default function Dashboard({
     } else if (item.type === 'loan') {
       if (!item.isPaid) {
         totalLoans += item.amount;
-      } else {
+      } else if (affectsLiquidity(item)) {
         totalPaid += item.amount;
       }
     } else if (item.type === 'overdue') {
-      if (item.isPaid) {
-        totalPaid += item.amount;
-      } else {
+      if (!item.isPaid) {
         totalOverdue += item.amount;
+      } else if (affectsLiquidity(item)) {
+        totalPaid += item.amount;
       }
     } else {
-      if (item.isPaid) {
-        totalPaid += item.amount;
-      } else {
+      if (!item.isPaid) {
         totalPending += item.amount;
+      } else if (affectsLiquidity(item)) {
+        totalPaid += item.amount;
       }
     }
   });
@@ -123,15 +157,20 @@ export default function Dashboard({
   const unpaidServices = currentItems
     .filter((item) => item.type !== 'income' && !item.isPaid)
     .map((item) => {
-      const day = item.nextMeasurementDate || item.billingCloseDate || 0;
-      return { ...item, dueDay: day };
-    })
-    .filter((item) => item.dueDay > 0);
+      const dueDateObj = getServiceDueDate(item);
+      const statusInfo = getServiceStatus(item);
+      return { ...item, dueDateObj, statusInfo };
+    });
 
-  unpaidServices.sort((a, b) => a.dueDay - b.dueDay);
+  unpaidServices.sort((a, b) => a.dueDateObj.getTime() - b.dueDateObj.getTime());
 
-  const nextVencimientos = unpaidServices.map((item) => {
-    const isOverdue = item.type === 'overdue';
+  const displayedVencimientos = showAllVencimientos
+    ? unpaidServices
+    : unpaidServices.slice(0, 5);
+
+  const nextVencimientos = displayedVencimientos.map((item) => {
+    const isOverdue = item.statusInfo.status === 'VENCIDO';
+    const dateFormatted = `${String(item.dueDateObj.getDate()).padStart(2, '0')}/${String(item.dueDateObj.getMonth() + 1).padStart(2, '0')}`;
     return (
       <li key={`venc-${item.id}`} className="flex justify-between items-center text-xs py-1.5 border-b border-white/5 last:border-0">
         <span className="flex items-center gap-2">
@@ -139,7 +178,7 @@ export default function Dashboard({
           <span className="text-slate-200 font-semibold">{item.name}</span>
         </span>
         <span className="text-slate-400 font-bold">
-          Día {item.dueDay} ({formatCurrency(item.amount)})
+          {dateFormatted} ({formatCurrency(item.amount)})
         </span>
       </li>
     );
@@ -495,7 +534,43 @@ export default function Dashboard({
       </nav>
 
       {/* Dashboard Principal */}
-      <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-8 glass-premium border-t-0 rounded-b-2xl shadow-2xl mb-12">
+      <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-8 glass-premium border-t-0 rounded-b-2xl shadow-2xl mb-12 animate-fade-in">
+        {/* Global header alert banner */}
+        {globalAlertServices.length > 0 && (
+          <div className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-rose-500/20 via-orange-500/10 to-rose-950/20 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)] flex items-start gap-4 animate-slide-up relative z-10">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/20 text-rose-400 border border-rose-500/30 shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-pulse">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-xs font-black text-rose-400 uppercase tracking-widest">
+                Atención: Vencimientos Inmediatos
+              </h4>
+              <p className="text-xs text-slate-300 font-semibold mt-1">
+                Tienes {globalAlertServices.length} {globalAlertServices.length === 1 ? 'servicio vencido o que vence hoy' : 'servicios vencidos o que vencen hoy'}. Por favor, regístralo o realízalo cuanto antes:
+              </p>
+              <ul className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-400 font-bold">
+                {globalAlertServices.map((s) => {
+                  const statusInfo = getServiceStatus(s);
+                  return (
+                    <li
+                      key={s.id}
+                      className="px-2.5 py-1 rounded-md bg-black/40 border border-white/5 flex items-center gap-1.5 hover:border-white/10 transition duration-200"
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.status === 'VENCIDO' ? 'bg-rose-500 animate-pulse' : 'bg-orange-500 animate-pulse'}`}></span>
+                      <span className="text-slate-300">{s.name}</span>
+                      <span className="text-slate-500 font-semibold">({months[s.paymentMonth]})</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col items-center gap-6 mb-8 pb-6 border-b border-white/10">
           <h2 className="text-3xl font-black text-white tracking-tight">
             {months[currentMonthIndex]}
@@ -608,9 +683,9 @@ export default function Dashboard({
           {(nextVencimientos.length > 0 || reminders.length > 0) && (
             <div id="reminders-panel" className="p-5 rounded-2xl text-sm glass-premium bg-amber-500/5 border-l-4 border-amber-500 animate-slide-up flex flex-col gap-4">
               {nextVencimientos.length > 0 && (
-                <div>
+                <div className="flex flex-col">
                   <h4 className="flex items-center gap-2 font-bold text-amber-400 mb-3">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                       <line x1="16" y1="2" x2="16" y2="6"></line>
                       <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -621,6 +696,15 @@ export default function Dashboard({
                   <ul className="space-y-1 text-slate-300 font-semibold mb-2 max-h-[150px] overflow-y-auto pr-1">
                     {nextVencimientos}
                   </ul>
+                  {unpaidServices.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllVencimientos(!showAllVencimientos)}
+                      className="text-[10px] text-amber-400 hover:text-amber-300 font-bold uppercase tracking-wider mt-1.5 transition cursor-pointer self-start focus:outline-none"
+                    >
+                      {showAllVencimientos ? 'Mostrar menos' : `Ver todos (+${unpaidServices.length - 5})`}
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -646,20 +730,28 @@ export default function Dashboard({
 
         {/* Grid de Formulario y Listas */}
         <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8">
-          <ServiceForm
-            onSubmit={onSaveItem}
-            editingItem={editingItem}
-            onCancelEdit={() => setEditingItem(null)}
-            currentMonthIndex={currentMonthIndex}
-            onImportPrevious={onImportPrevious}
-            showImportButton={showImportButton}
-            previousMonthName={previousMonthName}
-          />
+          <div className="space-y-6">
+            {/* <CalendarWidget
+              services={services}
+              currentMonthIndex={currentMonthIndex}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+            /> */}
+            <ServiceForm
+              onSubmit={onSaveItem}
+              editingItem={editingItem}
+              onCancelEdit={() => setEditingItem(null)}
+              currentMonthIndex={currentMonthIndex}
+              onImportPrevious={onImportPrevious}
+              showImportButton={showImportButton}
+              previousMonthName={previousMonthName}
+            />
+          </div>
 
           <section className="space-y-8">
             <ServiceList
-              title="Ingresos del Mes"
-              items={currentItems}
+              title={getListTitle("Ingresos del Mes", "income")}
+              items={getFilteredItems("income")}
               type="income"
               onEdit={onEdit}
               onDelete={onDeleteItem}
@@ -668,8 +760,8 @@ export default function Dashboard({
             />
 
             <ServiceList
-              title="Servicios Regulares"
-              items={currentItems}
+              title={getListTitle("Servicios Regulares", "service")}
+              items={getFilteredItems("service")}
               type="service"
               onEdit={onEdit}
               onDelete={onDeleteItem}
@@ -678,8 +770,8 @@ export default function Dashboard({
             />
 
             <ServiceList
-              title="Préstamos Activos"
-              items={currentItems}
+              title={getListTitle("Préstamos Activos", "loan")}
+              items={getFilteredItems("loan")}
               type="loan"
               onEdit={onEdit}
               onDelete={onDeleteItem}
@@ -688,8 +780,8 @@ export default function Dashboard({
             />
 
             <ServiceList
-              title="Servicios Atrasados"
-              items={currentItems}
+              title={getListTitle("Servicios Atrasados", "overdue")}
+              items={getFilteredItems("overdue")}
               type="overdue"
               onEdit={onEdit}
               onDelete={onDeleteItem}
@@ -699,6 +791,9 @@ export default function Dashboard({
           </section>
         </div>
       </main>
+      <footer className="w-full text-center py-6 text-[10px] text-slate-500 font-semibold tracking-wider select-none">
+        ServiTrack v1.3.0 | Creado por <span className="text-slate-400">Rodrigo Alejandro Aguirre Tevez</span>
+      </footer>
     </div>
   );
 }

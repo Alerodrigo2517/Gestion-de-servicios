@@ -8,6 +8,7 @@ import ChartsModal from '@/components/ChartsModal';
 import ResetPasswordView from '@/components/ResetPasswordView';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
 import logger from '@/lib/logger';
+import { getSafeDate, formatDateToString } from '@/lib/statusHelper';
 
 const STORAGE_KEY = 'household_services_v3';
 
@@ -198,6 +199,25 @@ export default function Home() {
           newItem.consumptionMonthEnd = null;
         }
         delete newItem.consumptionUnit;
+
+        // Handle dueDate import/generation
+        if (newItem.dueDate) {
+          const [oldYear, , dayStr] = newItem.dueDate.split('-');
+          let destYear = parseInt(oldYear);
+          if (currentMonthIndex === 0 && item.paymentMonth === 11) {
+            destYear += 1;
+          }
+          const safeDateObj = getSafeDate(destYear, currentMonthIndex, parseInt(dayStr));
+          newItem.dueDate = formatDateToString(safeDateObj);
+        } else {
+          // Legacy items: construct a safe dueDate for this month using legacy day columns
+          const day = newItem.nextMeasurementDate || newItem.billingCloseDate;
+          if (day) {
+            const destYear = new Date().getFullYear();
+            const safeDateObj = getSafeDate(destYear, currentMonthIndex, day);
+            newItem.dueDate = formatDateToString(safeDateObj);
+          }
+        }
       } else if (newItem.type === 'loan') {
         if ((newItem.currentInstallment || 1) < (newItem.totalInstallments || 1)) {
           newItem.currentInstallment = (newItem.currentInstallment || 1) + 1;
