@@ -93,5 +93,16 @@ Este documento registra cronológicamente las conversaciones, auditorías, respu
     *   Se detallaron los 5 pilares de cambios de esta versión en el archivo (Seguridad de credenciales, Linter clean con logger, Día de Vencimiento unificado, Widget cronológico en Dashboard, y metadata en tarjetas).
     *   Se actualizaron las recomendaciones de Git Tags del archivo para utilizar la versión `v1.3.0`.
 
+---
+
+### 💬 Conversación 11: Error de Pre-renderizado en Vercel
+*   **Usuario:** Reporta que Vercel falló durante la compilación (`next build`) debido a la falta de variables de entorno de Supabase al pre-renderizar la ruta raíz `/`.
+*   **Acción del Desarrollador:**
+    *   **Diagnóstico:** Al no estar definidas las variables de entorno `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en los ajustes de Vercel al compilar, el validador estricto de `supabase.js` lanzó un error fatal que detuvo el build.
+    *   **Solución en Código:** Se modificó [supabase.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/supabase.js) de forma defensiva para mostrar una advertencia (`console.warn`) en lugar de lanzar una excepción fatal durante el pre-renderizado de compilación, utilizando fallbacks de prueba temporales.
+    *   **Acciones del Usuario:** Se indicaron los pasos para configurar las variables de entorno de Supabase directamente desde el panel de control de Vercel (Settings -> Environment Variables) para habilitar el funcionamiento real de la base de datos en producción.
+    *   **Subido a Git:** Se agregaron los cambios, se realizó commit en español (`fix: prevenir error de prerrenderizado en compilacion sin variables de entorno`) y se empujó a la rama principal en GitHub para disparar el redeploy automático en Vercel.
+
+
 
 
