@@ -36,8 +36,6 @@ export default function ServiceForm({
   // Detect dynamic fields based on name text
   const isEnergyRelated = name.toLowerCase().includes('luz') || name.toLowerCase().includes('gas') || name.toLowerCase().includes('energia') || name.toLowerCase().includes('edesur') || name.toLowerCase().includes('edenor') || name.toLowerCase().includes('metrogas') || name.toLowerCase().includes('camuzzi') || name.toLowerCase().includes('aysa') || name.toLowerCase().includes('agua');
   const isInternetRelated = name.toLowerCase().includes('internet') || name.toLowerCase().includes('wifi') || name.toLowerCase().includes('cable') || name.toLowerCase().includes('flow') || name.toLowerCase().includes('fibertel') || name.toLowerCase().includes('telecentro') || name.toLowerCase().includes('netflix') || name.toLowerCase().includes('spotify') || name.toLowerCase().includes('disney');
-  const showDynamicFields = (type === 'service' || type === 'overdue') && (isEnergyRelated || isInternetRelated);
-
   // Sync state if editingItem changes
   useEffect(() => {
     if (editingItem) {
@@ -117,9 +115,10 @@ export default function ServiceForm({
       if (isEnergyRelated) {
         if (consumptionUnit) itemData.consumptionUnit = parseFloat(consumptionUnit);
         if (nextMeasurementDate) itemData.nextMeasurementDate = parseInt(nextMeasurementDate);
-      }
-      if (isInternetRelated && billingCloseDate) {
-        itemData.billingCloseDate = parseInt(billingCloseDate);
+      } else if (isInternetRelated) {
+        if (billingCloseDate) itemData.billingCloseDate = parseInt(billingCloseDate);
+      } else {
+        if (nextMeasurementDate) itemData.nextMeasurementDate = parseInt(nextMeasurementDate);
       }
     } else if (type === 'loan') {
       itemData.creditor = creditor.trim();
@@ -338,88 +337,111 @@ export default function ServiceForm({
                 </div>
               </div>
 
-              {/* Dynamic Fields for Energy (Luz/Gas/Agua) */}
-              {showDynamicFields && (
-                <div className="space-y-3 pt-3 border-t border-white/5 animate-slide-up">
-                  {isEnergyRelated && (
-                    <>
-                      <div>
-                        <label htmlFor="consumption-unit" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
-                          Consumo Físico (kWh / m³ / etc.)
-                        </label>
-                        <div className="relative">
-                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <line x1="19" y1="5" x2="5" y2="19"></line>
-                              <circle cx="6.5" cy="6.5" r="2.5"></circle>
-                              <circle cx="17.5" cy="17.5" r="2.5"></circle>
-                            </svg>
-                          </span>
-                          <input
-                            type="number"
-                            id="consumption-unit"
-                            placeholder="Ej. 320"
-                            step="0.1"
-                            value={consumptionUnit}
-                            onChange={(e) => setConsumptionUnit(e.target.value)}
-                            className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="next-visit-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
-                          Día de Medición (1-31)
-                        </label>
-                        <div className="relative">
-                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                              <line x1="16" y1="2" x2="16" y2="6"></line>
-                              <line x1="8" y1="2" x2="8" y2="6"></line>
-                              <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                          </span>
-                          <input
-                            type="number"
-                            id="next-visit-date"
-                            min="1"
-                            max="31"
-                            placeholder="Ej. 15"
-                            value={nextMeasurementDate}
-                            onChange={(e) => setNextMeasurementDate(e.target.value)}
-                            className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                          />
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  {isInternetRelated && (
+              {/* Vencimientos y consumo */}
+              <div className="space-y-3 pt-3 border-t border-white/5 animate-slide-up">
+                {isEnergyRelated ? (
+                  <>
                     <div>
-                      <label htmlFor="internet-close-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
-                        Día Cierre de Facturación (1-31)
+                      <label htmlFor="consumption-unit" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                        Consumo Físico (kWh / m³ / etc.)
                       </label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
+                            <line x1="19" y1="5" x2="5" y2="19"></line>
+                            <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                            <circle cx="17.5" cy="17.5" r="2.5"></circle>
                           </svg>
                         </span>
                         <input
                           type="number"
-                          id="internet-close-date"
-                          min="1"
-                          max="31"
-                          placeholder="Ej. 22"
-                          value={billingCloseDate}
-                          onChange={(e) => setBillingCloseDate(e.target.value)}
+                          id="consumption-unit"
+                          placeholder="Ej. 320"
+                          step="0.1"
+                          value={consumptionUnit}
+                          onChange={(e) => setConsumptionUnit(e.target.value)}
                           className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                         />
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    <div>
+                      <label htmlFor="next-visit-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                        Día de Vencimiento / Medición (1-31)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                          </svg>
+                        </span>
+                        <input
+                          type="number"
+                          id="next-visit-date"
+                          min="1"
+                          max="31"
+                          placeholder="Ej. 15"
+                          value={nextMeasurementDate}
+                          onChange={(e) => setNextMeasurementDate(e.target.value)}
+                          className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : isInternetRelated ? (
+                  <div>
+                    <label htmlFor="internet-close-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                      Día de Vencimiento / Cierre (1-31)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                      </span>
+                      <input
+                        type="number"
+                        id="internet-close-date"
+                        min="1"
+                        max="31"
+                        placeholder="Ej. 22"
+                        value={billingCloseDate}
+                        onChange={(e) => setBillingCloseDate(e.target.value)}
+                        className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor="generic-due-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                      Día de Vencimiento (1-31)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                      </span>
+                      <input
+                        type="number"
+                        id="generic-due-date"
+                        min="1"
+                        max="31"
+                        placeholder="Ej. 10"
+                        value={nextMeasurementDate}
+                        onChange={(e) => setNextMeasurementDate(e.target.value)}
+                        className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

@@ -1,6 +1,6 @@
 {
   "name": "pagina-de-servicios",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "App web con buenas prácticas y CI/CD en Next.js",
   "private": true,
   "scripts": {

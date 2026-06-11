@@ -7,6 +7,7 @@ import SimulationModal from '@/components/SimulationModal';
 import ChartsModal from '@/components/ChartsModal';
 import ResetPasswordView from '@/components/ResetPasswordView';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
+import logger from '@/lib/logger';
 
 const STORAGE_KEY = 'household_services_v3';
 
@@ -61,7 +62,7 @@ export default function Home() {
         setServices(JSON.parse(cache));
       }
     } catch (err) {
-      console.error('Error cargando del cache local:', err);
+      logger.error('Error cargando del cache local:', err);
     }
 
     // Remote database load
@@ -73,7 +74,7 @@ export default function Home() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
     } catch (err) {
-      console.error('Error cargando de Supabase:', err);
+      logger.error('Error cargando de Supabase:', err);
     }
   };
 
@@ -82,14 +83,14 @@ export default function Home() {
     try {
       if (isDelete) {
         const { error } = await supabase.from('services').delete().eq('id', item.id);
-        if (error) console.error('Error eliminando item en Supabase:', error);
+        if (error) logger.error('Error eliminando item en Supabase:', error);
       } else {
         const itemToSave = { ...item, user_id: userId };
         const { error } = await supabase.from('services').upsert(itemToSave);
-        if (error) console.error('Error guardando item en Supabase:', error);
+        if (error) logger.error('Error guardando item en Supabase:', error);
       }
     } catch (err) {
-      console.error('Error al conectar con Supabase:', err);
+      logger.error('Error al conectar con Supabase:', err);
     }
   };
 
@@ -98,7 +99,7 @@ export default function Home() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newServices));
     } catch (err) {
-      console.error('Error guardando datos en cache local:', err);
+      logger.error('Error guardando datos en cache local:', err);
     }
   };
 
@@ -244,7 +245,7 @@ export default function Home() {
         if (error) throw error;
         updatedServices = [];
       } catch (err) {
-        console.error('Error al limpiar base de datos:', err);
+        logger.error('Error al limpiar base de datos:', err);
         alert('Hubo un error al limpiar la base de datos. Intenta nuevamente.');
         return;
       }
@@ -358,7 +359,7 @@ export default function Home() {
       syncLocalBackup(finalServices);
       alert('¡Demo cargada exitosamente! Se generaron 6 servicios mensuales (incluyendo ingresos) para todo el año con precios estacionales realistas.');
     } catch (err) {
-      console.error('Error al guardar la demo en Supabase:', err);
+      logger.error('Error al guardar la demo en Supabase:', err);
       alert('Ocurrió un error al guardar los datos en Supabase.');
     }
   };

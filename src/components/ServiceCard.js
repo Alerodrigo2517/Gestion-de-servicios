@@ -182,6 +182,10 @@ export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSi
     if (item.consumptionUnit) {
       metaText += ` | ${item.consumptionUnit} unds.`;
     }
+    const dueDay = item.nextMeasurementDate || item.billingCloseDate;
+    if (dueDay) {
+      metaText += ` | Vence el día ${dueDay}`;
+    }
   }
 
   if (isPaid && item.paymentDate) {

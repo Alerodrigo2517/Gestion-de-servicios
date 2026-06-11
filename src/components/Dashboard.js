@@ -4,6 +4,7 @@ import ServiceForm from './ServiceForm';
 import ServiceList from './ServiceList';
 import { formatCurrency } from '@/lib/utils';
 import { exportToExcel, importFromExcel } from '@/lib/excelHelper';
+import logger from '@/lib/logger';
 
 const months = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -100,20 +101,48 @@ export default function Dashboard({
   // Reminders scanning
   const reminders = [];
   currentItems.forEach((item) => {
-    if (item.nextMeasurementDate) {
+    const isEnergy = item.name.toLowerCase().includes('luz') || item.name.toLowerCase().includes('gas') || item.name.toLowerCase().includes('energia') || item.name.toLowerCase().includes('edesur') || item.name.toLowerCase().includes('edenor') || item.name.toLowerCase().includes('metrogas') || item.name.toLowerCase().includes('camuzzi') || item.name.toLowerCase().includes('aysa') || item.name.toLowerCase().includes('agua');
+    if (isEnergy && item.nextMeasurementDate) {
       reminders.push(
         <span key={`meas-${item.id}`}>
           El día <strong>{item.nextMeasurementDate}</strong> pasarán a medir: {item.name}
         </span>
       );
     }
-    if (item.billingCloseDate) {
+    const isInternet = item.name.toLowerCase().includes('internet') || item.name.toLowerCase().includes('wifi') || item.name.toLowerCase().includes('cable') || item.name.toLowerCase().includes('flow') || item.name.toLowerCase().includes('fibertel') || item.name.toLowerCase().includes('telecentro') || item.name.toLowerCase().includes('netflix') || item.name.toLowerCase().includes('spotify') || item.name.toLowerCase().includes('disney');
+    if (isInternet && item.billingCloseDate) {
       reminders.push(
         <span key={`close-${item.id}`}>
           El día <strong>{item.billingCloseDate}</strong> cierra la facturación de: {item.name}
         </span>
       );
     }
+  });
+
+  // Chronological due dates scanning
+  const unpaidServices = currentItems
+    .filter((item) => item.type !== 'income' && !item.isPaid)
+    .map((item) => {
+      const day = item.nextMeasurementDate || item.billingCloseDate || 0;
+      return { ...item, dueDay: day };
+    })
+    .filter((item) => item.dueDay > 0);
+
+  unpaidServices.sort((a, b) => a.dueDay - b.dueDay);
+
+  const nextVencimientos = unpaidServices.map((item) => {
+    const isOverdue = item.type === 'overdue';
+    return (
+      <li key={`venc-${item.id}`} className="flex justify-between items-center text-xs py-1.5 border-b border-white/5 last:border-0">
+        <span className="flex items-center gap-2">
+          <span className={`w-1.5 h-1.5 rounded-full ${isOverdue ? 'bg-rose-500 animate-pulse' : 'bg-amber-400'}`}></span>
+          <span className="text-slate-200 font-semibold">{item.name}</span>
+        </span>
+        <span className="text-slate-400 font-bold">
+          Día {item.dueDay} ({formatCurrency(item.amount)})
+        </span>
+      </li>
+    );
   });
 
   // Insights calculation
@@ -194,7 +223,7 @@ export default function Dashboard({
         alert('No se importó nada. Puede que los registros ya existan o el archivo esté vacío.');
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       alert('Error al leer el archivo Excel. Verifica el formato.');
     }
     e.target.value = ''; // Reset input
@@ -576,20 +605,41 @@ export default function Dashboard({
             </div>
           )}
 
-          {reminders.length > 0 && (
-            <div id="reminders-panel" className="p-5 rounded-2xl text-sm glass-premium bg-amber-500/5 border-l-4 border-amber-500 animate-slide-up">
-              <h4 className="flex items-center gap-2 font-bold text-amber-400 mb-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                Recordatorios del Mes
-              </h4>
-              <ul id="reminders-list" className="space-y-2.5 text-amber-200/80 list-disc pl-5 font-semibold">
-                {reminders.map((r, index) => (
-                  <li key={index} className="marker:text-amber-500">{r}</li>
-                ))}
-              </ul>
+          {(nextVencimientos.length > 0 || reminders.length > 0) && (
+            <div id="reminders-panel" className="p-5 rounded-2xl text-sm glass-premium bg-amber-500/5 border-l-4 border-amber-500 animate-slide-up flex flex-col gap-4">
+              {nextVencimientos.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 font-bold text-amber-400 mb-3">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Próximos Vencimientos del Mes
+                  </h4>
+                  <ul className="space-y-1 text-slate-300 font-semibold mb-2 max-h-[150px] overflow-y-auto pr-1">
+                    {nextVencimientos}
+                  </ul>
+                </div>
+              )}
+
+              {reminders.length > 0 && (
+                <div className={nextVencimientos.length > 0 ? "border-t border-white/5 pt-3" : ""}>
+                  <h4 className="flex items-center gap-2 font-bold text-amber-400 mb-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    Recordatorios y Avisos
+                  </h4>
+                  <ul id="reminders-list" className="space-y-1.5 text-amber-200/80 list-disc pl-5 font-semibold">
+                    {reminders.map((r, index) => (
+                      <li key={index} className="marker:text-amber-500">{r}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>
