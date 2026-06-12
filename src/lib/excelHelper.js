@@ -525,7 +525,6 @@ export async function importFromExcel(file, currentServices) {
 
           if (!existsInCurrent && !existsInImported) {
             newImportedItems.push({
-              id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
               type: isIncome
                 ? 'income'
                 : isLoan

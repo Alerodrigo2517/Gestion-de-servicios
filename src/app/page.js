@@ -10,8 +10,6 @@ import ChangePasswordModal from '@/components/ChangePasswordModal';
 import logger from '@/lib/logger';
 import { getSafeDate, formatDateToString } from '@/lib/statusHelper';
 
-const STORAGE_KEY = 'household_services_v3';
-
 export default function Home() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +26,7 @@ export default function Home() {
       setSession(session);
       setLoading(false);
       if (session) {
-        loadData();
+        loadData(session);
       }
     });
 
@@ -38,7 +36,7 @@ export default function Home() {
         setIsRecovering(true);
       }
       if (session) {
-        loadData();
+        loadData(session);
       } else {
         setServices([]);
         setEditingItem(null);
@@ -54,81 +52,64 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 2. Load data from local cache and remote database
-  const loadData = async () => {
-    // Optimistic local cache load
-    try {
-      const cache = localStorage.getItem(STORAGE_KEY);
-      if (cache) {
-        setServices(JSON.parse(cache));
-      }
-    } catch (err) {
-      logger.error('Error cargando del cache local:', err);
-    }
+  // 2. Load data from remote database (No client cache for financial data)
+  const loadData = async (activeSession) => {
+    const userSession = activeSession || session;
+    if (!userSession) return;
 
-    // Remote database load
     try {
       const { data, error } = await supabase.from('services').select('*');
       if (error) throw error;
       if (data) {
         setServices(data);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
     } catch (err) {
       logger.error('Error cargando de Supabase:', err);
     }
   };
 
-  // 3. Save individual item change
-  const saveItemToDatabase = async (item, isDelete = false, userId) => {
-    try {
-      if (isDelete) {
-        const { error } = await supabase.from('services').delete().eq('id', item.id);
-        if (error) logger.error('Error eliminando item en Supabase:', error);
-      } else {
-        const itemToSave = { ...item, user_id: userId };
-        const { error } = await supabase.from('services').upsert(itemToSave);
-        if (error) logger.error('Error guardando item en Supabase:', error);
-      }
-    } catch (err) {
-      logger.error('Error al conectar con Supabase:', err);
-    }
-  };
-
-  // 4. Save entire state backup locally
-  const syncLocalBackup = (newServices) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newServices));
-    } catch (err) {
-      logger.error('Error guardando datos en cache local:', err);
-    }
-  };
-
-  const handleSaveItem = (itemData) => {
+  const handleSaveItem = async (itemData) => {
     if (!session) return;
     const userId = session.user.id;
-    let updatedServices = [];
 
     if (itemData.id) {
       // Edit mode
-      updatedServices = services.map((s) => (s.id === itemData.id ? itemData : s));
+      const updatedServices = services.map((s) => (s.id === itemData.id ? itemData : s));
+      setServices(updatedServices);
       setEditingItem(null);
-    } else {
-      // Create mode
-      const newItem = {
-        ...itemData,
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-        isPaid: false,
-      };
-      updatedServices = [...services, newItem];
-    }
 
-    setServices(updatedServices);
-    syncLocalBackup(updatedServices);
-    saveItemToDatabase(itemData.id ? itemData : updatedServices[updatedServices.length - 1], false, userId);
+      try {
+        const itemToSave = { ...itemData, user_id: userId };
+        const { error } = await supabase.from('services').upsert(itemToSave);
+        if (error) throw error;
+      } catch (err) {
+        logger.error('Error al actualizar item en Supabase:', err);
+        alert('Hubo un error al guardar el registro en el servidor. Los cambios locales podrían perderse.');
+      }
+    } else {
+      // Create mode (PostgreSQL generates UUID)
+      try {
+        const itemToSave = { ...itemData, user_id: userId };
+        delete itemToSave.id;
+
+        const { data, error } = await supabase
+          .from('services')
+          .insert(itemToSave)
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setServices((prev) => [...prev, data]);
+        }
+      } catch (err) {
+        logger.error('Error al insertar item en Supabase:', err);
+        alert('Hubo un error al guardar el registro en el servidor.');
+      }
+    }
   };
 
-  const handleDeleteItem = (id) => {
+  const handleDeleteItem = async (id) => {
     if (!confirm('¿Estás seguro de eliminar este registro?')) return;
     if (!session) return;
 
@@ -137,17 +118,24 @@ export default function Home() {
 
     const updatedServices = services.filter((s) => s.id !== id);
     setServices(updatedServices);
-    syncLocalBackup(updatedServices);
-    saveItemToDatabase(itemToDelete, true, session.user.id);
 
     if (editingItem && editingItem.id === id) {
       setEditingItem(null);
     }
+
+    try {
+      const { error } = await supabase.from('services').delete().eq('id', id);
+      if (error) throw error;
+    } catch (err) {
+      logger.error('Error eliminando item en Supabase:', err);
+      alert('Hubo un error al eliminar el registro en el servidor. Los cambios locales podrían perderse.');
+    }
   };
 
-  const handleTogglePaid = (id) => {
+  const handleTogglePaid = async (id) => {
     if (!session) return;
 
+    let itemToUpdate = null;
     const updatedServices = services.map((item) => {
       if (item.id === id && item.type !== 'income') {
         const nextPaidState = !item.isPaid;
@@ -160,18 +148,26 @@ export default function Home() {
         } else {
           delete updatedItem.paymentDate;
         }
-
-        saveItemToDatabase(updatedItem, false, session.user.id);
+        itemToUpdate = updatedItem;
         return updatedItem;
       }
       return item;
     });
 
+    if (!itemToUpdate) return;
+
     setServices(updatedServices);
-    syncLocalBackup(updatedServices);
+
+    try {
+      const { error } = await supabase.from('services').upsert({ ...itemToUpdate, user_id: session.user.id });
+      if (error) throw error;
+    } catch (err) {
+      logger.error('Error al actualizar estado de pago:', err);
+      alert('Hubo un error al actualizar el pago en el servidor. Los cambios locales podrían perderse.');
+    }
   };
 
-  const handleImportPrevious = () => {
+  const handleImportPrevious = async () => {
     if (currentMonthIndex === 0 || !session) return;
 
     const prevMonthItems = services.filter((s) => s.paymentMonth === currentMonthIndex - 1);
@@ -186,11 +182,12 @@ export default function Home() {
     const importedItems = importableItems.map((item) => {
       const newItem = {
         ...item,
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
         paymentMonth: currentMonthIndex,
         isPaid: false,
       };
 
+      delete newItem.id;
+      delete newItem.created_at;
       delete newItem.paymentDate;
 
       if (newItem.type === 'service' || newItem.type === 'overdue') {
@@ -226,26 +223,49 @@ export default function Home() {
       return newItem;
     });
 
-    const updatedServices = [...services, ...importedItems];
-    setServices(updatedServices);
-    syncLocalBackup(updatedServices);
+    const itemsToInsert = importedItems.map(item => ({ ...item, user_id: session.user.id }));
 
-    // Save batch to Supabase
-    importedItems.forEach((item) => {
-      saveItemToDatabase(item, false, session.user.id);
-    });
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .insert(itemsToInsert)
+        .select();
+
+      if (error) throw error;
+      if (data) {
+        setServices((prev) => [...prev, ...data]);
+      }
+    } catch (err) {
+      logger.error('Error al importar servicios del mes anterior:', err);
+      alert('Hubo un error al guardar los servicios importados en el servidor.');
+    }
   };
 
-  const handleBulkImport = (newItems) => {
+  const handleBulkImport = async (newItems) => {
     if (!session) return;
-    const updatedServices = [...services, ...newItems];
-    setServices(updatedServices);
-    syncLocalBackup(updatedServices);
+    const userId = session.user.id;
 
-    // Batch save
-    newItems.forEach((item) => {
-      saveItemToDatabase(item, false, session.user.id);
+    const itemsToInsert = newItems.map(item => {
+      const itemCopy = { ...item, user_id: userId };
+      delete itemCopy.id;
+      delete itemCopy.created_at;
+      return itemCopy;
     });
+
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .insert(itemsToInsert)
+        .select();
+
+      if (error) throw error;
+      if (data) {
+        setServices((prev) => [...prev, ...data]);
+      }
+    } catch (err) {
+      logger.error('Error al importar registros en Supabase:', err);
+      alert('Hubo un error al guardar los registros importados en el servidor.');
+    }
   };
 
   const handleGenerateDemoData = async () => {
@@ -274,7 +294,6 @@ export default function Home() {
     }
 
     const demoServices = [];
-    const baseId = Date.now().toString();
 
     // Luz seasonal pricing (0: Enero to 11: Diciembre)
     const luzPrices = [18000, 17000, 10000, 9000, 11000, 14000, 16000, 15000, 10000, 9000, 9500, 15000];
@@ -290,7 +309,6 @@ export default function Home() {
     for (let month = 0; month < 12; month++) {
       // 1. Sueldo (Income)
       demoServices.push({
-        id: `${baseId}-sueldo-${month}`,
         user_id: userId,
         type: 'income',
         name: 'Sueldo',
@@ -301,7 +319,6 @@ export default function Home() {
 
       // 2. Luz (Service)
       demoServices.push({
-        id: `${baseId}-luz-${month}`,
         user_id: userId,
         type: 'service',
         name: 'Luz Edesur',
@@ -316,7 +333,6 @@ export default function Home() {
 
       // 3. Gas (Service)
       demoServices.push({
-        id: `${baseId}-gas-${month}`,
         user_id: userId,
         type: 'service',
         name: 'Gas Metrogas',
@@ -331,7 +347,6 @@ export default function Home() {
 
       // 4. Agua (Service)
       demoServices.push({
-        id: `${baseId}-agua-${month}`,
         user_id: userId,
         type: 'service',
         name: 'Agua AySA',
@@ -344,7 +359,6 @@ export default function Home() {
 
       // 5. Internet (Service)
       demoServices.push({
-        id: `${baseId}-internet-${month}`,
         user_id: userId,
         type: 'service',
         name: 'Internet Fibertel',
@@ -358,7 +372,6 @@ export default function Home() {
 
       // 6. TV/Cable (Service)
       demoServices.push({
-        id: `${baseId}-tv-${month}`,
         user_id: userId,
         type: 'service',
         name: 'Cablevisión Flow',
@@ -371,13 +384,14 @@ export default function Home() {
     }
 
     try {
-      const { error } = await supabase.from('services').upsert(demoServices);
+      const { data, error } = await supabase.from('services').insert(demoServices).select();
       if (error) throw error;
 
-      const finalServices = [...updatedServices, ...demoServices];
-      setServices(finalServices);
-      syncLocalBackup(finalServices);
-      alert('¡Demo cargada exitosamente! Se generaron 6 servicios mensuales (incluyendo ingresos) para todo el año con precios estacionales realistas.');
+      if (data) {
+        const finalServices = [...updatedServices, ...data];
+        setServices(finalServices);
+        alert('¡Demo cargada exitosamente! Se generaron 6 servicios mensuales (incluyendo ingresos) para todo el año con precios estacionales realistas.');
+      }
     } catch (err) {
       logger.error('Error al guardar la demo en Supabase:', err);
       alert('Ocurrió un error al guardar los datos en Supabase.');

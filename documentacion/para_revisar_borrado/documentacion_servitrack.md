@@ -19,32 +19,27 @@ La migración de la base de código aportó mejoras significativas en mantenibil
 - **Empaquetado y Dependencias:** Se reemplazaron las importaciones globales mediante CDN en HTML por un flujo de compilación moderno basado en **npm** y **Next.js (Webpack/SWC)**. Esto permite el tipado implícito, optimizaciones estáticas y bundling eficiente de librerías como `Chart.js` y `ExcelJS`.
 - **Seguridad:** Las variables sensibles y la configuración de API ahora se leen a través de variables de entorno seguras (`.env.local`), evitando exponer credenciales fijas en el código de producción.
 
-### 1.2 Flujo de Datos Híbrido (UI Optimista)
+### 1.2 Flujo de Datos en Tiempo Real (Sin Almacenamiento Local)
 
-Para maximizar la velocidad percibida del usuario, ServiTrack utiliza una estrategia de sincronización optimista:
+Para garantizar la máxima seguridad en el manejo de datos financieros, ServiTrack se conecta directamente y en tiempo real a la base de datos de Supabase, eliminando por completo el almacenamiento en caché local (`localStorage`) que era propenso a ataques XSS:
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Usuario
     participant ReactState as Estado React (page.js)
-    participant Cache as LocalStorage
     participant DB as Supabase DB (remoto)
 
     Usuario->>ReactState: Inicia la Aplicación
-    ReactState->>Cache: Lee caché local (household_services_v3)
-    Cache-->>ReactState: Carga instantánea de datos
-    ReactState->>Usuario: Muestra la UI actualizada (Optimista)
-
     ReactState->>DB: Consulta asíncrona a Supabase (fetch)
     DB-->>ReactState: Devuelve datos del usuario autenticado
-    ReactState->>Cache: Actualiza caché local con datos reales
-    ReactState->>Usuario: Actualiza UI (si hay diferencias)
+    ReactState->>Usuario: Muestra la UI actualizada con datos en tiempo real
 
     Usuario->>ReactState: Guarda/Modifica/Borra Registro
-    ReactState->>ReactState: Actualiza estado reactivo en memoria
-    ReactState->>Cache: Serializa y escribe en caché local
-    ReactState->>DB: Envía petición asíncrona (upsert/delete) a Supabase
+    ReactState->>ReactState: Actualiza estado reactivo local (optimista)
+    ReactState->>DB: Envía petición asíncrona (insert/upsert/delete) a Supabase
+    DB-->>ReactState: Retorna fila con UUID generado (para creaciones)
+    ReactState->>Usuario: Renderiza la UI final actualizada
 ```
 
 ---
@@ -92,7 +87,8 @@ Todos los registros en memoria y base de datos respetan el siguiente esquema de 
 
 | Campo                 | Tipo                                           | Requerido | Descripción                                                      |
 | --------------------- | ---------------------------------------------- | --------- | ---------------------------------------------------------------- |
-| `id`                  | `string`                                       | Sí        | Identificador único del registro (generado con timestamp + hash) |
+| `id`                  | `uuid`                                         | Sí        | Identificador único del registro (UUIDv4 generado por PostgreSQL)|
+| `legacy_id`           | `string`                                       | Opcional  | Identificador único antiguo en formato texto (auditoría/historia)|
 | `user_id`             | `uuid`                                         | Sí        | Clave foránea del usuario creador (relacionado a `auth.users`)   |
 | `type`                | `'service' \| 'loan' \| 'overdue' \| 'income'` | Sí        | Tipo de registro                                                 |
 | `name`                | `string`                                       | Sí        | Nombre descriptivo del gasto o ingreso (ej: "Luz Edesur")        |
@@ -100,6 +96,7 @@ Todos los registros en memoria y base de datos respetan el siguiente esquema de 
 | `paymentMonth`        | `number`                                       | Sí        | Índice del mes asignado para el pago (0 = Enero, 11 = Diciembre) |
 | `isPaid`              | `boolean`                                      | Sí        | Determina si el gasto está pago (siempre `false` para ingresos)  |
 | `paymentDate`         | `string`                                       | Opcional  | Fecha de pago registrada (formato local `'es-AR'`)               |
+| `dueDate`             | `string`                                       | Opcional  | Fecha de vencimiento nativa (formato `'YYYY-MM-DD'`)             |
 | `consumptionMonth`    | `number`                                       | Opcional  | Mes inicial del periodo de consumo (sólo servicios/atrasados)    |
 | `consumptionMonthEnd` | `number \| null`                               | Opcional  | Mes final del periodo de consumo (sólo servicios/atrasados)      |
 | `consumptionUnit`     | `number`                                       | Opcional  | Unidades consumidas (kWh / m³ - sólo servicios de energía/gas)   |
@@ -110,22 +107,27 @@ Todos los registros en memoria y base de datos respetan el siguiente esquema de 
 | `totalInstallments`   | `number`                                       | Opcional  | Total de cuotas a abonar (sólo préstamos)                        |
 | `titular`             | `string`                                       | Opcional  | Persona titular a cargo del pago del préstamo                    |
 
-### 3.2 SQL DDL (Esquema en Supabase)
+### 3.2 SQL DDL (Esquema en Supabase v2.0)
 
-Script SQL para la creación de la tabla `services` y habilitación de seguridad de filas (RLS) en la consola de Supabase:
+Script SQL de creación estructural de la base de datos PostgreSQL en Supabase, incluyendo políticas RLS, restricciones de validación `CHECK` e índices optimizados de rendimiento:
 
 ```sql
--- Crear la tabla de servicios
+-- 1. Habilitar extensión para UUID
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 2. Crear la tabla de servicios
 create table public.services (
-  id text not null primary key,
+  id uuid not null default uuid_generate_v4() primary key,
+  legacy_id text unique,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   user_id uuid references auth.users(id) on delete cascade default auth.uid(),
-  type text not null check (type in ('service', 'loan', 'overdue', 'income')),
+  type text not null,
   name text not null,
   amount numeric not null,
-  "paymentMonth" integer not null check ("paymentMonth" >= 0 and "paymentMonth" <= 11),
+  "paymentMonth" integer not null,
   "isPaid" boolean not null default false,
   "paymentDate" text,
+  "dueDate" date,
   "consumptionMonth" integer,
   "consumptionMonthEnd" integer,
   "consumptionUnit" numeric,
@@ -134,13 +136,18 @@ create table public.services (
   creditor text,
   "currentInstallment" integer,
   "totalInstallments" integer,
-  titular text
+  titular text,
+
+  -- Restricciones de validación a nivel de base de datos (CHECK constraints)
+  CONSTRAINT chk_amount_positive CHECK (amount >= 0),
+  CONSTRAINT chk_amount_max CHECK (amount <= 1000000000), -- Máximo 1.000 millones
+  CONSTRAINT chk_type_valid CHECK (type IN ('service', 'loan', 'overdue', 'income')),
+  CONSTRAINT chk_payment_month CHECK ("paymentMonth" >= 0 and "paymentMonth" <= 11)
 );
 
 -- Habilitar Row Level Security (RLS)
 alter table public.services enable row level security;
 
--- Crear políticas de seguridad para que los usuarios solo accedan a sus propios datos
 create policy "Los usuarios pueden ver solo sus propios servicios"
   on public.services for select
   using (auth.uid() = user_id);
@@ -157,6 +164,10 @@ create policy "Los usuarios pueden actualizar sus propios servicios"
 create policy "Los usuarios pueden eliminar sus propios servicios"
   on public.services for delete
   using (auth.uid() = user_id);
+
+-- Crear índices de optimización
+CREATE INDEX IF NOT EXISTS idx_services_user_month ON public.services(user_id, "paymentMonth");
+CREATE INDEX IF NOT EXISTS idx_services_dueDate ON public.services("dueDate");
 ```
 
 ---
@@ -173,13 +184,11 @@ Orquesta el estado global de la aplicación.
 
 #### Funciones Principales del CRUD:
 
-- `handleSaveItem(itemData)`: Maneja tanto la creación como la edición. Si el elemento posee `id`, actualiza el array local (`map`) y ejecuta un `upsert` a Supabase. Si no posee `id`, genera uno único, lo añade al array y lo sube.
+- `handleSaveItem(itemData)`: Maneja tanto la creación como la edición. Si el elemento posee `id` (edición), actualiza el estado local de React y hace un `upsert` a Supabase. Si no posee `id` (creación), envía el registro sin `id` a Supabase para que PostgreSQL genere el UUIDv4 (`insert().select().single()`), y luego añade la fila retornada al estado de React.
 - `handleDeleteItem(id)`: Remueve el elemento del estado local y realiza la eliminación física en Supabase filtrando por el identificador del registro.
 - `handleTogglePaid(id)`: Invierte el estado de `isPaid`. Si el nuevo estado es `true`, añade la fecha formateada en formato `es-AR` mediante `new Date().toLocaleDateString('es-AR')`; de lo contrario, elimina el atributo `paymentDate`.
-- `handleImportPrevious()`: Algoritmo para agilizar el inicio de un nuevo mes. Filtra los elementos del mes anterior y los importa en el mes actual si sus nombres no existen (evitando duplicidades). Para los registros importados:
-  - Incrementa el `consumptionMonth` al mes actual.
-  - Establece `isPaid` en `false`.
-  - Si es un préstamo (`loan`), incrementa en 1 la cuota actual (`currentInstallment`), siempre y cuando sea menor al total de cuotas.
+- `handleImportPrevious()`: Algoritmo para agilizar el inicio de un nuevo mes. Filtra los elementos del mes anterior, elimina los campos `id` y `created_at` antiguos, e inserta todo el bloque en una única petición masiva en Supabase (`insert().select()`). Al recibir el éxito con los UUIDs creados, actualiza el estado de React.
+- `handleBulkImport(newItems)`: Recibe la lista de registros de Excel, remueve los identificadores del cliente, y realiza una inserción por lotes en Supabase actualizando el estado de React en un solo viaje de red.
 
 ### 4.2 Formulario Dinámico: [ServiceForm.js](file:///c:/Users/AALEJ/OneDrive/Desktop/Instituto_26/git-hub/Gestion-de-servicios/src/components/ServiceForm.js)
 
