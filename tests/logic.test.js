@@ -189,5 +189,23 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
       service.paymentSource = 'THIRD_PARTY';
       expect(affectsLiquidity(service)).toBe(false);
     });
+
+    test('Tipo OVERDUE (Atrasado) impago con vencimiento en el pasado retorna VENCIDO y severidad alta', () => {
+      const today = new Date();
+      const pastDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
+      const y = pastDate.getFullYear();
+      const m = String(pastDate.getMonth() + 1).padStart(2, '0');
+      const d = String(pastDate.getDate()).padStart(2, '0');
+
+      const service = {
+        isPaid: false,
+        type: 'overdue',
+        dueDate: `${y}-${m}-${d}`
+      };
+      const status = getServiceStatus(service);
+      expect(status.status).toBe('VENCIDO');
+      expect(status.severity).toBe('high');
+    });
   });
 });
+

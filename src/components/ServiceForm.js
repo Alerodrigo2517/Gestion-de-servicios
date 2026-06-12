@@ -19,7 +19,26 @@ export default function ServiceForm({
   const [type, setType] = useState('income');
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
+  const [amountError, setAmountError] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  const handleAmountChange = (val) => {
+    setAmount(val);
+    if (val === '') {
+      setAmountError('');
+      return;
+    }
+    const num = parseFloat(val);
+    if (isNaN(num)) {
+      setAmountError('El monto debe ser un número válido.');
+    } else if (num < 0) {
+      setAmountError('El monto no puede ser negativo.');
+    } else if (num > 1000000000) {
+      setAmountError('El monto no puede superar los 1.000 millones.');
+    } else {
+      setAmountError('');
+    }
+  };
   
   // Service-specific states
   const [consumptionMonth, setConsumptionMonth] = useState(currentMonthIndex);
@@ -39,13 +58,13 @@ export default function ServiceForm({
   // Detect dynamic fields based on name text
   const isEnergyRelated = name.toLowerCase().includes('luz') || name.toLowerCase().includes('gas') || name.toLowerCase().includes('energia') || name.toLowerCase().includes('edesur') || name.toLowerCase().includes('edenor') || name.toLowerCase().includes('metrogas') || name.toLowerCase().includes('camuzzi') || name.toLowerCase().includes('aysa') || name.toLowerCase().includes('agua');
   const isInternetRelated = name.toLowerCase().includes('internet') || name.toLowerCase().includes('wifi') || name.toLowerCase().includes('cable') || name.toLowerCase().includes('flow') || name.toLowerCase().includes('fibertel') || name.toLowerCase().includes('telecentro') || name.toLowerCase().includes('netflix') || name.toLowerCase().includes('spotify') || name.toLowerCase().includes('disney');
-  // Sync state if editingItem changes
   useEffect(() => {
     if (editingItem) {
       setType(editingItem.type || 'income');
       setName(editingItem.name || '');
       setAmount(editingItem.amount ? String(editingItem.amount) : '');
       setPaymentSource(editingItem.paymentSource || 'SELF');
+      setAmountError('');
       
       if (editingItem.type === 'service' || editingItem.type === 'overdue') {
         setConsumptionMonth(editingItem.consumptionMonth !== undefined ? editingItem.consumptionMonth : currentMonthIndex);
@@ -79,6 +98,7 @@ export default function ServiceForm({
       setName('');
       setAmount('');
       setPaymentSource('SELF');
+      setAmountError('');
       setConsumptionMonth(currentMonthIndex);
       setConsumptionMonthEnd('');
       setConsumptionUnit('');
@@ -123,6 +143,14 @@ export default function ServiceForm({
     if (!name.trim() || !amount) return;
 
     const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount < 0 || parsedAmount > 1000000000) {
+      if (parsedAmount < 0) setAmountError('El monto no puede ser negativo.');
+      else if (parsedAmount > 1000000000) setAmountError('El monto no puede superar los 1.000 millones.');
+      else setAmountError('El monto debe ser un número válido.');
+      return;
+    }
+    setAmountError('');
+
     let itemData = {
       type,
       name: name.trim(),
@@ -184,6 +212,7 @@ export default function ServiceForm({
       setCurrentInstallment('1');
       setTotalInstallments('1');
       setTitular('');
+      setAmountError('');
     }
   };
 
@@ -248,11 +277,11 @@ export default function ServiceForm({
         </h3>
         <span className="lg:hidden text-slate-400 p-1 hover:text-white transition">
           {isCollapsed ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <polyline points="18 15 12 9 6 15"></polyline>
             </svg>
           )}
@@ -293,7 +322,7 @@ export default function ServiceForm({
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                   <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                   <line x1="7" y1="7" x2="7.01" y2="7"></line>
                 </svg>
@@ -326,11 +355,20 @@ export default function ServiceForm({
                 placeholder="0.00"
                 required
                 step="0.01"
+                min="0"
+                max="1000000000"
+                aria-invalid={!!amountError}
+                aria-describedby={amountError ? 'amount-error' : undefined}
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => handleAmountChange(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
               />
             </div>
+            {amountError && (
+              <div id="amount-error" role="alert" className="mt-1.5 text-[10px] text-rose-400 font-bold">
+                {amountError}
+              </div>
+            )}
           </div>
 
           {/* Service/Overdue Specific Fields */}
@@ -383,7 +421,7 @@ export default function ServiceForm({
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                           <line x1="19" y1="5" x2="5" y2="19"></line>
                           <circle cx="6.5" cy="6.5" r="2.5"></circle>
                           <circle cx="17.5" cy="17.5" r="2.5"></circle>
@@ -408,7 +446,7 @@ export default function ServiceForm({
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                         <line x1="16" y1="2" x2="16" y2="6"></line>
                         <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -438,7 +476,7 @@ export default function ServiceForm({
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                       <line x1="9" y1="21" x2="9" y2="9"></line>
                       <line x1="15" y1="21" x2="15" y2="9"></line>
@@ -493,7 +531,7 @@ export default function ServiceForm({
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>

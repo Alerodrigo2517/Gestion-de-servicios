@@ -537,9 +537,9 @@ export default function Dashboard({
       <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-8 glass-premium border-t-0 rounded-b-2xl shadow-2xl mb-12 animate-fade-in">
         {/* Global header alert banner */}
         {globalAlertServices.length > 0 && (
-          <div className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-rose-500/20 via-orange-500/10 to-rose-950/20 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)] flex items-start gap-4 animate-slide-up relative z-10">
+          <div role="status" aria-live="polite" className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-rose-500/20 via-orange-500/10 to-rose-950/20 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)] flex items-start gap-4 animate-slide-up relative z-10">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/20 text-rose-400 border border-rose-500/30 shrink-0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-pulse">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-pulse" aria-hidden="true">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                 <line x1="12" y1="9" x2="12" y2="13"></line>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>

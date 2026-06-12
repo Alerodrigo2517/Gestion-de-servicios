@@ -10,6 +10,69 @@ const months = [
 export default function ChartsModal({ isOpen, onClose, type, services }) {
   const canvasRef = useRef(null);
   const chartInstanceRef = useRef(null);
+  const modalRef = useRef(null);
+  const previousActiveElement = useRef(null);
+
+  // Focus management when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      previousActiveElement.current = document.activeElement;
+      setTimeout(() => {
+        if (modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll(
+            'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]'
+          );
+          if (focusableElements.length > 0) {
+            focusableElements[0].focus();
+          }
+        }
+      }, 50);
+    } else {
+      if (previousActiveElement.current) {
+        previousActiveElement.current.focus();
+      }
+    }
+  }, [isOpen]);
+
+  // Trap focus inside modal & Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isOpen) return;
+      
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        if (!modalRef.current) return;
+        const focusableElements = Array.from(
+          modalRef.current.querySelectorAll(
+            'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]'
+          )
+        ).filter(el => el.tabIndex !== -1 && el.offsetParent !== null);
+
+        if (focusableElements.length === 0) return;
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement || !focusableElements.includes(document.activeElement)) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement || !focusableElements.includes(document.activeElement)) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen || !canvasRef.current) return;
@@ -200,17 +263,30 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
 
   return (
     <div className="modal fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000] p-4 animate-fade-in">
-      <div className="glass-premium border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-4xl w-full relative animate-slide-up">
+      <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="charts-title"
+        aria-describedby="charts-description"
+        className="glass-premium border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-4xl w-full relative animate-slide-up"
+      >
         <button
           className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors text-2xl"
           onClick={onClose}
+          aria-label="Cerrar modal"
           type="button"
         >
           &times;
         </button>
-        <h2 className="text-lg font-black text-white mb-4 tracking-tight">
+        <h2 id="charts-title" className="text-lg font-black text-white mb-2 tracking-tight">
           {type === 'projection' ? 'Proyección Anual de Gastos' : 'Historial de Consumo Físico'}
         </h2>
+        <p id="charts-description" className="text-[11px] text-slate-400 mb-4 font-semibold">
+          {type === 'projection' 
+            ? 'Gráfico de barras que proyecta los montos a pagar mensualmente de tus servicios regulares.' 
+            : 'Gráfico de líneas que ilustra la tendencia de tus consumos medidos en unidades físicas a lo largo del año.'}
+        </p>
         <div className="w-full h-[380px] mt-4">
           <canvas ref={canvasRef}></canvas>
         </div>

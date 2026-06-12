@@ -1,8 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/utils';
 
 export default function SimulationModal({ isOpen, onClose, services, currentMonthIndex }) {
+  const modalRef = useRef(null);
+  const previousActiveElement = useRef(null);
   const [simulationCart, setSimulationCart] = useState([]); // Array of { id, simulatedAmount }
   const [simulatedNewItems, setSimulatedNewItems] = useState([]); // Array of { id, name, amount }
   
@@ -23,6 +25,67 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
       setNewAmount('');
     }
   }, [isOpen, currentMonthIndex]);
+
+  // Focus management when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      previousActiveElement.current = document.activeElement;
+      setTimeout(() => {
+        if (modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll(
+            'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]'
+          );
+          if (focusableElements.length > 0) {
+            focusableElements[0].focus();
+          }
+        }
+      }, 50);
+    } else {
+      if (previousActiveElement.current) {
+        previousActiveElement.current.focus();
+      }
+    }
+  }, [isOpen]);
+
+  // Trap focus inside modal & Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isOpen) return;
+      
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        if (!modalRef.current) return;
+        const focusableElements = Array.from(
+          modalRef.current.querySelectorAll(
+            'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]'
+          )
+        ).filter(el => el.tabIndex !== -1 && el.offsetParent !== null);
+
+        if (focusableElements.length === 0) return;
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement || !focusableElements.includes(document.activeElement)) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement || !focusableElements.includes(document.activeElement)) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -125,25 +188,36 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
 
   return (
     <div id="cancel-simulation-modal" className="modal fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[1000] p-4 animate-fade-in">
-      <div className="glass-premium border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-xl w-full relative overflow-y-auto max-h-[90vh] animate-slide-up">
+      <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="simulation-title"
+        aria-describedby="simulation-description"
+        className="glass-premium border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-xl w-full relative overflow-y-auto max-h-[90vh] animate-slide-up"
+      >
         {/* Glow corner */}
         <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl pointer-events-none"></div>
 
         <button
           className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors text-2xl"
           onClick={onClose}
+          aria-label="Cerrar modal"
           type="button"
         >
           &times;
         </button>
-        <h2 className="text-xl font-black text-white mb-5 tracking-tight flex items-center gap-2">
-          <svg className="text-sky-400 animate-pulse" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <h2 id="simulation-title" className="text-xl font-black text-white mb-2 tracking-tight flex items-center gap-2">
+          <svg className="text-sky-400 animate-pulse" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
             <line x1="18" y1="20" x2="18" y2="10"></line>
             <line x1="12" y1="20" x2="12" y2="4"></line>
             <line x1="6" y1="20" x2="6" y2="14"></line>
           </svg>
           Simulador de Bajas / Altas
         </h2>
+        <p id="simulation-description" className="text-[11px] text-slate-400 mb-5 font-semibold">
+          Proyecta altas y bajas ficticias en tus gastos fijos de este mes para evaluar su impacto en tu liquidez antes de aplicarlos.
+        </p>
 
         <div className="space-y-4 mb-6">
           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Servicios en simulación:</h4>
@@ -164,9 +238,10 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
                       className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
                       onClick={() => handleRemoveService(s.id)}
                       title="Quitar de la simulación"
+                      aria-label={`Quitar ${s.name} de la simulación`}
                       type="button"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                       </svg>
@@ -197,9 +272,10 @@ export default function SimulationModal({ isOpen, onClose, services, currentMont
                       className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
                       onClick={() => handleRemoveNewService(s.id)}
                       title="Quitar Alta"
+                      aria-label={`Quitar alta ficticia de ${s.name}`}
                       type="button"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                       </svg>

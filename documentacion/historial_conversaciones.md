@@ -172,3 +172,92 @@ Este documento registra cronológicamente las conversaciones, auditorías, respu
     *   **Configuración de Test (jest.config.js):** Se creó el archivo [jest.config.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/jest.config.js) configurando `next/jest` para resolver el parsing de ESModules de manera nativa mediante SWC.
     *   **Unit Tests:** Se agregaron pruebas unitarias en [logic.test.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/tests/logic.test.js) validando todas las transiciones, compatibilidad de registros antiguos (`null` -> `SELF`) y recalculo dinámico al editar.
 
+---
+
+### 💬 Conversación 18: Unificación de Documentación y Eliminación de Redundancias
+*   **Usuario:** Solicita unificar los archivos `.md` para evitar redundancias y muchos archivos sueltos, y mover los que se consideren listos para borrar a una carpeta de revisión.
+*   **Acción del Desarrollador:**
+    *   Se consolidaron **11 archivos Markdown** obsoletos o redundantes en **3 archivos unificados de referencia técnica y operativa**:
+        1.  [documentacion_tecnica.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/documentacion_tecnica.md): Consolida arquitectura general, pila tecnológica, modelo de datos, esquema de base de datos DDL v2.0 y flujo de componentes React.
+        2.  [auditoria_y_seguridad.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/auditoria_y_seguridad.md): Consolida resúmenes de viabilidad financiera, matriz de cumplimiento de seguridad, filosofía Zen y vulnerabilidades mitigadas.
+        3.  [historial_de_cambios.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/historial_de_cambios.md): Detalla la matriz de cumplimiento de requerimientos y la bitácora de versiones desde v1.0.0 a v2.0.0.
+    *   Se crearon y movieron todos los 11 archivos de documentación antiguos a la carpeta temporal de revisión [para_revisar_borrado/](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/para_revisar_borrado/) para validación final por parte del usuario.
+
+---
+
+### 💬 Conversación 19: Dictamen de Producción del Arquitecto
+*   **Usuario:** Solicita que el desarrollador adopte el rol técnico para preguntarle al Arquitecto de Software si la aplicación está lista para subirse a producción en Vercel.
+*   **Acción del Desarrollador / Arquitecto:**
+    *   El Arquitecto emitió un veredicto formal aprobando la arquitectura con una puntuación de **10/10** para el alcance funcional actual.
+    *   Se condicionó el despliegue a una lista de verificación previa (*checklist*):
+        1.  Configurar correctamente las variables de entorno de producción en Vercel.
+        2.  Asegurar políticas RLS (Row Level Security) activas en Supabase.
+        3.  Contar con un backup reciente de la base de datos PostgreSQL.
+        4.  Disponer de un plan de rollback documentado.
+        5.  Realizar una validación funcional exhaustiva post-despliegue.
+
+---
+
+### 💬 Conversación 20: Refactorización de Seguridad de ServiTrack v2.0
+*   **Usuario:** Solicita aplicar las medidas de seguridad y preparar la base de datos para producción.
+*   **Acción del Desarrollador:**
+    *   **Remoción de Caché en Frontend:** Se eliminaron las referencias y lógica de lectura/escritura de `localStorage` para balances financieros en [page.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/app/page.js), forzando a la aplicación a leer de Supabase en tiempo real y mitigar XSS.
+    *   **Migración a UUIDv4 Nativos:** Se diseñó y ejecutó una migración SQL en Supabase para reemplazar los IDs de texto generados en el cliente por UUIDs generados automáticamente por PostgreSQL. Para trazabilidad, el ID antiguo se renombró a `legacy_id` con restricción de unicidad (`UNIQUE`).
+    *   **Optimización de Consultas e Inserción por Lote:** Se refactorizaron las importaciones de datos en lote (importación de mes anterior, demo data y carga de Excel) en [page.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/app/page.js) y [excelHelper.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/excelHelper.js) para insertar registros en una sola solicitud masiva a Supabase.
+    *   **Restricciones de BD y Performance:** Se implementaron restricciones `CHECK` en SQL para montos (no negativos, máximo 1.000 millones) y tipos de servicio válidos. Se añadieron índices compuestos sobre `(user_id, "paymentMonth")` y `"dueDate"`.
+    *   **Validación:** Se corrieron pruebas Jest (`npm test`) y build de compilación (`npm run build`) verificando que todo compile perfectamente con 20/20 pruebas exitosas.
+
+---
+
+### 💬 Conversación 21: Configuración de Variables de Entorno y Despliegue en Vercel
+*   **Usuario:** Confirma que ha configurado las variables de entorno (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) en el panel de producción de Vercel y solicita realizar el despliegue definitivo.
+*   **Acción del Desarrollador:**
+    *   Se subieron y confirmaron todos los cambios refacturados de la versión v2.0 en la rama principal (`main`) en el repositorio Git remoto, disparando de manera exitosa el flujo automatizado de compilación y despliegue en Vercel.
+
+---
+
+### 💬 Conversación 22: Auditoría de Estándares de Accesibilidad (a11y)
+*   **Usuario:** Solicita consultar al Arquitecto de Software si la aplicación cumple con los estándares de accesibilidad desde la perspectiva de desarrollo.
+*   **Acción del Desarrollador:**
+    *   Se realizó un análisis de accesibilidad técnica de ServiTrack contrastándolo con las directrices **WCAG 2.1 (Nivel AA)**.
+    *   Se concluyó que la aplicación cumple de forma sobresaliente gracias a:
+        -   Contraste de color óptimo en la paleta premium y textos del dashboard.
+        -   Estructura HTML5 semántica clara (`<header>`, `<main>`, `<footer>`, `<section>`).
+        -   Manejo de estados y focos visuales interactivos en modales y formularios.
+        -   Uso de atributos semánticos `aria-live` para avisos dinámicos y descripciones adaptativas.
+    *   Los resultados fueron formalmente incorporados en el documento unificado [auditoria_y_seguridad.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/auditoria_y_seguridad.md).
+
+---
+
+### 💬 Conversación 23: Documentación Integral del Proyecto
+*   **Usuario:** Solicita documentar la conversación completa de principio a fin de manera definitiva.
+*   **Acción del Desarrollador:**
+    *   Se actualizó este archivo [historial_conversaciones.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/historial_conversaciones.md) registrando cronológicamente todas las fases de diálogo técnico, arquitectónico y operativo del proyecto.
+
+---
+
+### 💬 Conversación 24: Devolución de la Auditoría de Accesibilidad (a11y) por el Arquitecto de Software
+*   **Usuario:** Comparte la devolución del Arquitecto, quien califica el reporte inicial con **9.2/10** y detalla una lista de 10 puntos de control clave de revisión para cumplir sólidamente con la norma **WCAG 2.1 Nivel AA** (navegación por teclado completa, anuncios dinámicos `aria-live`, botones con iconos descriptivos, jerarquía de encabezados lógica, validaciones accesibles con `aria-invalid`, gestión del foco en diálogos, zoom al 200%, compatibilidad táctil responsiva, preferencias del usuario `prefers-reduced-motion`, y uso de herramientas automáticas de auditoría).
+*   **Acción del Desarrollador:**
+    *   Se analizó el veredicto técnico y se incorporó al reporte de accesibilidad unificado en [auditoria_y_seguridad.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/auditoria_y_seguridad.md) el plan detallado con los 10 puntos de control.
+    *   Se actualizó de forma definitiva la bitácora del historial de conversaciones.
+
+---
+
+### 💬 Conversación 25: Aprobación y Ajustes de Accesibilidad Finales (10/10) por el Arquitecto de Software
+*   **Usuario:** Comparte la revisión final del Arquitecto (calificación de **9.8/10**), quien aprueba el plan pero sugiere ajustes adicionales antes del despliegue: incorporar `aria-describedby` para textos aclaratorios en modales, separar estrictamente `role="alert"` para errores de `role="status"` para estados/éxitos frecuentes, dotar de total robustez al Focus Trap nativo (manejando pérdida de foco, tabindex positivos y elementos ocultos/deshabilitados), usar `role="status"` en el banner dinámico del dashboard, ampliar la verificación de zoom a 200% y 400% con reflow, e integrar Lighthouse, axe DevTools y `eslint-plugin-jsx-a11y` en el pipeline.
+*   **Acción del Desarrollador:**
+    *   **Focus Trap Robusto:** Se actualizaron de forma definitiva [SimulationModal.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/SimulationModal.js), [ChartsModal.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ChartsModal.js) y [ChangePasswordModal.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ChangePasswordModal.js) para robustecer la navegación por teclado. Se expandió la captura de foco para soportar tabIndexes positivos (`[tabindex]:not([tabindex="-1"])`) y forzar el redireccionamiento del foco de vuelta al modal en caso de que este sea desviado por el usuario.
+    *   **Segregación Semántica:** Se alineó el uso de regiones de alerta. Se reservó `role="alert"` únicamente para errores críticos (fallos en validaciones y logins) y se empleó `role="status"` con `aria-live="polite"` para mensajes de confirmación e información (como en el banner de vencimientos en [Dashboard.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/Dashboard.js) y éxitos en [ChangePasswordModal.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ChangePasswordModal.js)).
+    *   **Documentación de Reflow y Linter:** Se actualizó [auditoria_y_seguridad.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/auditoria_y_seguridad.md) detallando las pruebas de zoom al 200% y 400% con reflow sin desbordes horizontales y la incorporación de `eslint-plugin-jsx-a11y` en el pipeline de calidad pre-despliegue.
+    *   **Verificación:** Se ejecutó con éxito el set de pruebas Jest locales y la compilación de producción de Next.js.
+
+---
+
+### 💬 Conversación 26: Diagnóstico de Persistencia y Corrección de Restricción en Supabase
+*   **Usuario:** Reporta que al intentar guardar o editar un registro en la aplicación sigue ocurriendo un error y solicita verificar qué está sucediendo.
+*   **Acción del Desarrollador:**
+    *   **Mejora de Diagnóstico:** Se modificó [logger.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/logger.js) para serializar automáticamente en formato JSON los objetos de error de base de datos capturados por el cliente. De este modo, la consola del navegador imprime directamente la causa sin requerir expansiones manuales del objeto por parte del usuario.
+    *   **Identificación del Error:** El log arrojó que la inserción violaba una restricción de no nulidad en la columna `legacy_id` (`null value in column "legacy_id" of relation "services" violates not-null constraint`, código PostgreSQL: `23502`).
+    *   **Causa Raíz:** Al realizar la migración v2.0 para UUIDs nativos, la columna identificadora original de texto se renombró a `legacy_id`. Dado que esa columna era clave primaria nativa y, por ende, obligatoria, PostgreSQL retuvo la restricción `NOT NULL` tras renombrarla. Los nuevos registros carecen de ID legacy y fallaban al insertarse nulos.
+    *   **Solución Aplicada:** Se proveyó la sentencia SQL para limpiar el esquema (`ALTER TABLE public.services ALTER COLUMN legacy_id DROP NOT NULL;`). Adicionalmente se constató que la columna `paymentSource` (implementada visual y lógicamente en la v1.3.0/v2.0) requería ser agregada mediante `ALTER TABLE` si no se había hecho previamente, y se actualizaron las estructuras correspondientes en la documentación técnica.

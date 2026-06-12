@@ -15,7 +15,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 glow-emerald',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <line x1="12" y1="19" x2="12" y2="5"></line>
           <polyline points="5 12 12 5 19 12"></polyline>
         </svg>
@@ -27,7 +27,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-purple-400 bg-purple-500/10 border-purple-500/20 glow-purple',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
@@ -40,7 +40,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-amber-400 bg-amber-500/10 border-amber-500/20 glow-amber',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
         </svg>
       )
@@ -50,7 +50,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <path d="M12 2c0 0-4 4.5-4 7.5a4 4 0 0 0 8 0c0-3-4-7.5-4-7.5z"></path>
         </svg>
       )
@@ -60,7 +60,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-sky-400 bg-sky-500/10 border-sky-500/20 glow-sky',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
         </svg>
       )
@@ -70,7 +70,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-blue-400 bg-blue-500/10 border-blue-500/20 glow-sky',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
           <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
           <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
@@ -83,7 +83,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20 glow-purple',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <polygon points="23 7 16 12 23 17 23 7"></polygon>
           <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
         </svg>
@@ -94,7 +94,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-violet-400 bg-violet-500/10 border-violet-500/20 glow-purple',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
           <line x1="1" y1="10" x2="23" y2="10"></line>
         </svg>
@@ -105,7 +105,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-rose-400 bg-rose-500/10 border-rose-500/20 glow-rose',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
           <polyline points="9 22 9 12 15 12 15 22"></polyline>
         </svg>
@@ -116,7 +116,7 @@ const getCategoryIconAndColor = (name, type) => {
     return {
       colorClass: 'text-teal-400 bg-teal-500/10 border-teal-500/20 glow-emerald',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
           <circle cx="9" cy="21" r="1"></circle>
           <circle cx="20" cy="21" r="1"></circle>
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
@@ -127,7 +127,7 @@ const getCategoryIconAndColor = (name, type) => {
   return {
     colorClass: 'text-slate-400 bg-slate-500/10 border-slate-500/20',
     icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
         <polyline points="14 2 14 8 20 8"></polyline>
         <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -270,9 +270,10 @@ export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSi
               className="w-9 h-9 rounded-xl bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/20 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer"
               onClick={() => onSimulate(item.id)}
               title="Simular Baja"
+              aria-label={`Simular baja de ${item.name}`}
               type="button"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="8" y1="12" x2="16" y2="12"></line>
               </svg>
@@ -283,9 +284,10 @@ export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSi
             className="w-9 h-9 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/20 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer"
             onClick={() => onEdit(item.id)}
             title="Editar"
+            aria-label={`Editar ${item.name}`}
             type="button"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
@@ -300,9 +302,10 @@ export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSi
               }`}
               onClick={() => onTogglePaid(item.id)}
               title={isPaid ? 'Marcar como pendiente' : 'Marcar como pagado'}
+              aria-label={isPaid ? `Marcar como pendiente: ${item.name}` : `Marcar como pagado: ${item.name}`}
               type="button"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             </button>
@@ -312,9 +315,10 @@ export default function ServiceCard({ item, onEdit, onDelete, onTogglePaid, onSi
             className="w-9 h-9 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer"
             onClick={() => onDelete(item.id)}
             title="Eliminar"
+            aria-label={`Eliminar ${item.name}`}
             type="button"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>

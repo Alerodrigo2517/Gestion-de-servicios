@@ -87,8 +87,8 @@ sequenceDiagram
 | `billingCloseDate`    | `number`                                       | Opcional  | Día del mes del cierre de factura (1-31 - sólo internet/cable)   |
 | `creditor`            | `string`                                       | Opcional  | Nombre del banco o prestamista (sólo préstamos)                  |
 | `currentInstallment`  | `number`                                       | Opcional  | Cuota actual (sólo préstamos)                                    |
-| `totalInstallments`   | `number`                                       | Opcional  | Total de cuotas a abonar (sólo préstamos)                        |
 | `titular`             | `string`                                       | Opcional  | Persona titular a cargo del pago del préstamo                    |
+| `paymentSource`       | `'SELF' \| 'THIRD_PARTY'`                      | Opcional  | Origen de fondos para el pago (Yo o Terceros)                     |
 
 ### 3.2 SQL DDL (Esquema en Supabase v2.0)
 ```sql
@@ -115,12 +115,14 @@ create table public.services (
   "currentInstallment" integer,
   "totalInstallments" integer,
   titular text,
+  "paymentSource" text not null default 'SELF',
 
   -- Restricciones de validación a nivel de base de datos (CHECK constraints)
   CONSTRAINT chk_amount_positive CHECK (amount >= 0),
   CONSTRAINT chk_amount_max CHECK (amount <= 1000000000), -- Máximo 1.000 millones
   CONSTRAINT chk_type_valid CHECK (type IN ('service', 'loan', 'overdue', 'income')),
-  CONSTRAINT chk_payment_month CHECK ("paymentMonth" >= 0 and "paymentMonth" <= 11)
+  CONSTRAINT chk_payment_month CHECK ("paymentMonth" >= 0 and "paymentMonth" <= 11),
+  CONSTRAINT chk_payment_source CHECK ("paymentSource" IN ('SELF', 'THIRD_PARTY'))
 );
 
 alter table public.services enable row level security;
