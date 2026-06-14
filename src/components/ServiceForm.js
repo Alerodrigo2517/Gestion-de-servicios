@@ -333,6 +333,7 @@ export default function ServiceForm({
                 placeholder={type === 'income' ? 'Ej. Sueldo Principal...' : (type === 'loan' ? 'Ej. Cuota Auto...' : 'Ej. Luz Edesur, Internet...')}
                 required
                 autoComplete="off"
+                maxLength={100}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
@@ -487,6 +488,7 @@ export default function ServiceForm({
                     type="text"
                     id="loan-creditor"
                     placeholder="Ej. Banco Galicia, Amigo..."
+                    maxLength={100}
                     value={creditor}
                     onChange={(e) => setCreditor(e.target.value)}
                     className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
@@ -540,6 +542,7 @@ export default function ServiceForm({
                     type="text"
                     id="loan-titular"
                     placeholder="Ej. Rodrigo..."
+                    maxLength={100}
                     value={titular}
                     onChange={(e) => setTitular(e.target.value)}
                     className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}

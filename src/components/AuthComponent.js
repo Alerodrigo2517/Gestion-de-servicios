@@ -207,8 +207,10 @@ export default function AuthComponent() {
             </div>
           )}
         </div>
-        <footer className="w-full text-center mt-6 text-[10px] text-slate-500 font-semibold tracking-wider select-none">
-          ServiTrack v1.3.0 | Creado por <span className="text-slate-400">Rodrigo Alejandro Aguirre Tevez</span>
+        <footer className="w-full text-center mt-6 text-[10px] text-slate-500 font-semibold tracking-wider select-none flex flex-col sm:flex-row justify-center items-center gap-1">
+          <span>ServiTrack v1.3.0</span>
+          <span className="hidden sm:inline">|</span>
+          <span>Creado por <span className="text-slate-400">Rodrigo Alejandro Aguirre Tevez</span></span>
         </footer>
       </div>
     </div>

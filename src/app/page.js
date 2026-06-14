@@ -88,6 +88,11 @@ export default function Home() {
       }
     } else {
       // Create mode (PostgreSQL generates UUID)
+      if (services.length >= 1000) {
+        alert('Has alcanzado el límite de almacenamiento de 1000 registros para evitar sobrecarga en el servidor. Por favor, elimina algunos registros existentes antes de agregar nuevos.');
+        return;
+      }
+
       try {
         const itemToSave = { ...itemData, user_id: userId };
         delete itemToSave.id;
@@ -104,7 +109,12 @@ export default function Home() {
         }
       } catch (err) {
         logger.error('Error al insertar item en Supabase:', err);
-        alert('Hubo un error al guardar el registro en el servidor.');
+        const msg = err.message || '';
+        if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
+          alert('Error: Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+        } else {
+          alert('Hubo un error al guardar el registro en el servidor.');
+        }
       }
     }
   };
@@ -225,6 +235,11 @@ export default function Home() {
 
     const itemsToInsert = importedItems.map(item => ({ ...item, user_id: session.user.id }));
 
+    if (services.length + itemsToInsert.length > 1000) {
+      alert(`No se pueden importar los registros. Esta operación superaría el límite de almacenamiento de 1000 registros (tienes ${services.length} y deseas importar ${itemsToInsert.length}).`);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('services')
@@ -237,7 +252,12 @@ export default function Home() {
       }
     } catch (err) {
       logger.error('Error al importar servicios del mes anterior:', err);
-      alert('Hubo un error al guardar los servicios importados en el servidor.');
+      const msg = err.message || '';
+      if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
+        alert('Error: No se pudo importar. Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+      } else {
+        alert('Hubo un error al guardar los servicios importados en el servidor.');
+      }
     }
   };
 
@@ -252,6 +272,11 @@ export default function Home() {
       return itemCopy;
     });
 
+    if (services.length + itemsToInsert.length > 1000) {
+      alert(`No se puede realizar la importación masiva. Superaría el límite de almacenamiento de 1000 registros (tienes ${services.length} y deseas importar ${itemsToInsert.length}).`);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('services')
@@ -264,7 +289,12 @@ export default function Home() {
       }
     } catch (err) {
       logger.error('Error al importar registros en Supabase:', err);
-      alert('Hubo un error al guardar los registros importados en el servidor.');
+      const msg = err.message || '';
+      if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
+        alert('Error: No se pudo importar. Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+      } else {
+        alert('Hubo un error al guardar los registros importados en el servidor.');
+      }
     }
   };
 
@@ -383,6 +413,12 @@ export default function Home() {
       });
     }
 
+    const targetCount = (cleanFirst ? 0 : services.length) + demoServices.length;
+    if (targetCount > 1000) {
+      alert(`No se pueden generar los datos de demostración. Esta operación superaría el límite de almacenamiento de 1000 registros.`);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.from('services').insert(demoServices).select();
       if (error) throw error;
@@ -394,7 +430,12 @@ export default function Home() {
       }
     } catch (err) {
       logger.error('Error al guardar la demo en Supabase:', err);
-      alert('Ocurrió un error al guardar los datos en Supabase.');
+      const msg = err.message || '';
+      if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
+        alert('Error: Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+      } else {
+        alert('Ocurrió un error al guardar los datos en Supabase.');
+      }
     }
   };
 

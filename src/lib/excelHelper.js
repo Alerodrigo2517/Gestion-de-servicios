@@ -396,6 +396,10 @@ export async function exportToExcel(services) {
 
 export async function importFromExcel(file, currentServices) {
   return new Promise((resolve, reject) => {
+    if (file && file.size > 2 * 1024 * 1024) {
+      reject(new Error('El archivo excede el tamaño máximo permitido de 2MB.'));
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {

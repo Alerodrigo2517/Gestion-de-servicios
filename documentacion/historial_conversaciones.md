@@ -261,3 +261,38 @@ Este documento registra cronológicamente las conversaciones, auditorías, respu
     *   **Identificación del Error:** El log arrojó que la inserción violaba una restricción de no nulidad en la columna `legacy_id` (`null value in column "legacy_id" of relation "services" violates not-null constraint`, código PostgreSQL: `23502`).
     *   **Causa Raíz:** Al realizar la migración v2.0 para UUIDs nativos, la columna identificadora original de texto se renombró a `legacy_id`. Dado que esa columna era clave primaria nativa y, por ende, obligatoria, PostgreSQL retuvo la restricción `NOT NULL` tras renombrarla. Los nuevos registros carecen de ID legacy y fallaban al insertarse nulos.
     *   **Solución Aplicada:** Se proveyó la sentencia SQL para limpiar el esquema (`ALTER TABLE public.services ALTER COLUMN legacy_id DROP NOT NULL;`). Adicionalmente se constató que la columna `paymentSource` (implementada visual y lógicamente en la v1.3.0/v2.0) requería ser agregada mediante `ALTER TABLE` si no se había hecho previamente, y se actualizaron las estructuras correspondientes en la documentación técnica.
+
+---
+
+## Sesión 2: Análisis de Seguridad y Vulnerabilidades (v2.0)
+**Fecha:** 14 de Junio, 2026
+
+### 💬 Conversación 27: Evaluación de Seguridad y Vulnerabilidades (XSS, SQLi, y otros)
+*   **Usuario:** Solicita un informe en formato `.md` que determine si la aplicación es vulnerable a ataques de Cross-Site Scripting (XSS) u otros tipos de amenazas.
+*   **Acción del Desarrollador:**
+    *   Se creó el documento detallado [analisis_de_seguridad_xss.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/analisis_de_seguridad_xss.md) analizando de forma exhaustiva los diferentes vectores de ataque.
+    *   **XSS:** Se concluyó que la aplicación es altamente resistente debido al auto-escaping de React 18, la ausencia de directivas peligrosas (`dangerouslySetInnerHTML`) y la falta de links con URLs dinámicas.
+    *   **SQL Injection:** Protegido mediante la parametrización de consultas provista de forma nativa por el SDK de Supabase / PostgREST.
+    *   **Bypass de Autorización:** Mitigado por el uso correcto de políticas Row-Level Security (RLS) en la base de datos de Supabase.
+    *   **Vulnerabilidades Teóricas Identificadas:** Se detectaron dos riesgos menores: inyección teórica de fórmulas en la exportación Excel ([excelHelper.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/excelHelper.js)) y falta de límites físicos en cargas por lotes/base de datos. Se documentaron las correspondientes recomendaciones de mitigación.
+
+---
+
+### 💬 Conversación 28: Mitigación de Ataques de Denegación de Servicio (DoS) mediante Límites de Almacenamiento y Payload
+*   **Usuario:** Solicita poner límites de almacenamiento para evitar ataques DoS por sobrecarga en el servidor y realizar una doble verificación.
+*   **Acción del Desarrollador:**
+    *   **Límites en Frontend:** Se implementaron validaciones de tope de 1000 registros en [page.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/app/page.js) en todos los métodos de inserción y carga de datos (`handleSaveItem`, `handleImportPrevious`, `handleBulkImport` y `handleGenerateDemoData`).
+    *   **Límites de Entrada de Texto (Payload DoS):** Se añadieron propiedades `maxLength={100}` a los inputs de texto del formulario (`name`, `creditor` y `titular`) en [ServiceForm.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ServiceForm.js).
+    *   **Límite de Tamaño de Importación:** Se implementó una validación en [excelHelper.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/excelHelper.js) para rechazar archivos Excel mayores a 2MB, evitando el bloqueo del navegador por cargas gigantescas.
+    *   **Límites en Base de Datos:** Se actualizó [analisis_de_seguridad_xss.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/analisis_de_seguridad_xss.md) con el script SQL necesario para configurar el Trigger de control `BEFORE INSERT` y aplicar restricciones de longitud (`CHECK (char_length(...) <= 100)`) a nivel de base de datos en PostgreSQL.
+    *   **Verificación:** Se ejecutaron las pruebas Jest locales (`npm test`) y se compiló el bundle de producción de Next.js (`npm run build`) de forma exitosa y libre de errores.
+
+---
+
+### 💬 Conversación 29: Optimización de Footer del Autor para Dispositivos Móviles
+*   **Usuario:** Solicita una modificación para que la visualización del nombre de autor en el footer se adapte y visualice mejor en dispositivos móviles.
+*   **Acción del Desarrollador:**
+    *   **Modificaciones de Componentes:** Se actualizaron [AuthComponent.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/AuthComponent.js) y [Dashboard.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/Dashboard.js) para hacer el layout del footer completamente responsivo.
+    *   **Lógica CSS:** En pantallas móviles, se utiliza `flex-col` para colocar la versión y el autor en dos líneas separadas y centradas de manera organizada, ocultando la barra vertical separadora (`|`). En pantallas mayores (`sm` en adelante), se reordena a una sola fila (`flex-row`) con la barra separadora visible, garantizando estética y simetría en cualquier dispositivo.
+    *   **Verificación:** Se corrieron pruebas Jest (`npm test`) y Next.js build con éxito rotundo.
+
