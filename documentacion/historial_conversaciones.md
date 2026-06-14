@@ -296,3 +296,12 @@ Este documento registra cronológicamente las conversaciones, auditorías, respu
     *   **Lógica CSS:** En pantallas móviles, se utiliza `flex-col` para colocar la versión y el autor en dos líneas separadas y centradas de manera organizada, ocultando la barra vertical separadora (`|`). En pantallas mayores (`sm` en adelante), se reordena a una sola fila (`flex-row`) con la barra separadora visible, garantizando estética y simetría en cualquier dispositivo.
     *   **Verificación:** Se corrieron pruebas Jest (`npm test`) y Next.js build con éxito rotundo.
 
+---
+
+### 💬 Conversación 30: Creación de la Guía de Preparación para Entrevistas Técnicas
+*   **Usuario:** Solicita una guía en formato `.md` estructurada como preguntas y respuestas técnicas que debería conocer y responder con seguridad ("sin pestañear") sobre este proyecto en una entrevista real.
+*   **Acción del Desarrollador:**
+    *   **Creación del Documento:** Se creó el archivo [preparacion_entrevista.md](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/documentacion/preparacion_entrevista.md).
+    *   **Contenidos Clave:** Estructurado con: el Elevator Pitch de 30 segundos, arquitectura de flujo de datos, gestión de estado reactivo de React, mitigación de vulnerabilidades de seguridad avanzadas (XSS, SQLi, DoS de almacenamiento y Excel Formula Injection), lógica de negocio y algoritmos (Greedy de simulador de bajas y manejo temporal de bisiestos), estándares WCAG 2.1 AA de accesibilidad (Focus Trap, ARIA, Reduced Motion) y pruebas automatizadas.
+
+
