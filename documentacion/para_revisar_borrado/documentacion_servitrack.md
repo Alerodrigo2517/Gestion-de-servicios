@@ -85,27 +85,27 @@ A continuación, se detalla el árbol de directorios y la responsabilidad de cad
 
 Todos los registros en memoria y base de datos respetan el siguiente esquema de campos:
 
-| Campo                 | Tipo                                           | Requerido | Descripción                                                      |
-| --------------------- | ---------------------------------------------- | --------- | ---------------------------------------------------------------- |
-| `id`                  | `uuid`                                         | Sí        | Identificador único del registro (UUIDv4 generado por PostgreSQL)|
-| `legacy_id`           | `string`                                       | Opcional  | Identificador único antiguo en formato texto (auditoría/historia)|
-| `user_id`             | `uuid`                                         | Sí        | Clave foránea del usuario creador (relacionado a `auth.users`)   |
-| `type`                | `'service' \| 'loan' \| 'overdue' \| 'income'` | Sí        | Tipo de registro                                                 |
-| `name`                | `string`                                       | Sí        | Nombre descriptivo del gasto o ingreso (ej: "Luz Edesur")        |
-| `amount`              | `number`                                       | Sí        | Importe del registro (flotante de precisión simple)              |
-| `paymentMonth`        | `number`                                       | Sí        | Índice del mes asignado para el pago (0 = Enero, 11 = Diciembre) |
-| `isPaid`              | `boolean`                                      | Sí        | Determina si el gasto está pago (siempre `false` para ingresos)  |
-| `paymentDate`         | `string`                                       | Opcional  | Fecha de pago registrada (formato local `'es-AR'`)               |
-| `dueDate`             | `string`                                       | Opcional  | Fecha de vencimiento nativa (formato `'YYYY-MM-DD'`)             |
-| `consumptionMonth`    | `number`                                       | Opcional  | Mes inicial del periodo de consumo (sólo servicios/atrasados)    |
-| `consumptionMonthEnd` | `number \| null`                               | Opcional  | Mes final del periodo de consumo (sólo servicios/atrasados)      |
-| `consumptionUnit`     | `number`                                       | Opcional  | Unidades consumidas (kWh / m³ - sólo servicios de energía/gas)   |
-| `nextMeasurementDate` | `number`                                       | Opcional  | Día del mes para la toma del estado (1-31)                       |
-| `billingCloseDate`    | `number`                                       | Opcional  | Día del mes del cierre de factura (1-31 - sólo internet/cable)   |
-| `creditor`            | `string`                                       | Opcional  | Nombre del banco o prestamista (sólo préstamos)                  |
-| `currentInstallment`  | `number`                                       | Opcional  | Cuota actual (sólo préstamos)                                    |
-| `totalInstallments`   | `number`                                       | Opcional  | Total de cuotas a abonar (sólo préstamos)                        |
-| `titular`             | `string`                                       | Opcional  | Persona titular a cargo del pago del préstamo                    |
+| Campo                 | Tipo                                           | Requerido | Descripción                                                       |
+| --------------------- | ---------------------------------------------- | --------- | ----------------------------------------------------------------- |
+| `id`                  | `uuid`                                         | Sí        | Identificador único del registro (UUIDv4 generado por PostgreSQL) |
+| `legacy_id`           | `string`                                       | Opcional  | Identificador único antiguo en formato texto (auditoría/historia) |
+| `user_id`             | `uuid`                                         | Sí        | Clave foránea del usuario creador (relacionado a `auth.users`)    |
+| `type`                | `'service' \| 'loan' \| 'overdue' \| 'income'` | Sí        | Tipo de registro                                                  |
+| `name`                | `string`                                       | Sí        | Nombre descriptivo del gasto o ingreso (ej: "Luz Edesur")         |
+| `amount`              | `number`                                       | Sí        | Importe del registro (flotante de precisión simple)               |
+| `paymentMonth`        | `number`                                       | Sí        | Índice del mes asignado para el pago (0 = Enero, 11 = Diciembre)  |
+| `isPaid`              | `boolean`                                      | Sí        | Determina si el gasto está pago (siempre `false` para ingresos)   |
+| `paymentDate`         | `string`                                       | Opcional  | Fecha de pago registrada (formato local `'es-AR'`)                |
+| `dueDate`             | `string`                                       | Opcional  | Fecha de vencimiento nativa (formato `'YYYY-MM-DD'`)              |
+| `consumptionMonth`    | `number`                                       | Opcional  | Mes inicial del periodo de consumo (sólo servicios/atrasados)     |
+| `consumptionMonthEnd` | `number \| null`                               | Opcional  | Mes final del periodo de consumo (sólo servicios/atrasados)       |
+| `consumptionUnit`     | `number`                                       | Opcional  | Unidades consumidas (kWh / m³ - sólo servicios de energía/gas)    |
+| `nextMeasurementDate` | `number`                                       | Opcional  | Día del mes para la toma del estado (1-31)                        |
+| `billingCloseDate`    | `number`                                       | Opcional  | Día del mes del cierre de factura (1-31 - sólo internet/cable)    |
+| `creditor`            | `string`                                       | Opcional  | Nombre del banco o prestamista (sólo préstamos)                   |
+| `currentInstallment`  | `number`                                       | Opcional  | Cuota actual (sólo préstamos)                                     |
+| `totalInstallments`   | `number`                                       | Opcional  | Total de cuotas a abonar (sólo préstamos)                         |
+| `titular`             | `string`                                       | Opcional  | Persona titular a cargo del pago del préstamo                     |
 
 ### 3.2 SQL DDL (Esquema en Supabase v2.0)
 

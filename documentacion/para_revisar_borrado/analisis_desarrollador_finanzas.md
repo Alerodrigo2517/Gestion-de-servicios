@@ -1,14 +1,14 @@
 # 🛠️ Respuesta del Desarrollador: Plan de Implementación Técnica y Base de Datos
 
-*   **Rol:** Desarrollador Frontend/Fullstack (Next.js & Supabase)
-*   **Destinatario:** Arquitecto de Software y Analista Funcional
-*   **Referencia:** Requerimientos Funcionales y No Funcionales para el Sistema de Finanzas y Servicios del Hogar
+- **Rol:** Desarrollador Frontend/Fullstack (Next.js & Supabase)
+- **Destinatario:** Arquitecto de Software y Analista Funcional
+- **Referencia:** Requerimientos Funcionales y No Funcionales para el Sistema de Finanzas y Servicios del Hogar
 
 ---
 
 ## 📋 Introducción y Validación Técnica
 
-Estimado Arquitecto, he analizado en detalle la especificación del sistema de gestión financiera y control de servicios del hogar. La propuesta funcional es sólida y el enfoque de un **Producto Mínimo Viable (MVP)** es ideal para asegurar un despliegue ágil y de alta calidad. 
+Estimado Arquitecto, he analizado en detalle la especificación del sistema de gestión financiera y control de servicios del hogar. La propuesta funcional es sólida y el enfoque de un **Producto Mínimo Viable (MVP)** es ideal para asegurar un despliegue ágil y de alta calidad.
 
 Aprovechando la pila tecnológica actual de la aplicación (**Next.js 14 (React 18), Supabase (Auth, DB y Storage) y Tailwind CSS**), podemos construir el MVP y escalar progresivamente a las siguientes etapas sin necesidad de reescribir la base del sistema.
 
@@ -18,7 +18,7 @@ A continuación, presento la propuesta de arquitectura técnica, el diseño del 
 
 ## 🗄️ 1. Diseño del Modelo de Datos (Esquema SQL en Supabase)
 
-Para soportar las entidades sugeridas (`Usuario`, `Ingreso`, `Egreso`, `Categoría`, `Servicio`, `Pago`, `Presupuesto`, `Objetivo de ahorro`, `Notificación`, `Comprobante`), estructuraremos una base de datos relacional optimizada. 
+Para soportar las entidades sugeridas (`Usuario`, `Ingreso`, `Egreso`, `Categoría`, `Servicio`, `Pago`, `Presupuesto`, `Objetivo de ahorro`, `Notificación`, `Comprobante`), estructuraremos una base de datos relacional optimizada.
 
 Implementaremos **Políticas de Seguridad a Nivel de Fila (RLS)** para garantizar que cada usuario solo acceda a su propia información.
 
@@ -31,7 +31,7 @@ erDiagram
     USERS ||--o{ BUDGETS : "establece"
     USERS ||--o{ SAVINGS_GOALS : "ahorra"
     USERS ||--o{ NOTIFICATIONS : "recibe"
-    
+
     CATEGORIES ||--o{ TRANSACTIONS : "clasifica"
     CATEGORIES ||--o{ BUDGETS : "limita"
     SERVICES ||--o{ PAYMENTS : "genera"
@@ -40,7 +40,7 @@ erDiagram
 ### 💻 Scripts de Creación DDL (PostgreSQL)
 
 > [!NOTE]
-> Estos scripts se ejecutarán en el Editor SQL de Supabase. La tabla `profiles` se sincroniza automáticamente mediante un *trigger* con la tabla nativa de autenticación `auth.users`.
+> Estos scripts se ejecutarán en el Editor SQL de Supabase. La tabla `profiles` se sincroniza automáticamente mediante un _trigger_ con la tabla nativa de autenticación `auth.users`.
 
 ```sql
 -- 1. PERFILES DE USUARIO
@@ -148,20 +148,20 @@ Para cumplir con la interfaz intuitiva y moderna (usando el actual diseño **Gla
 ### 🗂️ Componentes Propuestos
 
 1.  **Dashboard Principal (`Dashboard.js`):**
-    *   **KPI Cards:** Balance General (Ingresos - Gastos), Liquidez, Total Pendiente de Servicios, Progreso de Ahorros.
-    *   **Accesos Rápidos:** Botones flotantes para "Registrar Ingreso/Gasto" y "Pagar Servicio".
-    *   **Lista de Vencimientos Inminentes:** Alertas visuales con código de colores según días restantes.
+    - **KPI Cards:** Balance General (Ingresos - Gastos), Liquidez, Total Pendiente de Servicios, Progreso de Ahorros.
+    - **Accesos Rápidos:** Botones flotantes para "Registrar Ingreso/Gasto" y "Pagar Servicio".
+    - **Lista de Vencimientos Inminentes:** Alertas visuales con código de colores según días restantes.
 2.  **Gestión de Transacciones (`TransactionModal.js`):**
-    *   Formulario unificado con pestañas (Ingreso / Egreso).
-    *   Campos: Categoría (dropdown visual con iconos), Monto, Fecha, Método de Pago y Notas.
+    - Formulario unificado con pestañas (Ingreso / Egreso).
+    - Campos: Categoría (dropdown visual con iconos), Monto, Fecha, Método de Pago y Notas.
 3.  **Gestor de Servicios Básicos (`ServiceList.js` & `ServiceForm.js`):**
-    *   Muestra de tarjetas de servicios agrupados por estado (`Pendiente` / `Pagado`).
-    *   Acción de "Pagar": Abre un modal para subir el comprobante de pago (arrastrar y soltar archivo) e ingresar la fecha de pago real.
+    - Muestra de tarjetas de servicios agrupados por estado (`Pendiente` / `Pagado`).
+    - Acción de "Pagar": Abre un modal para subir el comprobante de pago (arrastrar y soltar archivo) e ingresar la fecha de pago real.
 4.  **Módulo de Presupuestos y Metas (`BudgetPlanner.js`):**
-    *   Visualización de barras de progreso (Consumido vs. Límite de Presupuesto).
-    *   Tarjetas dinámicas para metas de ahorro con porcentajes de completitud animados.
+    - Visualización de barras de progreso (Consumido vs. Límite de Presupuesto).
+    - Tarjetas dinámicas para metas de ahorro con porcentajes de completitud animados.
 5.  **Reportes Visuales (`FinanceReports.js`):**
-    *   Uso de `Chart.js` para diagramas de pastel (distribución de gastos) e histogramas comparativos mensuales.
+    - Uso de `Chart.js` para diagramas de pastel (distribución de gastos) e histogramas comparativos mensuales.
 
 ---
 
@@ -176,8 +176,8 @@ Propongo un enfoque híbrido de tres niveles:
 1.  **Alertas In-App (Bajo Costo & Eficiente):**
     Al iniciar sesión o cargar el Dashboard en el frontend, se ejecuta una función en JavaScript que compara la fecha actual con la fecha de vencimiento (`due_date`) de los servicios pendientes. Si se encuentran coincidencias en los rangos (10, 5, 1 días), se inyecta dinámicamente un banner de alerta destacado en el panel.
 2.  **Notificaciones por Correo Electrónico (Automatizado - Supabase Edge Functions):**
-    *   Utilizaremos **Supabase Edge Functions** (código Deno Serverless) integradas con un servicio de correo transaccional gratuito (como *Resend* o *SendGrid*).
-    *   Se programa una tarea cron diaria (usando extensiones de Supabase como `pg_cron` o plataformas de automatización cron externas como *GitHub Actions* o *Vercel Cron*) para disparar una función que busque los servicios próximos a vencer y envíe un correo automatizado al email del usuario (`profile.email`).
+    - Utilizaremos **Supabase Edge Functions** (código Deno Serverless) integradas con un servicio de correo transaccional gratuito (como _Resend_ o _SendGrid_).
+    - Se programa una tarea cron diaria (usando extensiones de Supabase como `pg_cron` o plataformas de automatización cron externas como _GitHub Actions_ o _Vercel Cron_) para disparar una función que busque los servicios próximos a vencer y envíe un correo automatizado al email del usuario (`profile.email`).
 3.  **Almacenamiento de Comprobantes:**
     Los archivos de facturas y recibos de pago se subirán a un bucket público/privado de **Supabase Storage** (`receipts`). El enlace resultante (`receipt_url`) se almacenará en la tabla `payments` para consultas de auditoría rápidas desde la interfaz.
 
@@ -206,8 +206,9 @@ gantt
 ```
 
 ### 📋 Próximos Pasos Recomendados:
+
 1.  **Aprobación del Esquema:** Validar que los campos propuestos en la tabla de base de datos cubran todas las necesidades de su análisis.
 2.  **Configuración del Entorno:** Creación de las nuevas tablas en el panel de control de Supabase.
 3.  **Maquetación de Formularios:** Crear los componentes del frontend respetando la estética Glassmorphic.
 
-*Quedo a su disposición para realizar ajustes en el modelo relacional o en las prioridades de desarrollo antes de iniciar con la codificación de las tablas.*
+_Quedo a su disposición para realizar ajustes en el modelo relacional o en las prioridades de desarrollo antes de iniciar con la codificación de las tablas._

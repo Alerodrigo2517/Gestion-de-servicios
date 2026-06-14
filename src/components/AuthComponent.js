@@ -45,21 +45,31 @@ export default function AuthComponent() {
           redirectTo: `${window.location.origin}/`,
         });
         if (error) throw error;
-        alert('Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico.');
+        alert(
+          'Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico.'
+        );
         setMode('login');
       }
     } catch (err) {
-      setError(err.message || 'Ocurrió un error inesperado durante la autenticación.');
+      setError(
+        err.message || 'Ocurrió un error inesperado durante la autenticación.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div id="auth-container" className="flex items-center justify-center min-h-screen p-4 animate-fade-in relative">
+    <div
+      id="auth-container"
+      className="flex items-center justify-center min-h-screen p-4 animate-fade-in relative"
+    >
       {/* Decorative Glow Blobs */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }}></div>
+      <div
+        className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"
+        style={{ animationDelay: '2s' }}
+      ></div>
 
       <div className="w-full max-w-md p-8 glass-premium border-white/10 rounded-2xl shadow-2xl relative z-10 hover:border-white/15 transition-all duration-300">
         {/* Logo and Header */}
@@ -83,7 +93,10 @@ export default function AuthComponent() {
               ServiTrack
             </h2>
           </div>
-          <p id="auth-subtitle" className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+          <p
+            id="auth-subtitle"
+            className="text-slate-400 text-xs font-semibold uppercase tracking-wider"
+          >
             {mode === 'login' && 'Gestión Financiera Premium'}
             {mode === 'signup' && 'Crea tu Cuenta Premium'}
             {mode === 'forgot' && 'Recuperación de Acceso'}
@@ -104,12 +117,23 @@ export default function AuthComponent() {
         {/* Authentication Form */}
         <form id="auth-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-widest" htmlFor="auth-email">
+            <label
+              className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-widest"
+              htmlFor="auth-email"
+            >
               Correo Electrónico
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  aria-hidden="true"
+                >
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
@@ -130,13 +154,19 @@ export default function AuthComponent() {
           {mode !== 'forgot' && (
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-slate-400 text-[10px] font-bold uppercase tracking-widest" htmlFor="auth-password">
+                <label
+                  className="text-slate-400 text-[10px] font-bold uppercase tracking-widest"
+                  htmlFor="auth-password"
+                >
                   Contraseña
                 </label>
                 {mode === 'login' && (
                   <button
                     type="button"
-                    onClick={() => { setError(''); setMode('forgot'); }}
+                    onClick={() => {
+                      setError('');
+                      setMode('forgot');
+                    }}
                     className="text-[10px] font-bold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
                   >
                     ¿Olvidaste tu contraseña?
@@ -145,8 +175,23 @@ export default function AuthComponent() {
               </div>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="3"
+                      y="11"
+                      width="18"
+                      height="11"
+                      rx="2"
+                      ry="2"
+                    ></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                 </span>
@@ -164,7 +209,6 @@ export default function AuthComponent() {
             </div>
           )}
 
-
           <button
             type="submit"
             disabled={loading}
@@ -175,13 +219,13 @@ export default function AuthComponent() {
               ? mode === 'login'
                 ? 'Iniciando sesión...'
                 : mode === 'signup'
-                ? 'Registrando cuenta...'
-                : 'Enviando enlace...'
+                  ? 'Registrando cuenta...'
+                  : 'Enviando enlace...'
               : mode === 'login'
-              ? 'Iniciar Sesión'
-              : mode === 'signup'
-              ? 'Registrarse'
-              : 'Restablecer Contraseña'}
+                ? 'Iniciar Sesión'
+                : mode === 'signup'
+                  ? 'Registrarse'
+                  : 'Restablecer Contraseña'}
           </button>
         </form>
 
@@ -189,14 +233,21 @@ export default function AuthComponent() {
         <div className="mt-6 text-center text-xs text-slate-400 font-semibold select-none border-t border-white/5 pt-5">
           {mode === 'forgot' ? (
             <button
-              onClick={() => { setError(''); setMode('login'); }}
+              onClick={() => {
+                setError('');
+                setMode('login');
+              }}
               className="text-sky-400 hover:text-sky-300 font-bold focus:outline-none cursor-pointer"
             >
               Volver al inicio de sesión
             </button>
           ) : (
             <div className="flex justify-center gap-1.5">
-              <span>{mode === 'login' ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}</span>
+              <span>
+                {mode === 'login'
+                  ? '¿No tienes una cuenta?'
+                  : '¿Ya tienes una cuenta?'}
+              </span>
               <button
                 id="auth-toggle-btn"
                 onClick={toggleMode}
@@ -210,7 +261,12 @@ export default function AuthComponent() {
         <footer className="w-full text-center mt-6 text-[10px] text-slate-500 font-semibold tracking-wider select-none flex flex-col sm:flex-row justify-center items-center gap-1">
           <span>ServiTrack v1.3.0</span>
           <span className="hidden sm:inline">|</span>
-          <span>Creado por <span className="text-slate-400">Rodrigo Alejandro Aguirre Tevez</span></span>
+          <span>
+            Creado por{' '}
+            <span className="text-slate-400">
+              Rodrigo Alejandro Aguirre Tevez
+            </span>
+          </span>
         </footer>
       </div>
     </div>

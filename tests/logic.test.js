@@ -1,4 +1,9 @@
-import { getSafeDate, getServiceDueDate, getServiceStatus, affectsLiquidity } from '../src/lib/statusHelper';
+import {
+  getSafeDate,
+  getServiceDueDate,
+  getServiceStatus,
+  affectsLiquidity,
+} from '../src/lib/statusHelper';
 
 describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
   describe('getSafeDate - Ajuste de días máximos del mes', () => {
@@ -43,7 +48,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
     test('Crea fecha virtual para registro legacy sin dueDate usando nextMeasurementDate', () => {
       const service = {
         paymentMonth: 5, // Junio = 5
-        nextMeasurementDate: 15
+        nextMeasurementDate: 15,
       };
       const date = getServiceDueDate(service);
       expect(date.getFullYear()).toBe(new Date().getFullYear());
@@ -54,7 +59,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
     test('Aplica getSafeDate en fecha virtual legacy (Febrero 31 de 2026 -> Febrero 28)', () => {
       const service = {
         paymentMonth: 1, // Febrero = 1
-        billingCloseDate: 31
+        billingCloseDate: 31,
       };
       const date = getServiceDueDate(service);
       expect(date.getMonth()).toBe(1);
@@ -67,7 +72,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
       const service = {
         isPaid: true,
         dueDate: '2026-06-15',
-        type: 'service'
+        type: 'service',
       };
       const status = getServiceStatus(service);
       expect(status.status).toBe('AL_DIA');
@@ -79,7 +84,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
       const service = {
         isPaid: false,
         type: 'income',
-        amount: 5000
+        amount: 5000,
       };
       const status = getServiceStatus(service);
       expect(status.status).toBe('AL_DIA');
@@ -88,15 +93,19 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
 
     test('Servicio con vencimiento en el pasado retorna VENCIDO con severidad alta', () => {
       const today = new Date();
-      const pastDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 5);
+      const pastDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - 5
+      );
       const y = pastDate.getFullYear();
       const m = String(pastDate.getMonth() + 1).padStart(2, '0');
       const d = String(pastDate.getDate()).padStart(2, '0');
-      
+
       const service = {
         isPaid: false,
         type: 'service',
-        dueDate: `${y}-${m}-${d}`
+        dueDate: `${y}-${m}-${d}`,
       };
       const status = getServiceStatus(service);
       expect(status.status).toBe('VENCIDO');
@@ -113,7 +122,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
       const service = {
         isPaid: false,
         type: 'service',
-        dueDate: `${y}-${m}-${d}`
+        dueDate: `${y}-${m}-${d}`,
       };
       const status = getServiceStatus(service);
       expect(status.status).toBe('VENCE_HOY');
@@ -123,7 +132,11 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
 
     test('Servicio que vence en 2 días retorna PROXIMO con severidad media', () => {
       const today = new Date();
-      const futureDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
+      const futureDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 2
+      );
       const y = futureDate.getFullYear();
       const m = String(futureDate.getMonth() + 1).padStart(2, '0');
       const d = String(futureDate.getDate()).padStart(2, '0');
@@ -131,7 +144,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
       const service = {
         isPaid: false,
         type: 'service',
-        dueDate: `${y}-${m}-${d}`
+        dueDate: `${y}-${m}-${d}`,
       };
       const status = getServiceStatus(service);
       expect(status.status).toBe('PROXIMO');
@@ -141,7 +154,11 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
 
     test('Servicio que vence en 10 días retorna PENDIENTE con severidad baja', () => {
       const today = new Date();
-      const futureDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10);
+      const futureDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 10
+      );
       const y = futureDate.getFullYear();
       const m = String(futureDate.getMonth() + 1).padStart(2, '0');
       const d = String(futureDate.getDate()).padStart(2, '0');
@@ -149,7 +166,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
       const service = {
         isPaid: false,
         type: 'service',
-        dueDate: `${y}-${m}-${d}`
+        dueDate: `${y}-${m}-${d}`,
       };
       const status = getServiceStatus(service);
       expect(status.status).toBe('PENDIENTE');
@@ -165,7 +182,11 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
     });
 
     test('Si isPaid = true y paymentSource = THIRD_PARTY, NO afecta la liquidez (retorna false)', () => {
-      const service = { isPaid: true, paymentSource: 'THIRD_PARTY', type: 'service' };
+      const service = {
+        isPaid: true,
+        paymentSource: 'THIRD_PARTY',
+        type: 'service',
+      };
       expect(affectsLiquidity(service)).toBe(false);
     });
 
@@ -192,7 +213,11 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
 
     test('Tipo OVERDUE (Atrasado) impago con vencimiento en el pasado retorna VENCIDO y severidad alta', () => {
       const today = new Date();
-      const pastDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
+      const pastDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - 30
+      );
       const y = pastDate.getFullYear();
       const m = String(pastDate.getMonth() + 1).padStart(2, '0');
       const d = String(pastDate.getDate()).padStart(2, '0');
@@ -200,7 +225,7 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
       const service = {
         isPaid: false,
         type: 'overdue',
-        dueDate: `${y}-${m}-${d}`
+        dueDate: `${y}-${m}-${d}`,
       };
       const status = getServiceStatus(service);
       expect(status.status).toBe('VENCIDO');
@@ -208,4 +233,3 @@ describe('Pruebas de Calendario y Fechas (statusHelper)', () => {
     });
   });
 });
-

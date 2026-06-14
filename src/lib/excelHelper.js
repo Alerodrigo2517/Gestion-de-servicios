@@ -2,8 +2,18 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 const months = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
 
 export async function exportToExcel(services) {
@@ -520,7 +530,7 @@ export async function importFromExcel(file, currentServices) {
               s.paymentMonth === monthIndex &&
               s.name.toLowerCase() === parsedName.toLowerCase()
           );
-          
+
           const existsInImported = newImportedItems.some(
             (s) =>
               s.paymentMonth === monthIndex &&

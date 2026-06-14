@@ -3,8 +3,18 @@ import { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 
 const months = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
 
 export default function ChartsModal({ isOpen, onClose, type, services }) {
@@ -38,7 +48,7 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
-      
+
       if (e.key === 'Escape') {
         onClose();
         return;
@@ -50,19 +60,25 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
           modalRef.current.querySelectorAll(
             'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]'
           )
-        ).filter(el => el.tabIndex !== -1 && el.offsetParent !== null);
+        ).filter((el) => el.tabIndex !== -1 && el.offsetParent !== null);
 
         if (focusableElements.length === 0) return;
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
 
         if (e.shiftKey) {
-          if (document.activeElement === firstElement || !focusableElements.includes(document.activeElement)) {
+          if (
+            document.activeElement === firstElement ||
+            !focusableElements.includes(document.activeElement)
+          ) {
             lastElement.focus();
             e.preventDefault();
           }
         } else {
-          if (document.activeElement === lastElement || !focusableElements.includes(document.activeElement)) {
+          if (
+            document.activeElement === lastElement ||
+            !focusableElements.includes(document.activeElement)
+          ) {
             firstElement.focus();
             e.preventDefault();
           }
@@ -84,11 +100,17 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
     }
 
     const ctx = canvasRef.current.getContext('2d');
-    
+
     if (type === 'projection') {
       const datasets = [];
       const colors = [
-        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
+        '#3b82f6',
+        '#10b981',
+        '#f59e0b',
+        '#ef4444',
+        '#8b5cf6',
+        '#ec4899',
+        '#06b6d4',
       ];
       let colorIndex = 0;
 
@@ -98,7 +120,7 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
           services
             .filter((s) => s.type !== 'income' && !s.isPaid)
             .map((s) => s.name)
-        )
+        ),
       ];
 
       itemNames.forEach((name) => {
@@ -119,7 +141,7 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
             data: data,
             backgroundColor: colors[colorIndex % colors.length],
             borderRadius: 4,
-            borderSkipped: false
+            borderSkipped: false,
           });
           colorIndex++;
         }
@@ -135,35 +157,45 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { 
+            x: {
               stacked: true,
               grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10, weight: '500' } }
+              ticks: {
+                color: '#94a3b8',
+                font: { family: 'var(--font-inter)', size: 10, weight: '500' },
+              },
             },
-            y: { 
+            y: {
               stacked: true,
               grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10, weight: '500' } }
+              ticks: {
+                color: '#94a3b8',
+                font: { family: 'var(--font-inter)', size: 10, weight: '500' },
+              },
             },
           },
           plugins: {
-            legend: { 
-              labels: { 
-                color: '#cbd5e1', 
-                boxWidth: 10, 
+            legend: {
+              labels: {
+                color: '#cbd5e1',
+                boxWidth: 10,
                 boxHeight: 10,
-                font: { family: 'var(--font-inter)', size: 11, weight: '600' } 
-              } 
+                font: { family: 'var(--font-inter)', size: 11, weight: '600' },
+              },
             },
             tooltip: {
               backgroundColor: 'rgba(9, 13, 22, 0.95)',
-              titleFont: { family: 'var(--font-inter)', size: 12, weight: 'bold' },
+              titleFont: {
+                family: 'var(--font-inter)',
+                size: 12,
+                weight: 'bold',
+              },
               bodyFont: { family: 'var(--font-inter)', size: 11 },
               borderColor: 'rgba(255, 255, 255, 0.1)',
               borderWidth: 1,
               padding: 10,
-              cornerRadius: 8
-            }
+              cornerRadius: 8,
+            },
           },
         },
       });
@@ -218,33 +250,43 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { 
-              labels: { 
-                color: '#cbd5e1', 
+            legend: {
+              labels: {
+                color: '#cbd5e1',
                 boxWidth: 10,
                 boxHeight: 10,
-                font: { family: 'var(--font-inter)', size: 11, weight: '600' } 
-              } 
+                font: { family: 'var(--font-inter)', size: 11, weight: '600' },
+              },
             },
             tooltip: {
               backgroundColor: 'rgba(9, 13, 22, 0.95)',
-              titleFont: { family: 'var(--font-inter)', size: 12, weight: 'bold' },
+              titleFont: {
+                family: 'var(--font-inter)',
+                size: 12,
+                weight: 'bold',
+              },
               bodyFont: { family: 'var(--font-inter)', size: 11 },
               borderColor: 'rgba(255, 255, 255, 0.1)',
               borderWidth: 1,
               padding: 10,
-              cornerRadius: 8
-            }
+              cornerRadius: 8,
+            },
           },
           scales: {
             y: {
               beginAtZero: true,
               grid: { color: 'rgba(255,255,255,0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10 } },
+              ticks: {
+                color: '#94a3b8',
+                font: { family: 'var(--font-inter)', size: 10 },
+              },
             },
             x: {
               grid: { color: 'rgba(255,255,255,0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'var(--font-inter)', size: 10 } },
+              ticks: {
+                color: '#94a3b8',
+                font: { family: 'var(--font-inter)', size: 10 },
+              },
             },
           },
         },
@@ -263,7 +305,7 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
 
   return (
     <div className="modal fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000] p-4 animate-fade-in">
-      <div 
+      <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
@@ -279,12 +321,20 @@ export default function ChartsModal({ isOpen, onClose, type, services }) {
         >
           &times;
         </button>
-        <h2 id="charts-title" className="text-lg font-black text-white mb-2 tracking-tight">
-          {type === 'projection' ? 'Proyección Anual de Gastos' : 'Historial de Consumo Físico'}
+        <h2
+          id="charts-title"
+          className="text-lg font-black text-white mb-2 tracking-tight"
+        >
+          {type === 'projection'
+            ? 'Proyección Anual de Gastos'
+            : 'Historial de Consumo Físico'}
         </h2>
-        <p id="charts-description" className="text-[11px] text-slate-400 mb-4 font-semibold">
-          {type === 'projection' 
-            ? 'Gráfico de barras que proyecta los montos a pagar mensualmente de tus servicios regulares.' 
+        <p
+          id="charts-description"
+          className="text-[11px] text-slate-400 mb-4 font-semibold"
+        >
+          {type === 'projection'
+            ? 'Gráfico de barras que proyecta los montos a pagar mensualmente de tus servicios regulares.'
             : 'Gráfico de líneas que ilustra la tendencia de tus consumos medidos en unidades físicas a lo largo del año.'}
         </p>
         <div className="w-full h-[380px] mt-4">

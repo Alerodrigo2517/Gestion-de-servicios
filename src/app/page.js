@@ -14,7 +14,9 @@ export default function Home() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState([]);
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(
+    new Date().getMonth()
+  );
   const [editingItem, setEditingItem] = useState(null);
   const [activeModal, setActiveModal] = useState(null); // 'projection' | 'consumption' | 'simulation' | null
   const [isRecovering, setIsRecovering] = useState(false);
@@ -30,7 +32,9 @@ export default function Home() {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (event === 'PASSWORD_RECOVERY') {
         setIsRecovering(true);
@@ -45,7 +49,11 @@ export default function Home() {
       }
     });
 
-    if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('type=recovery')) {
+    if (
+      typeof window !== 'undefined' &&
+      window.location.hash &&
+      window.location.hash.includes('type=recovery')
+    ) {
       setIsRecovering(true);
     }
 
@@ -74,7 +82,9 @@ export default function Home() {
 
     if (itemData.id) {
       // Edit mode
-      const updatedServices = services.map((s) => (s.id === itemData.id ? itemData : s));
+      const updatedServices = services.map((s) =>
+        s.id === itemData.id ? itemData : s
+      );
       setServices(updatedServices);
       setEditingItem(null);
 
@@ -84,12 +94,16 @@ export default function Home() {
         if (error) throw error;
       } catch (err) {
         logger.error('Error al actualizar item en Supabase:', err);
-        alert('Hubo un error al guardar el registro en el servidor. Los cambios locales podrían perderse.');
+        alert(
+          'Hubo un error al guardar el registro en el servidor. Los cambios locales podrían perderse.'
+        );
       }
     } else {
       // Create mode (PostgreSQL generates UUID)
       if (services.length >= 1000) {
-        alert('Has alcanzado el límite de almacenamiento de 1000 registros para evitar sobrecarga en el servidor. Por favor, elimina algunos registros existentes antes de agregar nuevos.');
+        alert(
+          'Has alcanzado el límite de almacenamiento de 1000 registros para evitar sobrecarga en el servidor. Por favor, elimina algunos registros existentes antes de agregar nuevos.'
+        );
         return;
       }
 
@@ -111,7 +125,9 @@ export default function Home() {
         logger.error('Error al insertar item en Supabase:', err);
         const msg = err.message || '';
         if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
-          alert('Error: Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+          alert(
+            'Error: Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.'
+          );
         } else {
           alert('Hubo un error al guardar el registro en el servidor.');
         }
@@ -138,7 +154,9 @@ export default function Home() {
       if (error) throw error;
     } catch (err) {
       logger.error('Error eliminando item en Supabase:', err);
-      alert('Hubo un error al eliminar el registro en el servidor. Los cambios locales podrían perderse.');
+      alert(
+        'Hubo un error al eliminar el registro en el servidor. Los cambios locales podrían perderse.'
+      );
     }
   };
 
@@ -169,23 +187,31 @@ export default function Home() {
     setServices(updatedServices);
 
     try {
-      const { error } = await supabase.from('services').upsert({ ...itemToUpdate, user_id: session.user.id });
+      const { error } = await supabase
+        .from('services')
+        .upsert({ ...itemToUpdate, user_id: session.user.id });
       if (error) throw error;
     } catch (err) {
       logger.error('Error al actualizar estado de pago:', err);
-      alert('Hubo un error al actualizar el pago en el servidor. Los cambios locales podrían perderse.');
+      alert(
+        'Hubo un error al actualizar el pago en el servidor. Los cambios locales podrían perderse.'
+      );
     }
   };
 
   const handleImportPrevious = async () => {
     if (currentMonthIndex === 0 || !session) return;
 
-    const prevMonthItems = services.filter((s) => s.paymentMonth === currentMonthIndex - 1);
+    const prevMonthItems = services.filter(
+      (s) => s.paymentMonth === currentMonthIndex - 1
+    );
     const currentNames = services
       .filter((s) => s.paymentMonth === currentMonthIndex)
       .map((s) => s.name.toLowerCase());
 
-    const importableItems = prevMonthItems.filter((s) => !currentNames.includes(s.name.toLowerCase()));
+    const importableItems = prevMonthItems.filter(
+      (s) => !currentNames.includes(s.name.toLowerCase())
+    );
 
     if (importableItems.length === 0) return;
 
@@ -201,7 +227,10 @@ export default function Home() {
       delete newItem.paymentDate;
 
       if (newItem.type === 'service' || newItem.type === 'overdue') {
-        if (newItem.consumptionMonth !== undefined && newItem.consumptionMonth !== null) {
+        if (
+          newItem.consumptionMonth !== undefined &&
+          newItem.consumptionMonth !== null
+        ) {
           newItem.consumptionMonth = currentMonthIndex;
           newItem.consumptionMonthEnd = null;
         }
@@ -214,7 +243,11 @@ export default function Home() {
           if (currentMonthIndex === 0 && item.paymentMonth === 11) {
             destYear += 1;
           }
-          const safeDateObj = getSafeDate(destYear, currentMonthIndex, parseInt(dayStr));
+          const safeDateObj = getSafeDate(
+            destYear,
+            currentMonthIndex,
+            parseInt(dayStr)
+          );
           newItem.dueDate = formatDateToString(safeDateObj);
         } else {
           // Legacy items: construct a safe dueDate for this month using legacy day columns
@@ -226,17 +259,24 @@ export default function Home() {
           }
         }
       } else if (newItem.type === 'loan') {
-        if ((newItem.currentInstallment || 1) < (newItem.totalInstallments || 1)) {
+        if (
+          (newItem.currentInstallment || 1) < (newItem.totalInstallments || 1)
+        ) {
           newItem.currentInstallment = (newItem.currentInstallment || 1) + 1;
         }
       }
       return newItem;
     });
 
-    const itemsToInsert = importedItems.map(item => ({ ...item, user_id: session.user.id }));
+    const itemsToInsert = importedItems.map((item) => ({
+      ...item,
+      user_id: session.user.id,
+    }));
 
     if (services.length + itemsToInsert.length > 1000) {
-      alert(`No se pueden importar los registros. Esta operación superaría el límite de almacenamiento de 1000 registros (tienes ${services.length} y deseas importar ${itemsToInsert.length}).`);
+      alert(
+        `No se pueden importar los registros. Esta operación superaría el límite de almacenamiento de 1000 registros (tienes ${services.length} y deseas importar ${itemsToInsert.length}).`
+      );
       return;
     }
 
@@ -254,9 +294,13 @@ export default function Home() {
       logger.error('Error al importar servicios del mes anterior:', err);
       const msg = err.message || '';
       if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
-        alert('Error: No se pudo importar. Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+        alert(
+          'Error: No se pudo importar. Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.'
+        );
       } else {
-        alert('Hubo un error al guardar los servicios importados en el servidor.');
+        alert(
+          'Hubo un error al guardar los servicios importados en el servidor.'
+        );
       }
     }
   };
@@ -265,7 +309,7 @@ export default function Home() {
     if (!session) return;
     const userId = session.user.id;
 
-    const itemsToInsert = newItems.map(item => {
+    const itemsToInsert = newItems.map((item) => {
       const itemCopy = { ...item, user_id: userId };
       delete itemCopy.id;
       delete itemCopy.created_at;
@@ -273,7 +317,9 @@ export default function Home() {
     });
 
     if (services.length + itemsToInsert.length > 1000) {
-      alert(`No se puede realizar la importación masiva. Superaría el límite de almacenamiento de 1000 registros (tienes ${services.length} y deseas importar ${itemsToInsert.length}).`);
+      alert(
+        `No se puede realizar la importación masiva. Superaría el límite de almacenamiento de 1000 registros (tienes ${services.length} y deseas importar ${itemsToInsert.length}).`
+      );
       return;
     }
 
@@ -291,9 +337,13 @@ export default function Home() {
       logger.error('Error al importar registros en Supabase:', err);
       const msg = err.message || '';
       if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
-        alert('Error: No se pudo importar. Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+        alert(
+          'Error: No se pudo importar. Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.'
+        );
       } else {
-        alert('Hubo un error al guardar los registros importados en el servidor.');
+        alert(
+          'Hubo un error al guardar los registros importados en el servidor.'
+        );
       }
     }
   };
@@ -304,14 +354,17 @@ export default function Home() {
 
     const cleanFirst = confirm(
       '¿Deseas vaciar la base de datos antes de cargar los servicios de demo anual?\n\n' +
-      'Aceptar: Borrar todo y cargar demo limpia.\n' +
-      'Cancelar: Conservar datos actuales y añadir demo.'
+        'Aceptar: Borrar todo y cargar demo limpia.\n' +
+        'Cancelar: Conservar datos actuales y añadir demo.'
     );
 
     let updatedServices = [];
     if (cleanFirst) {
       try {
-        const { error } = await supabase.from('services').delete().eq('user_id', userId);
+        const { error } = await supabase
+          .from('services')
+          .delete()
+          .eq('user_id', userId);
         if (error) throw error;
         updatedServices = [];
       } catch (err) {
@@ -326,15 +379,23 @@ export default function Home() {
     const demoServices = [];
 
     // Luz seasonal pricing (0: Enero to 11: Diciembre)
-    const luzPrices = [18000, 17000, 10000, 9000, 11000, 14000, 16000, 15000, 10000, 9000, 9500, 15000];
-    const luzKwh    = [350, 330, 200, 180, 220, 280, 320, 300, 200, 180, 190, 300];
+    const luzPrices = [
+      18000, 17000, 10000, 9000, 11000, 14000, 16000, 15000, 10000, 9000, 9500,
+      15000,
+    ];
+    const luzKwh = [350, 330, 200, 180, 220, 280, 320, 300, 200, 180, 190, 300];
 
     // Gas seasonal pricing
-    const gasPrices = [3500, 3500, 4000, 6000, 14000, 22000, 25000, 23000, 12000, 6000, 4500, 3500];
-    const gasM3     = [25, 25, 30, 50, 120, 200, 230, 210, 100, 50, 35, 25];
+    const gasPrices = [
+      3500, 3500, 4000, 6000, 14000, 22000, 25000, 23000, 12000, 6000, 4500,
+      3500,
+    ];
+    const gasM3 = [25, 25, 30, 50, 120, 200, 230, 210, 100, 50, 35, 25];
 
     // Agua seasonal pricing
-    const aguaPrices = [6500, 6500, 5000, 4500, 4500, 4500, 4500, 4500, 4500, 4500, 5000, 6500];
+    const aguaPrices = [
+      6500, 6500, 5000, 4500, 4500, 4500, 4500, 4500, 4500, 4500, 5000, 6500,
+    ];
 
     for (let month = 0; month < 12; month++) {
       // 1. Sueldo (Income)
@@ -413,26 +474,36 @@ export default function Home() {
       });
     }
 
-    const targetCount = (cleanFirst ? 0 : services.length) + demoServices.length;
+    const targetCount =
+      (cleanFirst ? 0 : services.length) + demoServices.length;
     if (targetCount > 1000) {
-      alert(`No se pueden generar los datos de demostración. Esta operación superaría el límite de almacenamiento de 1000 registros.`);
+      alert(
+        `No se pueden generar los datos de demostración. Esta operación superaría el límite de almacenamiento de 1000 registros.`
+      );
       return;
     }
 
     try {
-      const { data, error } = await supabase.from('services').insert(demoServices).select();
+      const { data, error } = await supabase
+        .from('services')
+        .insert(demoServices)
+        .select();
       if (error) throw error;
 
       if (data) {
         const finalServices = [...updatedServices, ...data];
         setServices(finalServices);
-        alert('¡Demo cargada exitosamente! Se generaron 6 servicios mensuales (incluyendo ingresos) para todo el año con precios estacionales realistas.');
+        alert(
+          '¡Demo cargada exitosamente! Se generaron 6 servicios mensuales (incluyendo ingresos) para todo el año con precios estacionales realistas.'
+        );
       }
     } catch (err) {
       logger.error('Error al guardar la demo en Supabase:', err);
       const msg = err.message || '';
       if (msg.includes('Límite de almacenamiento') || msg.includes('limit')) {
-        alert('Error: Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.');
+        alert(
+          'Error: Se ha excedido el límite de almacenamiento de 1000 registros en el servidor.'
+        );
       } else {
         alert('Ocurrió un error al guardar los datos en Supabase.');
       }

@@ -3,8 +3,18 @@ import { useState, useEffect } from 'react';
 import { getSafeDate, formatDateToString } from '@/lib/statusHelper';
 
 const months = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
 
 export default function ServiceForm({
@@ -14,7 +24,7 @@ export default function ServiceForm({
   currentMonthIndex,
   onImportPrevious,
   showImportButton,
-  previousMonthName
+  previousMonthName,
 }) {
   const [type, setType] = useState('income');
   const [name, setName] = useState('');
@@ -39,7 +49,7 @@ export default function ServiceForm({
       setAmountError('');
     }
   };
-  
+
   // Service-specific states
   const [consumptionMonth, setConsumptionMonth] = useState(currentMonthIndex);
   const [consumptionMonthEnd, setConsumptionMonthEnd] = useState('');
@@ -56,8 +66,26 @@ export default function ServiceForm({
   const [titular, setTitular] = useState('');
 
   // Detect dynamic fields based on name text
-  const isEnergyRelated = name.toLowerCase().includes('luz') || name.toLowerCase().includes('gas') || name.toLowerCase().includes('energia') || name.toLowerCase().includes('edesur') || name.toLowerCase().includes('edenor') || name.toLowerCase().includes('metrogas') || name.toLowerCase().includes('camuzzi') || name.toLowerCase().includes('aysa') || name.toLowerCase().includes('agua');
-  const isInternetRelated = name.toLowerCase().includes('internet') || name.toLowerCase().includes('wifi') || name.toLowerCase().includes('cable') || name.toLowerCase().includes('flow') || name.toLowerCase().includes('fibertel') || name.toLowerCase().includes('telecentro') || name.toLowerCase().includes('netflix') || name.toLowerCase().includes('spotify') || name.toLowerCase().includes('disney');
+  const isEnergyRelated =
+    name.toLowerCase().includes('luz') ||
+    name.toLowerCase().includes('gas') ||
+    name.toLowerCase().includes('energia') ||
+    name.toLowerCase().includes('edesur') ||
+    name.toLowerCase().includes('edenor') ||
+    name.toLowerCase().includes('metrogas') ||
+    name.toLowerCase().includes('camuzzi') ||
+    name.toLowerCase().includes('aysa') ||
+    name.toLowerCase().includes('agua');
+  const isInternetRelated =
+    name.toLowerCase().includes('internet') ||
+    name.toLowerCase().includes('wifi') ||
+    name.toLowerCase().includes('cable') ||
+    name.toLowerCase().includes('flow') ||
+    name.toLowerCase().includes('fibertel') ||
+    name.toLowerCase().includes('telecentro') ||
+    name.toLowerCase().includes('netflix') ||
+    name.toLowerCase().includes('spotify') ||
+    name.toLowerCase().includes('disney');
   useEffect(() => {
     if (editingItem) {
       setType(editingItem.type || 'income');
@@ -65,19 +93,36 @@ export default function ServiceForm({
       setAmount(editingItem.amount ? String(editingItem.amount) : '');
       setPaymentSource(editingItem.paymentSource || 'SELF');
       setAmountError('');
-      
+
       if (editingItem.type === 'service' || editingItem.type === 'overdue') {
-        setConsumptionMonth(editingItem.consumptionMonth !== undefined ? editingItem.consumptionMonth : currentMonthIndex);
-        setConsumptionMonthEnd(editingItem.consumptionMonthEnd !== null && editingItem.consumptionMonthEnd !== undefined ? String(editingItem.consumptionMonthEnd) : '');
-        setConsumptionUnit(editingItem.consumptionUnit ? String(editingItem.consumptionUnit) : '');
-        
+        setConsumptionMonth(
+          editingItem.consumptionMonth !== undefined
+            ? editingItem.consumptionMonth
+            : currentMonthIndex
+        );
+        setConsumptionMonthEnd(
+          editingItem.consumptionMonthEnd !== null &&
+            editingItem.consumptionMonthEnd !== undefined
+            ? String(editingItem.consumptionMonthEnd)
+            : ''
+        );
+        setConsumptionUnit(
+          editingItem.consumptionUnit ? String(editingItem.consumptionUnit) : ''
+        );
+
         if (editingItem.dueDate) {
           setDueDate(editingItem.dueDate);
         } else {
           // Construct virtual date for legacy items
           const year = new Date().getFullYear();
-          const month = editingItem.paymentMonth !== undefined ? editingItem.paymentMonth : currentMonthIndex;
-          const day = editingItem.nextMeasurementDate || editingItem.billingCloseDate || '';
+          const month =
+            editingItem.paymentMonth !== undefined
+              ? editingItem.paymentMonth
+              : currentMonthIndex;
+          const day =
+            editingItem.nextMeasurementDate ||
+            editingItem.billingCloseDate ||
+            '';
           if (day) {
             const safeDateObj = getSafeDate(year, month, parseInt(day));
             setDueDate(formatDateToString(safeDateObj));
@@ -85,12 +130,28 @@ export default function ServiceForm({
             setDueDate('');
           }
         }
-        setNextMeasurementDate(editingItem.nextMeasurementDate ? String(editingItem.nextMeasurementDate) : '');
-        setBillingCloseDate(editingItem.billingCloseDate ? String(editingItem.billingCloseDate) : '');
+        setNextMeasurementDate(
+          editingItem.nextMeasurementDate
+            ? String(editingItem.nextMeasurementDate)
+            : ''
+        );
+        setBillingCloseDate(
+          editingItem.billingCloseDate
+            ? String(editingItem.billingCloseDate)
+            : ''
+        );
       } else if (editingItem.type === 'loan') {
         setCreditor(editingItem.creditor || '');
-        setCurrentInstallment(editingItem.currentInstallment ? String(editingItem.currentInstallment) : '1');
-        setTotalInstallments(editingItem.totalInstallments ? String(editingItem.totalInstallments) : '1');
+        setCurrentInstallment(
+          editingItem.currentInstallment
+            ? String(editingItem.currentInstallment)
+            : '1'
+        );
+        setTotalInstallments(
+          editingItem.totalInstallments
+            ? String(editingItem.totalInstallments)
+            : '1'
+        );
         setTitular(editingItem.titular || '');
       }
     } else {
@@ -145,7 +206,8 @@ export default function ServiceForm({
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount < 0 || parsedAmount > 1000000000) {
       if (parsedAmount < 0) setAmountError('El monto no puede ser negativo.');
-      else if (parsedAmount > 1000000000) setAmountError('El monto no puede superar los 1.000 millones.');
+      else if (parsedAmount > 1000000000)
+        setAmountError('El monto no puede superar los 1.000 millones.');
       else setAmountError('El monto debe ser un número válido.');
       return;
     }
@@ -161,7 +223,9 @@ export default function ServiceForm({
 
     if (type === 'service' || type === 'overdue') {
       itemData.consumptionMonth = parseInt(consumptionMonth);
-      itemData.consumptionMonthEnd = consumptionMonthEnd ? parseInt(consumptionMonthEnd) : null;
+      itemData.consumptionMonthEnd = consumptionMonthEnd
+        ? parseInt(consumptionMonthEnd)
+        : null;
       itemData.dueDate = dueDate || null;
 
       // Extract day for retrocompatibility
@@ -181,7 +245,8 @@ export default function ServiceForm({
       }
 
       if (isEnergyRelated) {
-        if (consumptionUnit) itemData.consumptionUnit = parseFloat(consumptionUnit);
+        if (consumptionUnit)
+          itemData.consumptionUnit = parseFloat(consumptionUnit);
       }
     } else if (type === 'loan') {
       itemData.creditor = creditor.trim();
@@ -193,7 +258,8 @@ export default function ServiceForm({
     if (editingItem) {
       itemData.id = editingItem.id;
       itemData.isPaid = editingItem.isPaid;
-      if (editingItem.paymentDate) itemData.paymentDate = editingItem.paymentDate;
+      if (editingItem.paymentDate)
+        itemData.paymentDate = editingItem.paymentDate;
     }
 
     onSubmit(itemData);
@@ -232,33 +298,54 @@ export default function ServiceForm({
   };
 
   const getSubmitBtnClass = () => {
-    const base = "flex-[2] py-3 text-xs font-bold text-white rounded-xl shadow-lg active:scale-[0.98] transition-all duration-300 cursor-pointer ";
+    const base =
+      'flex-[2] py-3 text-xs font-bold text-white rounded-xl shadow-lg active:scale-[0.98] transition-all duration-300 cursor-pointer ';
     switch (type) {
       case 'income':
-        return base + "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-emerald-500/10";
+        return (
+          base +
+          'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-emerald-500/10'
+        );
       case 'service':
-        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/10";
+        return (
+          base +
+          'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/10'
+        );
       case 'loan':
-        return base + "bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 shadow-purple-500/10";
+        return (
+          base +
+          'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 shadow-purple-500/10'
+        );
       case 'overdue':
-        return base + "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 shadow-rose-500/10";
+        return (
+          base +
+          'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 shadow-rose-500/10'
+        );
       default:
-        return base + "bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/10";
+        return (
+          base +
+          'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 shadow-sky-500/10'
+        );
     }
   };
 
   return (
     <section className="glass-premium rounded-2xl p-6 self-start shadow-2xl relative overflow-hidden transition-all duration-300 hover:border-white/10 w-full animate-slide-up">
       {/* Glow Line indicator on top */}
-      <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r transition-all duration-500 ${
-        type === 'income' ? 'from-emerald-400 to-teal-500' :
-        type === 'service' ? 'from-sky-400 to-indigo-500' :
-        type === 'loan' ? 'from-purple-400 to-indigo-500' :
-        'from-rose-400 to-red-500'
-      }`}></div>
+      <div
+        className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r transition-all duration-500 ${
+          type === 'income'
+            ? 'from-emerald-400 to-teal-500'
+            : type === 'service'
+              ? 'from-sky-400 to-indigo-500'
+              : type === 'loan'
+                ? 'from-purple-400 to-indigo-500'
+                : 'from-rose-400 to-red-500'
+        }`}
+      ></div>
 
       {/* Collapsible Header */}
-      <div 
+      <div
         className="flex items-center justify-between cursor-pointer lg:cursor-default lg:pointer-events-none select-none"
         onClick={() => {
           if (window.innerWidth < 1024) {
@@ -267,21 +354,42 @@ export default function ServiceForm({
         }}
       >
         <h3 className="text-sm font-black text-slate-200 tracking-wider uppercase flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full transition-all duration-500 bg-gradient-to-r ${
-            type === 'income' ? 'from-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]' :
-            type === 'service' ? 'from-sky-400 to-indigo-500 shadow-[0_0_8px_rgba(56,189,248,0.7)]' :
-            type === 'loan' ? 'from-purple-400 to-indigo-500 shadow-[0_0_8px_rgba(168,85,247,0.7)]' :
-            'from-rose-400 to-red-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
-          }`}></span>
+          <span
+            className={`w-2 h-2 rounded-full transition-all duration-500 bg-gradient-to-r ${
+              type === 'income'
+                ? 'from-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]'
+                : type === 'service'
+                  ? 'from-sky-400 to-indigo-500 shadow-[0_0_8px_rgba(56,189,248,0.7)]'
+                  : type === 'loan'
+                    ? 'from-purple-400 to-indigo-500 shadow-[0_0_8px_rgba(168,85,247,0.7)]'
+                    : 'from-rose-400 to-red-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
+            }`}
+          ></span>
           {editingItem ? 'Editar Registro' : 'Nuevo Registro'}
         </h3>
         <span className="lg:hidden text-slate-400 p-1 hover:text-white transition">
           {isCollapsed ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-hidden="true"
+            >
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-hidden="true"
+            >
               <polyline points="18 15 12 9 6 15"></polyline>
             </svg>
           )}
@@ -289,14 +397,36 @@ export default function ServiceForm({
       </div>
 
       {/* Collapsible Body */}
-      <div className={`${isCollapsed ? 'hidden lg:block' : 'block'} mt-5 animate-fade-in`}>
+      <div
+        className={`${isCollapsed ? 'hidden lg:block' : 'block'} mt-5 animate-fade-in`}
+      >
         {/* Tabs Selector Segmented Control */}
         <div className="flex p-1 bg-black/30 rounded-xl mb-6 gap-1 border border-white/5">
           {[
-            { key: 'income', label: 'Ingreso', activeClass: 'bg-emerald-500/25 border-emerald-500/30 text-emerald-400 font-black' },
-            { key: 'service', label: 'Servicio', activeClass: 'bg-sky-500/25 border-sky-500/30 text-sky-400 font-black' },
-            { key: 'loan', label: 'Préstamo', activeClass: 'bg-purple-500/25 border-purple-500/30 text-purple-400 font-black' },
-            { key: 'overdue', label: 'Atrasado', activeClass: 'bg-rose-500/25 border-rose-500/30 text-rose-400 font-black' }
+            {
+              key: 'income',
+              label: 'Ingreso',
+              activeClass:
+                'bg-emerald-500/25 border-emerald-500/30 text-emerald-400 font-black',
+            },
+            {
+              key: 'service',
+              label: 'Servicio',
+              activeClass:
+                'bg-sky-500/25 border-sky-500/30 text-sky-400 font-black',
+            },
+            {
+              key: 'loan',
+              label: 'Préstamo',
+              activeClass:
+                'bg-purple-500/25 border-purple-500/30 text-purple-400 font-black',
+            },
+            {
+              key: 'overdue',
+              label: 'Atrasado',
+              activeClass:
+                'bg-rose-500/25 border-rose-500/30 text-rose-400 font-black',
+            },
           ].map((tab) => {
             const isActive = type === tab.key;
             return (
@@ -305,7 +435,9 @@ export default function ServiceForm({
                 type="button"
                 onClick={() => setType(tab.key)}
                 className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent cursor-pointer ${
-                  isActive ? tab.activeClass + ' scale-[1.01]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  isActive
+                    ? tab.activeClass + ' scale-[1.01]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                 }`}
               >
                 {tab.label}
@@ -317,12 +449,27 @@ export default function ServiceForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name Field */}
           <div>
-            <label htmlFor="item-name" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
-              {type === 'income' ? 'Origen del Ingreso' : (type === 'loan' ? 'Detalle Préstamo' : 'Nombre Servicio')}
+            <label
+              htmlFor="item-name"
+              className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+            >
+              {type === 'income'
+                ? 'Origen del Ingreso'
+                : type === 'loan'
+                  ? 'Detalle Préstamo'
+                  : 'Nombre Servicio'}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  aria-hidden="true"
+                >
                   <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                   <line x1="7" y1="7" x2="7.01" y2="7"></line>
                 </svg>
@@ -330,7 +477,13 @@ export default function ServiceForm({
               <input
                 type="text"
                 id="item-name"
-                placeholder={type === 'income' ? 'Ej. Sueldo Principal...' : (type === 'loan' ? 'Ej. Cuota Auto...' : 'Ej. Luz Edesur, Internet...')}
+                placeholder={
+                  type === 'income'
+                    ? 'Ej. Sueldo Principal...'
+                    : type === 'loan'
+                      ? 'Ej. Cuota Auto...'
+                      : 'Ej. Luz Edesur, Internet...'
+                }
                 required
                 autoComplete="off"
                 maxLength={100}
@@ -343,8 +496,15 @@ export default function ServiceForm({
 
           {/* Amount Field */}
           <div>
-            <label htmlFor="item-amount" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
-              {type === 'income' ? 'Monto neto ($)' : (type === 'loan' ? 'Monto de la Cuota ($)' : 'Monto Estimado ($)')}
+            <label
+              htmlFor="item-amount"
+              className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+            >
+              {type === 'income'
+                ? 'Monto neto ($)'
+                : type === 'loan'
+                  ? 'Monto de la Cuota ($)'
+                  : 'Monto Estimado ($)'}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 font-bold text-xs select-none">
@@ -366,7 +526,11 @@ export default function ServiceForm({
               />
             </div>
             {amountError && (
-              <div id="amount-error" role="alert" className="mt-1.5 text-[10px] text-rose-400 font-bold">
+              <div
+                id="amount-error"
+                role="alert"
+                className="mt-1.5 text-[10px] text-rose-400 font-bold"
+              >
                 {amountError}
               </div>
             )}
@@ -377,24 +541,36 @@ export default function ServiceForm({
             <div className="space-y-4 pt-2 border-t border-white/5 animate-fade-in">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="consumption-month" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  <label
+                    htmlFor="consumption-month"
+                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  >
                     Consumo De
                   </label>
                   <select
                     id="consumption-month"
                     value={consumptionMonth}
-                    onChange={(e) => setConsumptionMonth(parseInt(e.target.value))}
+                    onChange={(e) =>
+                      setConsumptionMonth(parseInt(e.target.value))
+                    }
                     className={`w-full px-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   >
                     {months.map((m, idx) => (
-                      <option key={idx} value={idx} className="bg-slate-950 text-white">
+                      <option
+                        key={idx}
+                        value={idx}
+                        className="bg-slate-950 text-white"
+                      >
                         {m}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="consumption-month-end" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  <label
+                    htmlFor="consumption-month-end"
+                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  >
                     Hasta (Opc.)
                   </label>
                   <select
@@ -403,9 +579,15 @@ export default function ServiceForm({
                     onChange={(e) => setConsumptionMonthEnd(e.target.value)}
                     className={`w-full px-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   >
-                    <option value="" className="bg-slate-950 text-white">-- Mismo mes --</option>
+                    <option value="" className="bg-slate-950 text-white">
+                      -- Mismo mes --
+                    </option>
                     {months.map((m, idx) => (
-                      <option key={idx} value={idx} className="bg-slate-950 text-white">
+                      <option
+                        key={idx}
+                        value={idx}
+                        className="bg-slate-950 text-white"
+                      >
                         {m}
                       </option>
                     ))}
@@ -417,12 +599,23 @@ export default function ServiceForm({
               <div className="space-y-3 pt-3 border-t border-white/5 animate-slide-up">
                 {isEnergyRelated && (
                   <div>
-                    <label htmlFor="consumption-unit" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                    <label
+                      htmlFor="consumption-unit"
+                      className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    >
                       Consumo Físico (kWh / m³ / etc.)
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          aria-hidden="true"
+                        >
                           <line x1="19" y1="5" x2="5" y2="19"></line>
                           <circle cx="6.5" cy="6.5" r="2.5"></circle>
                           <circle cx="17.5" cy="17.5" r="2.5"></circle>
@@ -442,13 +635,31 @@ export default function ServiceForm({
                 )}
 
                 <div>
-                  <label htmlFor="due-date" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  <label
+                    htmlFor="due-date"
+                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  >
                     Fecha de Vencimiento
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        aria-hidden="true"
+                      >
+                        <rect
+                          x="3"
+                          y="4"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          ry="2"
+                        ></rect>
                         <line x1="16" y1="2" x2="16" y2="6"></line>
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
@@ -472,13 +683,31 @@ export default function ServiceForm({
           {type === 'loan' && (
             <div className="space-y-4 pt-2 border-t border-white/5 animate-fade-in">
               <div>
-                <label htmlFor="loan-creditor" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                <label
+                  htmlFor="loan-creditor"
+                  className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                >
                   Entidad / Acreedor
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      aria-hidden="true"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                      ></rect>
                       <line x1="9" y1="21" x2="9" y2="9"></line>
                       <line x1="15" y1="21" x2="15" y2="9"></line>
                       <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -495,10 +724,13 @@ export default function ServiceForm({
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="loan-current-installment" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  <label
+                    htmlFor="loan-current-installment"
+                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  >
                     Cuota N°
                   </label>
                   <input
@@ -512,7 +744,10 @@ export default function ServiceForm({
                   />
                 </div>
                 <div>
-                  <label htmlFor="loan-total-installments" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                  <label
+                    htmlFor="loan-total-installments"
+                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  >
                     Total Cuotas
                   </label>
                   <input
@@ -528,12 +763,23 @@ export default function ServiceForm({
               </div>
 
               <div>
-                <label htmlFor="loan-titular" className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+                <label
+                  htmlFor="loan-titular"
+                  className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                >
                   Nombre del Titular
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      aria-hidden="true"
+                    >
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>
@@ -598,23 +844,30 @@ export default function ServiceForm({
                 Cancelar
               </button>
             )}
-            <button
-              type="submit"
-              className={getSubmitBtnClass()}
-            >
+            <button type="submit" className={getSubmitBtnClass()}>
               {editingItem ? 'Actualizar' : 'Guardar'}
             </button>
           </div>
         </form>
 
         {showImportButton && (
-          <div id="import-prev-container" className="mt-6 border-t border-white/5 pt-4">
+          <div
+            id="import-prev-container"
+            className="mt-6 border-t border-white/5 pt-4"
+          >
             <button
               onClick={onImportPrevious}
               type="button"
               className="w-full py-3 px-4 rounded-xl text-xs font-bold border border-white/10 bg-slate-900/60 hover:bg-white/10 text-slate-300 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.99] shadow-md cursor-pointer"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>

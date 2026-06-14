@@ -8,7 +8,8 @@ const inter = Inter({
 
 export const metadata = {
   title: 'ServiTrack - Gestión Premium',
-  description: 'Gestión y organización de servicios del hogar con insights y gráficos interactivos.',
+  description:
+    'Gestión y organización de servicios del hogar con insights y gráficos interactivos.',
 };
 
 export default function RootLayout({ children }) {

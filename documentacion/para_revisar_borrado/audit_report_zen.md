@@ -15,28 +15,32 @@ Este reporte evalúa la base de código de **ServiTrack** bajo la filosofía **Z
 
 ## 🔍 Evaluación de Componentes bajo el Enfoque Zen
 
-### 1. [statusHelper.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/statusHelper.js) — *Pureza Lógica*
-*   **Diagnóstico:** Diseñado con **funciones puras** libres de efectos secundarios. No depende del estado de React ni del cliente Supabase.
-*   **Filosofía Zen:** Recibe entradas, calcula salidas. La normalización a medianoche local remueve el "ruido" de las zonas horarias y simplifica la lógica a diferencias matemáticas simples de enteros.
+### 1. [statusHelper.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/lib/statusHelper.js) — _Pureza Lógica_
 
-### 2. [CalendarWidget.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/CalendarWidget.js) — *Armonía de la Cuadrícula*
-*   **Diagnóstico:** Desacoplado del Dashboard. Sustituye la acumulación desordenada de múltiples puntos de colores por un único contador numérico por celda.
-*   **Filosofía Zen:** La celda solo comunica lo esencial: el número de deudas y su nivel de urgencia mediante un color unificado. La interfaz respira y no satura al usuario.
+- **Diagnóstico:** Diseñado con **funciones puras** libres de efectos secundarios. No depende del estado de React ni del cliente Supabase.
+- **Filosofía Zen:** Recibe entradas, calcula salidas. La normalización a medianoche local remueve el "ruido" de las zonas horarias y simplifica la lógica a diferencias matemáticas simples de enteros.
 
-### 3. [Dashboard.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/Dashboard.js) — *Minimalismo de Información*
-*   **Diagnóstico:** Acota la lista de "Próximos Vencimientos del Mes" a los 5 elementos más urgentes. Ofrece una vía de escape limpia (`"Ver todos"`) en lugar de forzar un desplazamiento vertical interminable.
-*   **Filosofía Zen:** Enfoque en lo importante. Muestra solo lo que requiere acción inmediata hoy, manteniendo oculto lo secundario hasta que sea solicitado.
+### 2. [CalendarWidget.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/CalendarWidget.js) — _Armonía de la Cuadrícula_
 
-### 4. [ServiceForm.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ServiceForm.js) — *Unificación de Entradas*
-*   **Diagnóstico:** Reemplaza tres campos numéricos condicionales por un único input `<input type="date">`.
-*   **Filosofía Zen:** Reduce la carga cognitiva del usuario al llenar el formulario. Menos inputs significan menos posibilidades de error y un flujo más rápido.
+- **Diagnóstico:** Desacoplado del Dashboard. Sustituye la acumulación desordenada de múltiples puntos de colores por un único contador numérico por celda.
+- **Filosofía Zen:** La celda solo comunica lo esencial: el número de deudas y su nivel de urgencia mediante un color unificado. La interfaz respira y no satura al usuario.
+
+### 3. [Dashboard.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/Dashboard.js) — _Minimalismo de Información_
+
+- **Diagnóstico:** Acota la lista de "Próximos Vencimientos del Mes" a los 5 elementos más urgentes. Ofrece una vía de escape limpia (`"Ver todos"`) en lugar de forzar un desplazamiento vertical interminable.
+- **Filosofía Zen:** Enfoque en lo importante. Muestra solo lo que requiere acción inmediata hoy, manteniendo oculto lo secundario hasta que sea solicitado.
+
+### 4. [ServiceForm.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/ServiceForm.js) — _Unificación de Entradas_
+
+- **Diagnóstico:** Reemplaza tres campos numéricos condicionales por un único input `<input type="date">`.
+- **Filosofía Zen:** Reduce la carga cognitiva del usuario al llenar el formulario. Menos inputs significan menos posibilidades de error y un flujo más rápido.
 
 ---
 
 ## 🧼 Estado de Ruido del Sistema (Warnings y Tests)
 
-*   **Linter (ESLint):** `0` warnings, `0` errors. Código libre de impurezas y llamadas directas de consola en producción (gracias al encapsulado en `logger.js`).
-*   **Pruebas Unitarias (Jest):** `100%` de éxito. Pruebas claras que documentan el comportamiento de años bisiestos y desbordes de fecha en formato declarativo.
+- **Linter (ESLint):** `0` warnings, `0` errors. Código libre de impurezas y llamadas directas de consola en producción (gracias al encapsulado en `logger.js`).
+- **Pruebas Unitarias (Jest):** `100%` de éxito. Pruebas claras que documentan el comportamiento de años bisiestos y desbordes de fecha en formato declarativo.
 
 ---
 
