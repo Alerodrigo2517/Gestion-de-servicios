@@ -893,8 +893,94 @@ export default function Dashboard({
         })}
       </nav>
 
-      {/* Dashboard Principal */}
       <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-8 glass-premium border-t-0 rounded-b-2xl shadow-2xl mb-12 animate-fade-in">
+        {/* Welcome Onboarding Banner for empty database */}
+        {services && services.length === 0 && (
+          <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-sky-500/10 via-indigo-500/5 to-slate-900 border border-sky-500/20 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                  <path d="M12 16v-4" />
+                  <path d="M12 8h.01" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-base font-bold text-white">¡Te damos la bienvenida a ServiTrack! 👋</h4>
+                <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                  Para que puedas explorar los gráficos interactivos, alertas de vencimiento, cálculos de liquidez y simular bajas de gastos, te recomendamos cargar nuestro conjunto de **datos de demostración anual**.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onGenerateDemoData}
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-xs font-bold text-white hover:from-emerald-400 hover:to-teal-500 transition duration-300 shadow-md shadow-emerald-500/20 active:scale-95 shrink-0 flex items-center gap-2 cursor-pointer"
+              type="button"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              Cargar Demo Anual
+            </button>
+          </div>
+        )}
+
+        {/* Demo Active Notice Banner */}
+        {services && services.length > 0 && services.some((s) => s.is_demo) && (
+          <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-slate-900 border border-amber-500/20 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <span className="flex h-2.5 w-2.5 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
+              <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                Estás visualizando los **datos de demostración anual**. Puedes explorar libremente todas las pantallas o borrarlos para cargar tus propios gastos reales.
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={onGenerateDemoData}
+                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-slate-200 hover:bg-white/10 hover:text-white transition duration-200 cursor-pointer"
+                type="button"
+              >
+                Recargar Demo
+              </button>
+              <button
+                onClick={onDeleteDemoData}
+                className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[11px] font-bold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition duration-200 cursor-pointer flex items-center gap-1.5"
+                type="button"
+              >
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Eliminar Demo
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Global header alert banner */}
         {globalAlertServices.length > 0 && (
           <div
