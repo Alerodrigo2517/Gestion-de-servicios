@@ -5,7 +5,17 @@ const logger = {
       console.log(...args);
     }
   },
+  info: (...args) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.info(...args);
+    }
+  },
+  warn: (...args) => {
+    // Warnings are kept in production for remote monitoring or local logs
+    console.warn(...args);
+  },
   error: (...args) => {
+    // Errors are kept in production. Custom detailed stringification is only for development.
     if (process.env.NODE_ENV !== 'production') {
       const formattedArgs = args.map((arg) => {
         if (arg && typeof arg === 'object') {
@@ -29,11 +39,8 @@ const logger = {
         return arg;
       });
       console.error(...formattedArgs);
-    }
-  },
-  warn: (...args) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(...args);
+    } else {
+      console.error(...args);
     }
   },
 };

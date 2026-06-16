@@ -11,6 +11,7 @@ import {
   affectsLiquidity,
 } from '@/lib/statusHelper';
 import logger from '@/lib/logger';
+import { useToast } from '@/components/ToastProvider';
 
 const months = [
   'Enero',
@@ -43,7 +44,9 @@ export default function Dashboard({
   onEdit,
   onGenerateDemoData,
   onChangePassword,
+  onShowWelcome,
 }) {
+  const { showToast } = useToast();
   const fileInputRef = useRef(null);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -334,18 +337,38 @@ export default function Dashboard({
       const newItems = await importFromExcel(file, services);
       if (newItems && newItems.length > 0) {
         onBulkImport(newItems);
-        alert(`¡Éxito! Se importaron ${newItems.length} registros nuevos.`);
+        showToast({
+          type: 'success',
+          message: `¡Éxito! Se importaron ${newItems.length} registros nuevos.`
+        });
       } else {
-        alert(
-          'No se importó nada. Puede que los registros ya existan o el archivo esté vacío.'
-        );
+        showToast({
+          type: 'warning',
+          message: 'No se importó nada. Puede que los registros ya existan o el archivo esté vacío.'
+        });
       }
     } catch (err) {
       logger.error(err);
-      alert('Error al leer el archivo Excel. Verifica el formato.');
+      showToast({
+        type: 'error',
+        message: 'Error al leer el archivo Excel. Verifica el formato.'
+      });
     }
     e.target.value = ''; // Reset input
   };
+
+  // Calculate active panels count for dynamic grid column allocation
+  const activePanelsCount =
+    (showInsights ? 1 : 0) +
+    (nextVencimientos.length > 0 ? 1 : 0) +
+    (reminders.length > 0 ? 1 : 0);
+
+  const gridColsClass =
+    activePanelsCount === 3
+      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+      : activePanelsCount === 2
+      ? 'grid-cols-1 md:grid-cols-2'
+      : 'grid-cols-1';
 
   return (
     <div className="w-full animate-fade-in">
@@ -371,7 +394,7 @@ export default function Dashboard({
                 ServiTrack
               </h1>
               <p className="text-[10px] font-bold text-sky-400 tracking-widest uppercase">
-                Premium Hub
+                Panel de Control
               </p>
             </div>
           </div>
@@ -449,6 +472,27 @@ export default function Dashboard({
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                   Cambiar Contraseña
+                </button>
+                <button
+                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
+                  onClick={() => {
+                    onShowWelcome();
+                    setIsProfileOpen(false);
+                  }}
+                  type="button"
+                >
+                  <svg
+                    className="text-violet-400"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  Información y Privacidad
                 </button>
                 <div className="border-t border-white/5 my-1"></div>
                 <button
@@ -715,6 +759,27 @@ export default function Dashboard({
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                   Cambiar Contraseña
+                </button>
+                <button
+                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
+                  onClick={() => {
+                    onShowWelcome();
+                    setIsProfileOpen(false);
+                  }}
+                  type="button"
+                >
+                  <svg
+                    className="text-violet-400"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  Información y Privacidad
                 </button>
                 <div className="border-t border-white/5 my-1"></div>
                 <button
@@ -994,22 +1059,22 @@ export default function Dashboard({
         </div>
 
         {/* Alertas e Insights */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {showInsights && (
-            <div
-              id="insights-panel"
-              className="p-5 rounded-2xl text-sm glass-premium bg-sky-500/5 border-l-4 border-sky-500 text-sky-200 animate-slide-up"
-            >
-              {insightContent}
-            </div>
-          )}
+        {activePanelsCount > 0 && (
+          <div className={`grid ${gridColsClass} gap-6 mb-8`}>
+            {showInsights && (
+              <div
+                id="insights-panel"
+                className="p-5 rounded-2xl text-sm glass-premium bg-sky-500/5 border-l-4 border-sky-500 text-sky-200 animate-slide-up flex flex-col justify-center"
+              >
+                {insightContent}
+              </div>
+            )}
 
-          {(nextVencimientos.length > 0 || reminders.length > 0) && (
-            <div
-              id="reminders-panel"
-              className="p-5 rounded-2xl text-sm glass-premium bg-amber-500/5 border-l-4 border-amber-500 animate-slide-up flex flex-col gap-4"
-            >
-              {nextVencimientos.length > 0 && (
+            {nextVencimientos.length > 0 && (
+              <div
+                id="vencimientos-panel"
+                className="p-5 rounded-2xl text-sm glass-premium bg-amber-500/5 border-l-4 border-amber-500 animate-slide-up flex flex-col justify-between"
+              >
                 <div className="flex flex-col">
                   <h4 className="flex items-center gap-2 font-bold text-amber-400 mb-3">
                     <svg
@@ -1037,59 +1102,56 @@ export default function Dashboard({
                   <ul className="space-y-1 text-slate-300 font-semibold mb-2 max-h-[150px] overflow-y-auto pr-1">
                     {nextVencimientos}
                   </ul>
-                  {unpaidServices.length > 5 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowAllVencimientos(!showAllVencimientos)
-                      }
-                      className="text-[10px] text-amber-400 hover:text-amber-300 font-bold uppercase tracking-wider mt-1.5 transition cursor-pointer self-start focus:outline-none"
-                    >
-                      {showAllVencimientos
-                        ? 'Mostrar menos'
-                        : `Ver todos (+${unpaidServices.length - 5})`}
-                    </button>
-                  )}
                 </div>
-              )}
-
-              {reminders.length > 0 && (
-                <div
-                  className={
-                    nextVencimientos.length > 0
-                      ? 'border-t border-white/5 pt-3'
-                      : ''
-                  }
-                >
-                  <h4 className="flex items-center gap-2 font-bold text-amber-400 mb-2">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    Recordatorios y Avisos
-                  </h4>
-                  <ul
-                    id="reminders-list"
-                    className="space-y-1.5 text-amber-200/80 list-disc pl-5 font-semibold"
+                {unpaidServices.length > 5 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowAllVencimientos(!showAllVencimientos)
+                    }
+                    className="text-[10px] text-amber-400 hover:text-amber-300 font-bold uppercase tracking-wider mt-1.5 transition cursor-pointer self-start focus:outline-none"
                   >
-                    {reminders.map((r, index) => (
-                      <li key={index} className="marker:text-amber-500">
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                    {showAllVencimientos
+                      ? 'Mostrar menos'
+                      : `Ver todos (+${unpaidServices.length - 5})`}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {reminders.length > 0 && (
+              <div
+                id="reminders-panel"
+                className="p-5 rounded-2xl text-sm glass-premium bg-indigo-500/5 border-l-4 border-indigo-500 animate-slide-up flex flex-col"
+              >
+                <h4 className="flex items-center gap-2 font-bold text-indigo-400 mb-2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  </svg>
+                  Recordatorios y Avisos
+                </h4>
+                <ul
+                  id="reminders-list"
+                  className="space-y-1.5 text-indigo-200/80 list-disc pl-5 font-semibold"
+                >
+                  {reminders.map((r, index) => (
+                    <li key={index} className="marker:text-indigo-500">
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Grid de Formulario y Listas */}
         <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8">

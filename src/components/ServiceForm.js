@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getSafeDate, formatDateToString } from '@/lib/statusHelper';
 
 const months = [
@@ -26,11 +26,34 @@ export default function ServiceForm({
   showImportButton,
   previousMonthName,
 }) {
+  const formRef = useRef(null);
   const [type, setType] = useState('income');
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  // Auto-scroll to form when editing on mobile/tablet layout
+  useEffect(() => {
+    if (!editingItem || !formRef.current) return;
+
+    const isMobileOrTablet = window.matchMedia('(max-width: 1023px)').matches;
+    if (!isMobileOrTablet) return;
+
+    requestAnimationFrame(() => {
+      const rect = formRef.current?.getBoundingClientRect();
+      // Only scroll if the top of the form is not already in the visible viewport
+      const alreadyVisible = rect && rect.top >= 0 && rect.top <= window.innerHeight;
+
+      if (!alreadyVisible) {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        formRef.current?.scrollIntoView({
+          behavior: reduceMotion ? 'auto' : 'smooth',
+          block: 'start',
+        });
+      }
+    });
+  }, [editingItem]);
 
   const handleAmountChange = (val) => {
     setAmount(val);
@@ -66,26 +89,6 @@ export default function ServiceForm({
   const [titular, setTitular] = useState('');
 
   // Detect dynamic fields based on name text
-  const isEnergyRelated =
-    name.toLowerCase().includes('luz') ||
-    name.toLowerCase().includes('gas') ||
-    name.toLowerCase().includes('energia') ||
-    name.toLowerCase().includes('edesur') ||
-    name.toLowerCase().includes('edenor') ||
-    name.toLowerCase().includes('metrogas') ||
-    name.toLowerCase().includes('camuzzi') ||
-    name.toLowerCase().includes('aysa') ||
-    name.toLowerCase().includes('agua');
-  const isInternetRelated =
-    name.toLowerCase().includes('internet') ||
-    name.toLowerCase().includes('wifi') ||
-    name.toLowerCase().includes('cable') ||
-    name.toLowerCase().includes('flow') ||
-    name.toLowerCase().includes('fibertel') ||
-    name.toLowerCase().includes('telecentro') ||
-    name.toLowerCase().includes('netflix') ||
-    name.toLowerCase().includes('spotify') ||
-    name.toLowerCase().includes('disney');
   useEffect(() => {
     if (editingItem) {
       setType(editingItem.type || 'income');
@@ -228,25 +231,11 @@ export default function ServiceForm({
         : null;
       itemData.dueDate = dueDate || null;
 
-      // Extract day for retrocompatibility
-      if (dueDate) {
-        const [, , dayStr] = dueDate.split('-');
-        const dayNum = parseInt(dayStr);
-        if (isEnergyRelated) {
-          itemData.nextMeasurementDate = dayNum;
-          itemData.billingCloseDate = null;
-        } else if (isInternetRelated) {
-          itemData.billingCloseDate = dayNum;
-          itemData.nextMeasurementDate = null;
-        } else {
-          itemData.nextMeasurementDate = dayNum;
-          itemData.billingCloseDate = null;
-        }
-      }
+      itemData.nextMeasurementDate = nextMeasurementDate ? parseInt(nextMeasurementDate) : null;
+      itemData.billingCloseDate = billingCloseDate ? parseInt(billingCloseDate) : null;
 
-      if (isEnergyRelated) {
-        if (consumptionUnit)
-          itemData.consumptionUnit = parseFloat(consumptionUnit);
+      if (consumptionUnit) {
+        itemData.consumptionUnit = parseFloat(consumptionUnit);
       }
     } else if (type === 'loan') {
       itemData.creditor = creditor.trim();
@@ -330,7 +319,7 @@ export default function ServiceForm({
   };
 
   return (
-    <section className="glass-premium rounded-2xl p-6 self-start shadow-2xl relative overflow-hidden transition-all duration-300 hover:border-white/10 w-full animate-slide-up">
+    <section ref={formRef} className="glass-premium rounded-2xl p-6 self-start shadow-2xl relative overflow-hidden transition-all duration-300 hover:border-white/10 w-full animate-slide-up">
       {/* Glow Line indicator on top */}
       <div
         className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r transition-all duration-500 ${
@@ -597,42 +586,40 @@ export default function ServiceForm({
 
               {/* Vencimientos y consumo */}
               <div className="space-y-3 pt-3 border-t border-white/5 animate-slide-up">
-                {isEnergyRelated && (
-                  <div>
-                    <label
-                      htmlFor="consumption-unit"
-                      className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
-                    >
-                      Consumo Físico (kWh / m³ / etc.)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          aria-hidden="true"
-                        >
-                          <line x1="19" y1="5" x2="5" y2="19"></line>
-                          <circle cx="6.5" cy="6.5" r="2.5"></circle>
-                          <circle cx="17.5" cy="17.5" r="2.5"></circle>
-                        </svg>
-                      </span>
-                      <input
-                        type="number"
-                        id="consumption-unit"
-                        placeholder="Ej. 320"
-                        step="0.1"
-                        value={consumptionUnit}
-                        onChange={(e) => setConsumptionUnit(e.target.value)}
-                        className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
-                      />
-                    </div>
+                <div>
+                  <label
+                    htmlFor="consumption-unit"
+                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  >
+                    Consumo Físico (kWh / m³ / etc. - Opcional)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        aria-hidden="true"
+                      >
+                        <line x1="19" y1="5" x2="5" y2="19"></line>
+                        <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                        <circle cx="17.5" cy="17.5" r="2.5"></circle>
+                      </svg>
+                    </span>
+                    <input
+                      type="number"
+                      id="consumption-unit"
+                      placeholder="Ej. 320"
+                      step="0.1"
+                      value={consumptionUnit}
+                      onChange={(e) => setConsumptionUnit(e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    />
                   </div>
-                )}
+                </div>
 
                 <div>
                   <label
@@ -672,6 +659,45 @@ export default function ServiceForm({
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
                       className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      htmlFor="next-measurement-date"
+                      className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    >
+                      Día Medición (1-31, Opc.)
+                    </label>
+                    <input
+                      type="number"
+                      id="next-measurement-date"
+                      min="1"
+                      max="31"
+                      placeholder="Ej. 15"
+                      value={nextMeasurementDate}
+                      onChange={(e) => setNextMeasurementDate(e.target.value)}
+                      className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="billing-close-date"
+                      className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    >
+                      Día Cierre (1-31, Opc.)
+                    </label>
+                    <input
+                      type="number"
+                      id="billing-close-date"
+                      min="1"
+                      max="31"
+                      placeholder="Ej. 27"
+                      value={billingCloseDate}
+                      onChange={(e) => setBillingCloseDate(e.target.value)}
+                      className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                     />
                   </div>
                 </div>

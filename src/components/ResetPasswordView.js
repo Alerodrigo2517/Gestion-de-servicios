@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ToastProvider';
 
 export default function ResetPasswordView({ onComplete }) {
+  const { showToast } = useToast();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,9 +28,10 @@ export default function ResetPasswordView({ onComplete }) {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      alert(
-        '¡Contraseña restablecida correctamente! Ahora puedes usar la aplicación.'
-      );
+      showToast({
+        type: 'success',
+        message: '¡Contraseña restablecida correctamente! Ahora puedes usar la aplicación.'
+      });
       onComplete();
     } catch (err) {
       setError(err.message || 'Error al restablecer la contraseña.');

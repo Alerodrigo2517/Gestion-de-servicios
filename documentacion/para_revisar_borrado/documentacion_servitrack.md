@@ -1,6 +1,6 @@
 # Documentación Técnica Exhaustiva del Sistema: ServiTrack (Next.js & React)
 
-ServiTrack es una aplicación web del tipo **Single Page Application (SPA)** de nivel premium diseñada para la gestión, organización y análisis de gastos y servicios del hogar.
+ServiTrack es una aplicación web del tipo **Single Page Application (SPA)** diseñada para la gestión, organización y análisis de gastos y servicios del hogar.
 
 Originalmente concebida como una aplicación en JavaScript Vanilla, el sistema ha sido migrado por completo a **Next.js** y **React**, incorporando una arquitectura moderna de componentes, compilación optimizada en **Node.js**, y persistencia robusta en la nube con **Supabase** (Auth & Database).
 
@@ -61,7 +61,7 @@ A continuación, se detalla el árbol de directorios y la responsabilidad de cad
 ├── src/
 │   ├── app/
 │   │   ├── layout.js          # Estructura HTML raíz, carga de tipografía y metadatos SEO
-│   │   ├── globals.css        # Estilos globales, variables CSS y scrollbars premium
+│   │   ├── globals.css        # Estilos globales, variables CSS y scrollbars
 │   │   └── page.js            # Punto de entrada de la SPA, estado global y sincronización
 │   ├── components/
 │   │   ├── AuthComponent.js   # Panel de autenticación (Login/Registro con Supabase)
@@ -259,7 +259,7 @@ Utiliza la biblioteca **Chart.js** mapeando los datos de forma reactiva y pintá
 
 El archivo [excelHelper.js](file:///c:/Users/AALEJ/OneDrive/Desktop/Instituto_26/git-hub/Gestion-de-servicios/src/lib/excelHelper.js) gestiona la lectura y escritura de archivos `.xlsx` usando la librería `exceljs`.
 
-### 5.1 Exportación Premium
+### 5.1 Exportación Estilizada
 
 Genera un libro con estilos corporativos:
 

@@ -7,7 +7,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38bdf8?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Jest](https://img.shields.io/badge/Jest-Testing-red?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io/)
 
-**ServiTrack** es una aplicación web premium del tipo **Single Page Application (SPA)** diseñada para la gestión, organización y análisis en tiempo real de gastos, ingresos y servicios del hogar. Construida con tecnologías modernas y siguiendo las mejores prácticas de desarrollo y seguridad.
+**ServiTrack** es una aplicación web del tipo **Single Page Application (SPA)** diseñada para la gestión, organización y análisis en tiempo real de gastos, ingresos y servicios del hogar. Construida con tecnologías modernas y siguiendo las mejores prácticas de desarrollo y seguridad.
 
 ---
 
@@ -23,7 +23,7 @@ Puedes ver y probar la aplicación en producción haciendo clic en el siguiente 
 
 - 🔒 **Autenticación Segura y Aislamiento:** Inicio de sesión, registro y recuperación de contraseñas mediante **Supabase Auth** con seguridad a nivel de filas (**RLS**) activa en base de datos.
 - ⚡ **Datos en Tiempo Real:** Flujo continuo de sincronización entre el estado reactivo de la aplicación y la base de datos PostgreSQL en Supabase, libre de almacenamiento local (`localStorage`) para evitar vulnerabilidades XSS.
-- 📊 **Dashboard Premium:** Visualización intuitiva de métricas financieras clave en tiempo real:
+- 📊 **Dashboard Completo:** Visualización intuitiva de métricas financieras clave en tiempo real:
   - Ingresos Netos ($I_{net}$)
   - Gastos Totales ($G_{tot}$)
   - Total Pagado ($P_{tot}$)
@@ -44,7 +44,7 @@ Puedes ver y probar la aplicación en producción haciendo clic en el siguiente 
 
 - **Next.js (v14.1.4)** — App Router y Server/Client Components.
 - **React (v18.2.0)** — Renderizado reactivo declarativo.
-- **Tailwind CSS (v3.4.1)** — Diseño responsivo, premium y fluido.
+- **Tailwind CSS (v3.4.1)** — Diseño responsivo, moderno y fluido.
 - **Chart.js (v4.4.2)** — Gráficos interactivos en canvas.
 
 ### Backend & Seguridad

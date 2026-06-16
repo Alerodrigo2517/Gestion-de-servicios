@@ -78,7 +78,7 @@ ServiTrack no almacena la información financiera sensible en el navegador del u
 
 ### 4. Maquetación y Diseño de Interfaces (CSS & Tailwind CSS)
 
-Para lograr un diseño estético de nivel premium y responsivo que se adapte perfectamente a computadoras y celulares.
+Para lograr un diseño estético de nivel profesional y responsivo que se adapte perfectamente a computadoras y celulares.
 
 - **Temas Clave a Dominar:**
   - **Sistemas de Layout Modernos:** Flexbox (alineación en un eje) y CSS Grid (grillas bidimensionales).

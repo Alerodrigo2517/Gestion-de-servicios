@@ -408,7 +408,7 @@ export default function SimulationModal({
           <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
-              placeholder="Alta Ficticia (Ej. Netflix Premium)"
+              placeholder="Alta Ficticia (Ej. Netflix)"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               className="flex-[2] px-3 py-2 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/50"

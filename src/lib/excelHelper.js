@@ -401,7 +401,7 @@ export async function exportToExcel(services) {
   const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
-  saveAs(blob, 'Reporte_Financiero_Premium.xlsx');
+  saveAs(blob, 'Reporte_Financiero.xlsx');
 }
 
 export async function importFromExcel(file, currentServices) {

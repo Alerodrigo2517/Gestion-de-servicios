@@ -6,7 +6,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom Scrollbar for a premium look */
+/* Custom Scrollbar for a modern look */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -68,6 +68,28 @@ body {
   }
 }
 
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
 /* Animation Utilities */
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -85,7 +107,15 @@ body {
   animation: pulseGlow 4s ease-in-out infinite;
 }
 
-/* Premium Glassmorphic utilities */
+.animate-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-out-right {
+  animation: slideOutRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glassmorphic utilities */
 .glass-premium {
   @apply bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-xl shadow-black/40;
 }

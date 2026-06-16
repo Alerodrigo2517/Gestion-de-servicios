@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ToastProvider';
 
 export default function AuthComponent() {
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
@@ -35,9 +37,10 @@ export default function AuthComponent() {
         if (error) throw error;
 
         if (data.user && data.session === null) {
-          alert(
-            '¡Registro exitoso! Por favor, verifica tu correo electrónico para confirmar tu cuenta o intenta iniciar sesión directamente.'
-          );
+          showToast({
+            type: 'success',
+            message: '¡Registro exitoso! Por favor, verifica tu correo electrónico para confirmar tu cuenta.'
+          });
           setMode('login');
         }
       } else if (mode === 'forgot') {
@@ -45,9 +48,10 @@ export default function AuthComponent() {
           redirectTo: `${window.location.origin}/`,
         });
         if (error) throw error;
-        alert(
-          'Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico.'
-        );
+        showToast({
+          type: 'success',
+          message: 'Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico.'
+        });
         setMode('login');
       }
     } catch (err) {
@@ -97,8 +101,8 @@ export default function AuthComponent() {
             id="auth-subtitle"
             className="text-slate-400 text-xs font-semibold uppercase tracking-wider"
           >
-            {mode === 'login' && 'Gestión Financiera Premium'}
-            {mode === 'signup' && 'Crea tu Cuenta Premium'}
+            {mode === 'login' && 'Gestión Financiera'}
+            {mode === 'signup' && 'Crea tu Cuenta'}
             {mode === 'forgot' && 'Recuperación de Acceso'}
           </p>
         </div>

@@ -6,7 +6,7 @@ Este documento contiene el plan de implementación detallado y actualizado para 
 
 ## 📋 Descripción del Proyecto
 
-Una aplicación web de una sola página (Single Page Application - SPA) premium, construida con **Next.js 14**, **React 18** y **Supabase** (para autenticación y persistencia de base de datos PostgreSQL). La aplicación permite al usuario registrar, visualizar y organizar los gastos de servicios del hogar ordenados por "Mes de Pago", con soporte para importar servicios recurrentes, analizar el gasto mediante gráficos dinámicos y exportar/importar información a Excel de forma avanzada.
+Una aplicación web de una sola página (Single Page Application - SPA) de nivel profesional, construida con **Next.js 14**, **React 18** y **Supabase** (para autenticación y persistencia de base de datos PostgreSQL). La aplicación permite al usuario registrar, visualizar y organizar los gastos de servicios del hogar ordenados por "Mes de Pago", con soporte para importar servicios recurrentes, analizar el gasto mediante gráficos dinámicos y exportar/importar información a Excel de forma avanzada.
 
 ---
 
@@ -22,7 +22,7 @@ Una aplicación web de una sola página (Single Page Application - SPA) premium,
 
 ## 🎨 Diseño Visual (Aesthetics)
 
-El diseño es de nivel premium, utilizando una interfaz "Dark Mode" con técnicas de **Glassmorphism** y micro-animaciones dinámicas.
+El diseño es de alta calidad, utilizando una interfaz "Dark Mode" con técnicas de **Glassmorphism** y micro-animaciones dinámicas.
 
 - **Fondo (Background):** Un color base oscuro (`#0b0f19`) con un `radial-gradient` en las esquinas que mezcla tonos celestes y morados tenues para simular profundidad.
 - **Efecto Vidrio (Glassmorphism):** Paneles translúcidos con `backdrop-filter: blur(16px)`, bordes blancos semitransparentes (`border-white/10`) y fondos de color con opacidad reducida (`bg-slate-900/60`).

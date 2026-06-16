@@ -17,7 +17,7 @@ Basándonos en la nomenclatura de **Versionado Semántico (SemVer)** y la evoluc
 
 ## ⏱️ Línea de Tiempo de Evolución
 
-El desarrollo del sistema ha transitado por tres fases principales: **Prototipo Vanilla**, **Migración e Integración de Servicios en la Nube**, y **Maduración de Funciones y Rediseño Premium**.
+El desarrollo del sistema ha transitado por tres fases principales: **Prototipo Vanilla**, **Migración e Integración de Servicios en la Nube**, y **Maduración de Funciones y Rediseño Estético**.
 
 | Versión    | Tipo de Cambio | Commit de Origen | Fecha               | Descripción Principal                                                                                                     |
 | :--------- | :------------- | :--------------- | :------------------ | :------------------------------------------------------------------------------------------------------------------------ |
@@ -26,7 +26,7 @@ El desarrollo del sistema ha transitado por tres fases principales: **Prototipo 
 | **v0.5.0** | Menor          | `cca3de4`        | 9/10 de Junio, 2026 | Integración de bases de datos, sistema de login y estructura del framework.                                               |
 | **v1.0.0** | **MAYOR**      | `5a55f5f`        | 10 de Junio, 2026   | Migración completa a Next.js, React y Supabase con documentación técnica.                                                 |
 | **v1.1.0** | Menor          | `6301a40`        | 10 de Junio, 2026   | Implementación de cambio/recuperación de contraseña y mejoras de formulario.                                              |
-| **v1.2.0** | Menor          | `fc1834c`        | 10 de Junio, 2026   | Rediseño visual UI/UX Glassmorphic premium y optimizaciones móviles.                                                      |
+| **v1.2.0** | Menor          | `fc1834c`        | 10 de Junio, 2026   | Rediseño visual UI/UX Glassmorphic de alta calidad y optimizaciones móviles.                                               |
 | **v1.2.1** | Parche         | `32f3f02`        | 10 de Junio, 2026   | Corrección de bug de maquetación en el dropdown de herramientas.                                                          |
 | **v1.3.0** | Menor          | `f7ca11d`        | 11 de Junio, 2026   | Mejoras del Arquitecto, fecha DATE PostgreSQL, CalendarWidget, Banner Global, bisiestos y créditos Rodrigo Aguirre Tevez. |
 
@@ -77,11 +77,11 @@ El desarrollo del sistema ha transitado por tres fases principales: **Prototipo 
 
 ---
 
-### 🎨 v1.2.0 y v1.2.1: Experiencia Premium y Parches Visuales
+### 🎨 v1.2.0 y v1.2.1: Experiencia Visual de Alta Calidad y Parches Visuales
 
 - **Estado:** Estado de arte actual.
 - **Cambios Clave:**
-  - **Rediseño Visual Premium:** Renovación de [src/app/globals.css](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/app/globals.css) para incorporar un diseño moderno con efectos de Glassmorphism (paneles translúcidos, desenfoques de fondo, degradados vibrantes y bordes sutiles).
+  - **Rediseño Visual de Alta Calidad:** Renovación de [src/app/globals.css](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/app/globals.css) para incorporar un diseño moderno con efectos de Glassmorphism (paneles translúcidos, desenfoques de fondo, degradados vibrantes y bordes sutiles).
   - **Optimización Móvil:** Adaptación y reestructuración de componentes para una experiencia fluida y responsive en smartphones y tablets.
   - **Parche v1.2.1:** Corrección de bug de maquetación en el menú desplegable del Dashboard eliminando propiedades de scroll horizontal que provocaban recortes indeseados en la lista de herramientas.
 

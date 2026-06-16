@@ -9,7 +9,7 @@ Esta guía compila las preguntas más difíciles, decisiones de diseño de softw
 > **Pregunta típica:** _"Háblame de un proyecto reciente que hayas desarrollado y los desafíos técnicos que enfrentaste."_
 >
 > **Respuesta ideal:**
-> *"Desarrollé **ServiTrack**, una Single Page Application (SPA) premium construida sobre **Next.js (React)** y **Supabase** diseñada para el control y análisis inteligente de gastos del hogar. El mayor reto técnico no fue la interfaz, sino la **seguridad y robustez del estado**. Eliminé el caché en el cliente (`localStorage`) por razones de privacidad financiera y conecté la persistencia en tiempo real a PostgreSQL. Implementé **Seguridad a Nivel de Fila (RLS)** para aislar inquilinos (*multi-tenancy*), mitigaciones contra inyecciones XSS y de fórmulas de Excel, límites de tamaño (DoS) y optimicé la accesibilidad web bajo los estándares **WCAG 2.1 AA** implementando trampas de foco (*Focus Trap*) nativas y soporte para reducción de movimiento."*
+> *"Desarrollé **ServiTrack**, una Single Page Application (SPA) de nivel profesional construida sobre **Next.js (React)** y **Supabase** diseñada para el control y análisis inteligente de gastos del hogar. El mayor reto técnico no fue la interfaz, sino la **seguridad y robustez del estado**. Eliminé el caché en el cliente (`localStorage`) por razones de privacidad financiera y conecté la persistencia en tiempo real a PostgreSQL. Implementé **Seguridad a Nivel de Fila (RLS)** para aislar inquilinos (*multi-tenancy*), mitigaciones contra inyecciones XSS y de fórmulas de Excel, límites de tamaño (DoS) y optimicé la accesibilidad web bajo los estándares **WCAG 2.1 AA** implementando trampas de foco (*Focus Trap*) nativas y soporte para reducción de movimiento."*
 
 ---
 
@@ -112,7 +112,7 @@ Esta guía compila las preguntas más difíciles, decisiones de diseño de softw
 
 ---
 
-## 🎨 8. Diseño y Estética Premium (Aesthetics)
+## 🎨 8. Diseño y Estética Avanzada (Aesthetics)
 
 ### P: ¿Cómo estructuraste la interfaz responsiva del footer para que se adapte perfectamente a móviles?
 
