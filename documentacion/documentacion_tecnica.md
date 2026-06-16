@@ -1,6 +1,6 @@
 # 🛠️ Documentación Técnica Unificada — ServiTrack
 
-ServiTrack es una aplicación web del tipo **Single Page Application (SPA)** de nivel premium diseñada para la gestión, organización y análisis de gastos y servicios del hogar.
+ServiTrack es una aplicación web del tipo **Single Page Application (SPA)** de nivel profesional diseñada para la gestión, organización y análisis de gastos y servicios del hogar.
 
 ---
 
@@ -182,7 +182,8 @@ CREATE INDEX IF NOT EXISTS idx_services_dueDate ON public.services("dueDate");
 │   │   ├── ServiceList.js     # Contenedor filtrado y agrupador de tarjetas
 │   │   ├── ServiceCard.js     # Renderizado de tarjetas según tipo y origen de fondos
 │   │   ├── SimulationModal.js # Modal del simulador financiero (Algoritmo Greedy)
-│   │   └── ChartsModal.js     # Modal de gráficos con Chart.js (Consumo estacional)
+│   │   ├── ChartsModal.js     # Modal de gráficos con Chart.js (Consumo estacional)
+│   │   └── WelcomeModal.js    # Modal de bienvenida y privacidad en 2 pasos
 │   └── lib/
 │       ├── supabase.js        # Inicialización del cliente de Supabase
 │       ├── utils.js           # Formateadores financieros y helpers generales
@@ -228,6 +229,13 @@ El componente calcula dinámicamente las siguientes variables a partir del array
   $$L = I_{net} - P_{tot}$$
 - **Proyección de Saldo ($R$):**
   $$R = I_{net} - G_{tot}$$
+
+### 4.6 Modal de Bienvenida y Privacidad: [WelcomeModal.js](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/components/WelcomeModal.js)
+
+Componente de tipo modal interactivo en 2 pasos (carousel) que se abre automáticamente en el primer inicio de sesión del usuario.
+- **Flujo:** Explica el funcionamiento general en el primer paso, y en el segundo paso despliega los términos de privacidad, el acceso administrativo del dueño de la infraestructura para tareas de soporte/mantenimiento técnico, y el compromiso de confidencialidad.
+- **Persistencia:** Si el usuario presiona "Entendido, continuar", se actualiza la propiedad `user_metadata.has_seen_onboarding` en Supabase Auth mediante `supabase.auth.updateUser()`. Si el usuario lo cierra mediante `Escape` o haciendo clic fuera, solo se oculta de forma temporal sin actualizar la preferencia en la base de datos.
+- **Accesibilidad:** Cuenta con trampa de foco (Focus Trap), soporte de teclado (`Tab`, `Shift+Tab`, `Escape`) y restauración del foco al cerrarse.
 
 ---
 

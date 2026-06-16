@@ -97,7 +97,7 @@ Se han implementado y mitigado al 100% los puntos de control recomendados por el
     - Soporte a tabIndexes personalizados positivos (`[tabindex]:not([tabindex="-1"])`).
     - Recuperación inmediata: si el foco se pierde fuera del modal, se fuerza su retorno al primer/último elemento del diálogo.
     - Al cerrarse, se restaura automáticamente el foco al botón disparador original.
-7.  **Ampliación Visual (Zoom 200% y 400% con Reflow) [RESUELTO]:** Se verificó que la interfaz responsiva premium sea escalable al 200% y 400% de zoom en navegadores sin desbordes horizontales destructivos ni solapamiento de textos.
+7.  **Ampliación Visual (Zoom 200% y 400% con Reflow) [RESUELTO]:** Se verificó que la interfaz responsiva de alta calidad sea escalable al 200% y 400% de zoom en navegadores sin desbordes horizontales destructivos ni solapamiento de textos.
 8.  **Compatibilidad Móvil (Táctil y Lectores) [RESUELTO]:** Los controles responsivos y modales se probaron en entornos móviles táctiles con soporte a lectores de pantalla (VoiceOver/TalkBack).
 9.  **Preferencias del Usuario (Reduced Motion) [RESUELTO]:** Se integró una consulta de medios `@media (prefers-reduced-motion: reduce)` en [globals.css](file:///c:/Users/Desktop/OneDrive/Desktop/Git%20Hub/Gestion-de-servicios/src/app/globals.css) que suprime todas las animaciones y efectos de transición para usuarios sensibles.
 10. **Herramientas de Auditoría Automatizadas [RESUELTO]:** Se incorporaron Lighthouse Accessibility, axe DevTools y `eslint-plugin-jsx-a11y` al checklist de pre-despliegue de producción para auditorías continuas de accesibilidad.

@@ -49,7 +49,7 @@ Comparativa detallada de cobertura de requerimientos funcionales en ServiTrack:
 ### Versión 1.1.0 (20 de Abril, 2026) — Visualización y Reportes
 
 - **Chart.js:** Modales interactivos para gráficos de barras apiladas de proyección anual e histogramas de consumo físico estacional.
-- **excelHelper.js:** Motor de generación de reportes financieros premium con estilos, bordes zebra, fórmulas de balance anual y exportación de gráficos.
+- **excelHelper.js:** Motor de generación de reportes financieros de alta calidad con estilos, bordes zebra, fórmulas de balance anual y exportación de gráficos.
 
 ### Versión 1.0.0 (1 de Marzo, 2026) — Producto Mínimo Viable (SPA)
 

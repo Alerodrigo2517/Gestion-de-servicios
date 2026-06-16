@@ -244,7 +244,7 @@ Este documento registra cronológicamente las conversaciones, auditorías, respu
 - **Acción del Desarrollador:**
   - Se realizó un análisis de accesibilidad técnica de ServiTrack contrastándolo con las directrices **WCAG 2.1 (Nivel AA)**.
   - Se concluyó que la aplicación cumple de forma sobresaliente gracias a:
-    - Contraste de color óptimo en la paleta premium y textos del dashboard.
+    - Contraste de color óptimo en la paleta de colores y textos del dashboard.
     - Estructura HTML5 semántica clara (`<header>`, `<main>`, `<footer>`, `<section>`).
     - Manejo de estados y focos visuales interactivos en modales y formularios.
     - Uso de atributos semánticos `aria-live` para avisos dinámicos y descripciones adaptativas.
