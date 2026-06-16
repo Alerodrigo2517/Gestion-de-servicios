@@ -98,6 +98,8 @@ sequenceDiagram
 | `currentInstallment`  | `number`                                       | Opcional  | Cuota actual (sólo préstamos)                                     |
 | `titular`             | `string`                                       | Opcional  | Persona titular a cargo del pago del préstamo                     |
 | `paymentSource`       | `'SELF' \| 'THIRD_PARTY'`                      | Opcional  | Origen de fondos para el pago (Yo o Terceros)                     |
+| `is_demo`             | `boolean`                                      | Opcional  | Determina si el registro es parte de los datos demo anuales       |
+
 
 ### 3.2 SQL DDL (Esquema en Supabase v2.0)
 
@@ -126,6 +128,8 @@ create table public.services (
   "totalInstallments" integer,
   titular text,
   "paymentSource" text not null default 'SELF',
+  is_demo boolean default false,
+
 
   -- Restricciones de validación a nivel de base de datos (CHECK constraints)
   CONSTRAINT chk_amount_positive CHECK (amount >= 0),
@@ -156,6 +160,14 @@ create policy "Los usuarios pueden eliminar sus propios servicios"
 
 CREATE INDEX IF NOT EXISTS idx_services_user_month ON public.services(user_id, "paymentMonth");
 CREATE INDEX IF NOT EXISTS idx_services_dueDate ON public.services("dueDate");
+```
+
+### 3.3 Actualización de Base de Datos (Migración)
+
+Si estás actualizando una base de datos existente de ServiTrack a la versión v2.0, debes ejecutar la siguiente sentencia SQL en el editor de Supabase (SQL Editor) para habilitar el soporte de datos demo y su eliminación selectiva:
+
+```sql
+ALTER TABLE public.services ADD COLUMN is_demo BOOLEAN DEFAULT FALSE;
 ```
 
 ---

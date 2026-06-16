@@ -24,6 +24,18 @@ Comparativa detallada de cobertura de requerimientos funcionales en ServiTrack:
 
 ## 🏷️ 2. Historial de Versiones de la Aplicación
 
+### Versión 2.1.0 (16 de Junio, 2026) — Experiencia Demo Realista, Eliminación Selectiva y Onboarding de Privacidad
+
+- **Modal de Bienvenida y Privacidad:** Incorporación del componente `<WelcomeModal />` interactivo en 2 pasos (carousel). Explica el propósito de la app y las políticas de datos con compromiso de confidencialidad estricta y limitaciones. Sincronización del estado de lectura a Supabase Auth `user_metadata.has_seen_onboarding`. Soporte completo de accesibilidad (Focus Trap, Escape, clics fuera del modal y restauración del foco).
+- **Carga de Demo Realista:**
+  - **Variaciones de Montos (±5%):** Introducción de variación aleatoria en montos de servicios e ingresos de demo para dotar de realismo a gráficos de consumo anual.
+  - **Fechas de Pago Coherentes:** Cálculo dinámico de fechas de pago (`paymentDate`) restando entre 0 y 3 días a la fecha de vencimiento (`dueDate`) en registros marcados como pagados.
+  - **Consistencia Temporal Dinámica:** Determinación en tiempo de ejecución del mes en curso (`new Date().getMonth()`) para marcar servicios como pagados (meses anteriores y mes actual parcial) o pendientes (meses futuros y mes actual parcial), evitando alertas ruidosas e irreales de deudas vencidas en meses pasados.
+  - **Ingresos Diversificados:** Carga de un sueldo base mensual más ingresos ocasionales de freelance y aguinaldos (Junio/Diciembre).
+- **Eliminación Selectiva de Demo:**
+  - **Columna `is_demo`:** Nuevo campo booleano `is_demo` para identificar y separar los registros demo de los datos reales del usuario.
+  - **Acción "Eliminar Demo Anual":** Botón dedicado en el perfil de usuario (visible solo si existen registros demo en la cuenta) que elimina en Supabase todos los servicios con `is_demo = true`, garantizando el control del usuario sobre sus datos.
+
 ### Versión 2.0.0 (12 de Junio, 2026) — Refactorización de Seguridad y Consistencia
 
 - **Caché Eliminado:** Remoción total de `localStorage` para balances financieros, mitigando ataques de secuestro de datos por XSS.

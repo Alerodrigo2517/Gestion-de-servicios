@@ -445,6 +445,18 @@ export default function Home() {
     }
 
     const demoServices = [];
+    const currentYear = new Date().getFullYear();
+    const currentMonthIndex = new Date().getMonth();
+
+    const getVariedAmount = (base) => {
+      const variation = 0.95 + Math.random() * 0.1; // ±5%
+      return Math.round(base * variation);
+    };
+
+    const getDemoPaymentDate = (m, dueDay) => {
+      const payDay = Math.max(1, dueDay - Math.floor(Math.random() * 4)); // 0-3 días antes
+      return `${String(payDay).padStart(2, '0')}/${String(m + 1).padStart(2, '0')}/${currentYear}`;
+    };
 
     // Luz seasonal pricing (0: Enero to 11: Diciembre)
     const luzPrices = [
@@ -471,74 +483,121 @@ export default function Home() {
         user_id: userId,
         type: 'income',
         name: 'Sueldo',
-        amount: 150000,
+        amount: getVariedAmount(150000),
         paymentMonth: month,
         isPaid: false,
+        is_demo: true,
       });
 
-      // 2. Luz (Service)
+      // Occasional freelance income (every 4 months)
+      if (month === 0 || month === 4 || month === 8) {
+        demoServices.push({
+          user_id: userId,
+          type: 'income',
+          name: 'Freelance Desarrollo',
+          amount: getVariedAmount(35000),
+          paymentMonth: month,
+          isPaid: false,
+          is_demo: true,
+        });
+      }
+
+      // Aguinaldo in June and December
+      if (month === 5 || month === 11) {
+        demoServices.push({
+          user_id: userId,
+          type: 'income',
+          name: 'Aguinaldo',
+          amount: getVariedAmount(75000),
+          paymentMonth: month,
+          isPaid: false,
+          is_demo: true,
+        });
+      }
+
+      // 2. Luz (Service - due on 15th)
+      const isLuzPaid = month < currentMonthIndex;
       demoServices.push({
         user_id: userId,
         type: 'service',
         name: 'Luz Edesur',
-        amount: luzPrices[month],
+        amount: getVariedAmount(luzPrices[month]),
         paymentMonth: month,
-        isPaid: false,
+        isPaid: isLuzPaid,
+        paymentDate: isLuzPaid ? getDemoPaymentDate(month, 15) : null,
+        dueDate: formatDateToString(getSafeDate(currentYear, month, 15)),
         consumptionMonth: month,
         consumptionMonthEnd: null,
         consumptionUnit: luzKwh[month],
         nextMeasurementDate: 15,
+        is_demo: true,
       });
 
-      // 3. Gas (Service)
+      // 3. Gas (Service - due on 20th)
+      const isGasPaid = month < currentMonthIndex;
       demoServices.push({
         user_id: userId,
         type: 'service',
         name: 'Gas Metrogas',
-        amount: gasPrices[month],
+        amount: getVariedAmount(gasPrices[month]),
         paymentMonth: month,
-        isPaid: false,
+        isPaid: isGasPaid,
+        paymentDate: isGasPaid ? getDemoPaymentDate(month, 20) : null,
+        dueDate: formatDateToString(getSafeDate(currentYear, month, 20)),
         consumptionMonth: month,
         consumptionMonthEnd: null,
         consumptionUnit: gasM3[month],
         nextMeasurementDate: 20,
+        is_demo: true,
       });
 
-      // 4. Agua (Service)
+      // 4. Agua (Service - due on 10th)
+      const isAguaPaid = month < currentMonthIndex;
       demoServices.push({
         user_id: userId,
         type: 'service',
         name: 'Agua AySA',
-        amount: aguaPrices[month],
+        amount: getVariedAmount(aguaPrices[month]),
         paymentMonth: month,
-        isPaid: false,
+        isPaid: isAguaPaid,
+        paymentDate: isAguaPaid ? getDemoPaymentDate(month, 10) : null,
+        dueDate: formatDateToString(getSafeDate(currentYear, month, 10)),
         consumptionMonth: month,
         consumptionMonthEnd: null,
+        is_demo: true,
       });
 
-      // 5. Internet (Service)
+      // 5. Internet (Service - due on 22nd)
+      const isInternetPaid = month <= currentMonthIndex;
       demoServices.push({
         user_id: userId,
         type: 'service',
         name: 'Internet Fibertel',
-        amount: 12000,
+        amount: getVariedAmount(12000),
         paymentMonth: month,
-        isPaid: false,
+        isPaid: isInternetPaid,
+        paymentDate: isInternetPaid ? getDemoPaymentDate(month, 22) : null,
+        dueDate: formatDateToString(getSafeDate(currentYear, month, 22)),
         consumptionMonth: month,
         consumptionMonthEnd: null,
         billingCloseDate: 22,
+        is_demo: true,
       });
 
-      // 6. TV/Cable (Service)
+      // 6. TV/Cable (Service - due on 10th)
+      const isCablePaid = month <= currentMonthIndex;
       demoServices.push({
         user_id: userId,
         type: 'service',
         name: 'Cablevisión Flow',
-        amount: 8500,
+        amount: getVariedAmount(8500),
         paymentMonth: month,
-        isPaid: false,
+        isPaid: isCablePaid,
+        paymentDate: isCablePaid ? getDemoPaymentDate(month, 10) : null,
+        dueDate: formatDateToString(getSafeDate(currentYear, month, 10)),
         consumptionMonth: month,
         consumptionMonthEnd: null,
+        is_demo: true,
       });
     }
 
@@ -564,7 +623,7 @@ export default function Home() {
         setServices(finalServices);
         showToast({
           type: 'success',
-          message: '¡Demo cargada exitosamente! Se generaron 6 servicios mensuales para todo el año con precios estacionales.'
+          message: '¡Demo cargada exitosamente! Se generaron servicios e ingresos dinámicos para todo el año con precios realistas.'
         });
       }
     } catch (err) {
@@ -578,9 +637,44 @@ export default function Home() {
       } else {
         showToast({
           type: 'error',
-          message: 'Ocurrió un error al guardar los datos en Supabase.'
+          message: 'Hubo un error al guardar la demo en la base de datos.'
         });
       }
+    }
+  };
+
+  const handleDeleteDemoData = async () => {
+    if (!session) return;
+    const userId = session.user.id;
+
+    const confirmed = await showConfirm({
+      title: 'Eliminar Datos Demo',
+      message: '¿Estás seguro de que deseas eliminar todos los servicios cargados por la demo anual? Tus registros reales no serán afectados.',
+      confirmText: 'Eliminar Demo',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('user_id', userId)
+        .eq('is_demo', true);
+      if (error) throw error;
+
+      setServices((prev) => prev.filter((s) => !s.is_demo));
+      showToast({
+        type: 'success',
+        message: '¡Datos demo eliminados correctamente!'
+      });
+    } catch (err) {
+      logger.error('Error al eliminar demo de Supabase:', err);
+      showToast({
+        type: 'error',
+        message: 'Hubo un error al eliminar los datos de demostración.'
+      });
     }
   };
 
@@ -667,6 +761,7 @@ export default function Home() {
         onBulkImport={handleBulkImport}
         onEdit={handleEditItem}
         onGenerateDemoData={handleGenerateDemoData}
+        onDeleteDemoData={handleDeleteDemoData}
         onChangePassword={() => setIsChangePasswordOpen(true)}
         onShowWelcome={() => setIsWelcomeOpen(true)}
       />
