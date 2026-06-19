@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import AuthComponent from '@/components/AuthComponent';
 import Dashboard from '@/components/Dashboard';
@@ -12,6 +12,8 @@ import { getSafeDate, formatDateToString } from '@/lib/statusHelper';
 import { useToast } from '@/components/ToastProvider';
 import { useConfirm } from '@/components/ConfirmProvider';
 import WelcomeModal from '@/components/WelcomeModal';
+import EncryptionKeyModal from '@/components/EncryptionKeyModal';
+import { deriveKey, encryptData, decryptData } from '@/lib/crypto';
 
 export default function Home() {
   const { showToast } = useToast();
@@ -28,13 +30,18 @@ export default function Home() {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
 
+  // Client-Side Encryption States
+  const [encryptionKey, setEncryptionKey] = useState(null);
+  const [showKeyPrompt, setShowKeyPrompt] = useState(false);
+
   // 1. Authenticate user and setup session listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
       if (session) {
-        loadData(session);
+        // Prompt for encryption key when logged in
+        setShowKeyPrompt(true);
         const hasSeenOnboarding = session.user?.user_metadata?.has_seen_onboarding;
         if (!hasSeenOnboarding) {
           setIsWelcomeOpen(true);
@@ -50,7 +57,11 @@ export default function Home() {
         setIsRecovering(true);
       }
       if (session) {
-        loadData(session);
+        if (!encryptionKey) {
+          setShowKeyPrompt(true);
+        } else {
+          loadData(session, encryptionKey);
+        }
         const hasSeenOnboarding = session.user?.user_metadata?.has_seen_onboarding;
         if (!hasSeenOnboarding) {
           setIsWelcomeOpen(true);
@@ -60,6 +71,8 @@ export default function Home() {
         setEditingItem(null);
         setActiveModal(null);
         setIsRecovering(false);
+        setEncryptionKey(null);
+        setShowKeyPrompt(false);
       }
     });
 
@@ -72,27 +85,126 @@ export default function Home() {
     }
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [encryptionKey, loadData]);
 
   // 2. Load data from remote database (No client cache for financial data)
-  const loadData = async (activeSession) => {
+  const loadData = useCallback(async (activeSession, activeKey) => {
     const userSession = activeSession || session;
     if (!userSession) return;
+    const key = activeKey || encryptionKey;
+    if (!key) return; // Wait for encryption key derivation
 
     try {
       const { data, error } = await supabase.from('services').select('*');
       if (error) throw error;
       if (data) {
-        setServices(data);
+        // Decrypt services client-side if they are encrypted
+        const decryptedData = await Promise.all(
+          data.map(async (item) => {
+            if (item.encrypted_data) {
+              try {
+                const decryptedPayload = await decryptData(item.encrypted_data, key);
+                return {
+                  ...item,
+                  ...decryptedPayload,
+                };
+              } catch (decryptionError) {
+                logger.error('Error al desencriptar registro:', decryptionError);
+                return {
+                  ...item,
+                  name: '[Error de Desencriptación]',
+                  amount: 0,
+                  _decryptionError: true,
+                };
+              }
+            }
+            return item; // Legacy unencrypted item
+          })
+        );
+        setServices(decryptedData);
       }
     } catch (err) {
       logger.error('Error cargando de Supabase:', err);
+    }
+  }, [session, encryptionKey]);
+
+  const handleKeySubmitted = async (passphrase) => {
+    if (!session) return;
+    const userId = session.user.id;
+    try {
+      const key = await deriveKey(passphrase, userId);
+      setEncryptionKey(key);
+      setShowKeyPrompt(false);
+      await loadData(session, key);
+    } catch (err) {
+      logger.error('Error al derivar clave:', err);
+      throw err;
     }
   };
 
   const handleSaveItem = async (itemData) => {
     if (!session) return;
     const userId = session.user.id;
+
+    // Prepare data copy
+    const plainItem = { ...itemData };
+    let dbItem = { ...itemData, user_id: userId };
+
+    // Encrypt sensitive fields locally if key is configured
+    if (encryptionKey) {
+      const sensitivePayload = {
+        name: plainItem.name,
+        amount: parseFloat(plainItem.amount) || 0,
+        dueDate: plainItem.dueDate || null,
+        consumptionMonth: plainItem.consumptionMonth !== undefined ? plainItem.consumptionMonth : null,
+        consumptionMonthEnd: plainItem.consumptionMonthEnd !== undefined ? plainItem.consumptionMonthEnd : null,
+        consumptionUnit: plainItem.consumptionUnit !== undefined ? plainItem.consumptionUnit : null,
+        nextMeasurementDate: plainItem.nextMeasurementDate || null,
+        billingCloseDate: plainItem.billingCloseDate || null,
+        creditor: plainItem.creditor || null,
+        currentInstallment: plainItem.currentInstallment || null,
+        totalInstallments: plainItem.totalInstallments || null,
+        titular: plainItem.titular || null,
+        paymentDate: plainItem.paymentDate || null,
+      };
+
+      try {
+        const encryptedString = await encryptData(sensitivePayload, encryptionKey);
+        
+        dbItem = {
+          id: plainItem.id,
+          user_id: userId,
+          type: plainItem.type,
+          paymentMonth: plainItem.paymentMonth,
+          isPaid: plainItem.isPaid,
+          is_demo: plainItem.is_demo || false,
+          paymentSource: plainItem.paymentSource || 'SELF',
+          // Mask database text columns
+          name: 'Servicio Encriptado',
+          amount: 0,
+          encrypted_data: encryptedString,
+          // Set plain structural fields to defaults/nulls
+          dueDate: null,
+          consumptionMonth: null,
+          consumptionMonthEnd: null,
+          consumptionUnit: null,
+          nextMeasurementDate: null,
+          billingCloseDate: null,
+          creditor: null,
+          currentInstallment: null,
+          totalInstallments: null,
+          titular: null,
+          paymentDate: null,
+        };
+      } catch (encryptError) {
+        logger.error('Error al encriptar registro:', encryptError);
+        showToast({
+          type: 'error',
+          message: 'Error de encriptación local. No se pudo guardar el registro.'
+        });
+        return;
+      }
+    }
 
     if (itemData.id) {
       // Edit mode
@@ -107,8 +219,7 @@ export default function Home() {
       });
 
       try {
-        const itemToSave = { ...itemData, user_id: userId };
-        const { error } = await supabase.from('services').upsert(itemToSave);
+        const { error } = await supabase.from('services').upsert(dbItem);
         if (error) throw error;
       } catch (err) {
         logger.error('Error al actualizar item en Supabase:', err);
@@ -118,7 +229,7 @@ export default function Home() {
         });
       }
     } else {
-      // Create mode (PostgreSQL generates UUID)
+      // Create mode
       if (services.length >= 1000) {
         showToast({
           type: 'warning',
@@ -128,18 +239,23 @@ export default function Home() {
       }
 
       try {
-        const itemToSave = { ...itemData, user_id: userId };
-        delete itemToSave.id;
+        delete dbItem.id;
 
         const { data, error } = await supabase
           .from('services')
-          .insert(itemToSave)
+          .insert(dbItem)
           .select()
           .single();
 
         if (error) throw error;
         if (data) {
-          setServices((prev) => [...prev, data]);
+          // Keep decrypted version in state, merge database generated ID
+          const mergedItem = {
+            ...itemData,
+            id: data.id,
+            created_at: data.created_at,
+          };
+          setServices((prev) => [...prev, mergedItem]);
           showToast({
             type: 'success',
             message: 'Registro creado correctamente.'
@@ -206,6 +322,7 @@ export default function Home() {
     if (!session) return;
 
     let itemToUpdate = null;
+    let decryptedItemCopy = null;
     const updatedServices = services.map((item) => {
       if (item.id === id && item.type !== 'income') {
         const nextPaidState = !item.isPaid;
@@ -218,24 +335,66 @@ export default function Home() {
         } else {
           delete updatedItem.paymentDate;
         }
-        itemToUpdate = updatedItem;
+        decryptedItemCopy = updatedItem;
+
+        // Basic payload structural update
+        itemToUpdate = {
+          id: item.id,
+          user_id: session.user.id,
+          isPaid: nextPaidState,
+          paymentSource: item.paymentSource || 'SELF',
+        };
         return updatedItem;
       }
       return item;
     });
 
-    if (!itemToUpdate) return;
+    if (!itemToUpdate || !decryptedItemCopy) return;
 
     setServices(updatedServices);
 
     try {
+      const originalDbItem = services.find((s) => s.id === id);
+      // Re-encrypt to update paymentDate inside the client-side cipher payload
+      if (originalDbItem && encryptionKey) {
+        const sensitivePayload = {
+          name: decryptedItemCopy.name,
+          amount: parseFloat(decryptedItemCopy.amount) || 0,
+          dueDate: decryptedItemCopy.dueDate || null,
+          consumptionMonth: decryptedItemCopy.consumptionMonth !== undefined ? decryptedItemCopy.consumptionMonth : null,
+          consumptionMonthEnd: decryptedItemCopy.consumptionMonthEnd !== undefined ? decryptedItemCopy.consumptionMonthEnd : null,
+          consumptionUnit: decryptedItemCopy.consumptionUnit !== undefined ? decryptedItemCopy.consumptionUnit : null,
+          nextMeasurementDate: decryptedItemCopy.nextMeasurementDate || null,
+          billingCloseDate: decryptedItemCopy.billingCloseDate || null,
+          creditor: decryptedItemCopy.creditor || null,
+          currentInstallment: decryptedItemCopy.currentInstallment || null,
+          totalInstallments: decryptedItemCopy.totalInstallments || null,
+          titular: decryptedItemCopy.titular || null,
+          paymentDate: decryptedItemCopy.paymentDate || null,
+        };
+        const encryptedString = await encryptData(sensitivePayload, encryptionKey);
+        
+        itemToUpdate = {
+          ...itemToUpdate,
+          name: 'Servicio Encriptado',
+          amount: 0,
+          encrypted_data: encryptedString,
+        };
+      } else {
+        // Plaintext legacy fallback
+        itemToUpdate = {
+          ...decryptedItemCopy,
+          user_id: session.user.id
+        };
+      }
+
       const { error } = await supabase
         .from('services')
-        .upsert({ ...itemToUpdate, user_id: session.user.id });
+        .upsert(itemToUpdate);
       if (error) throw error;
       showToast({
         type: 'success',
-        message: itemToUpdate.isPaid ? 'Pago registrado correctamente.' : 'Pago cancelado correctamente.'
+        message: decryptedItemCopy.isPaid ? 'Pago registrado correctamente.' : 'Pago cancelado correctamente.'
       });
     } catch (err) {
       logger.error('Error al actualizar estado de pago:', err);
@@ -315,15 +474,55 @@ export default function Home() {
       return newItem;
     });
 
-    const itemsToInsert = importedItems.map((item) => ({
-      ...item,
-      user_id: session.user.id,
-    }));
+    // Encrypt each imported record locally before insertion
+    const encryptedItemsToInsert = await Promise.all(
+      importedItems.map(async (plainItem) => {
+        const dbItem = {
+          user_id: session.user.id,
+          type: plainItem.type,
+          paymentMonth: plainItem.paymentMonth,
+          isPaid: plainItem.isPaid,
+          is_demo: plainItem.is_demo || false,
+          paymentSource: plainItem.paymentSource || 'SELF',
+        };
 
-    if (services.length + itemsToInsert.length > 1000) {
+        if (encryptionKey) {
+          const sensitivePayload = {
+            name: plainItem.name,
+            amount: parseFloat(plainItem.amount) || 0,
+            dueDate: plainItem.dueDate || null,
+            consumptionMonth: plainItem.consumptionMonth !== undefined ? plainItem.consumptionMonth : null,
+            consumptionMonthEnd: plainItem.consumptionMonthEnd !== undefined ? plainItem.consumptionMonthEnd : null,
+            consumptionUnit: plainItem.consumptionUnit !== undefined ? plainItem.consumptionUnit : null,
+            nextMeasurementDate: plainItem.nextMeasurementDate || null,
+            billingCloseDate: plainItem.billingCloseDate || null,
+            creditor: plainItem.creditor || null,
+            currentInstallment: plainItem.currentInstallment || null,
+            totalInstallments: plainItem.totalInstallments || null,
+            titular: plainItem.titular || null,
+            paymentDate: plainItem.paymentDate || null,
+          };
+          const encryptedString = await encryptData(sensitivePayload, encryptionKey);
+
+          return {
+            ...dbItem,
+            name: 'Servicio Encriptado',
+            amount: 0,
+            encrypted_data: encryptedString,
+          };
+        } else {
+          return {
+            ...plainItem,
+            user_id: session.user.id,
+          };
+        }
+      })
+    );
+
+    if (services.length + encryptedItemsToInsert.length > 1000) {
       showToast({
         type: 'warning',
-        message: `No se pueden importar los registros. Superaría el límite de 1000 registros (tienes ${services.length} e intentas importar ${itemsToInsert.length}).`
+        message: `No se pueden importar los registros. Superaría el límite de 1000 registros (tienes ${services.length} e intentas importar ${encryptedItemsToInsert.length}).`
       });
       return;
     }
@@ -331,12 +530,20 @@ export default function Home() {
     try {
       const { data, error } = await supabase
         .from('services')
-        .insert(itemsToInsert)
+        .insert(encryptedItemsToInsert)
         .select();
 
       if (error) throw error;
       if (data) {
-        setServices((prev) => [...prev, ...data]);
+        // Map created IDs back to decrypted local items
+        const decryptedImported = data.map((dbRow, idx) => {
+          return {
+            ...importedItems[idx],
+            id: dbRow.id,
+            created_at: dbRow.created_at,
+          };
+        });
+        setServices((prev) => [...prev, ...decryptedImported]);
         showToast({
           type: 'success',
           message: `¡Éxito! Se importaron ${data.length} registros del mes anterior.`
@@ -363,17 +570,55 @@ export default function Home() {
     if (!session) return;
     const userId = session.user.id;
 
-    const itemsToInsert = newItems.map((item) => {
-      const itemCopy = { ...item, user_id: userId };
-      delete itemCopy.id;
-      delete itemCopy.created_at;
-      return itemCopy;
-    });
+    // Encrypt each item in bulk locally
+    const encryptedItemsToInsert = await Promise.all(
+      newItems.map(async (plainItem) => {
+        const dbItem = {
+          user_id: userId,
+          type: plainItem.type,
+          paymentMonth: plainItem.paymentMonth,
+          isPaid: plainItem.isPaid,
+          is_demo: plainItem.is_demo || false,
+          paymentSource: plainItem.paymentSource || 'SELF',
+        };
 
-    if (services.length + itemsToInsert.length > 1000) {
+        if (encryptionKey) {
+          const sensitivePayload = {
+            name: plainItem.name,
+            amount: parseFloat(plainItem.amount) || 0,
+            dueDate: plainItem.dueDate || null,
+            consumptionMonth: plainItem.consumptionMonth !== undefined ? plainItem.consumptionMonth : null,
+            consumptionMonthEnd: plainItem.consumptionMonthEnd !== undefined ? plainItem.consumptionMonthEnd : null,
+            consumptionUnit: plainItem.consumptionUnit !== undefined ? plainItem.consumptionUnit : null,
+            nextMeasurementDate: plainItem.nextMeasurementDate || null,
+            billingCloseDate: plainItem.billingCloseDate || null,
+            creditor: plainItem.creditor || null,
+            currentInstallment: plainItem.currentInstallment || null,
+            totalInstallments: plainItem.totalInstallments || null,
+            titular: plainItem.titular || null,
+            paymentDate: plainItem.paymentDate || null,
+          };
+          const encryptedString = await encryptData(sensitivePayload, encryptionKey);
+
+          return {
+            ...dbItem,
+            name: 'Servicio Encriptado',
+            amount: 0,
+            encrypted_data: encryptedString,
+          };
+        } else {
+          return {
+            ...plainItem,
+            user_id: userId,
+          };
+        }
+      })
+    );
+
+    if (services.length + encryptedItemsToInsert.length > 1000) {
       showToast({
         type: 'warning',
-        message: `No se puede realizar la importación masiva. Superaría el límite de 1000 registros (tienes ${services.length} e intentas importar ${itemsToInsert.length}).`
+        message: `No se puede realizar la importación masiva. Superaría el límite de 1000 registros (tienes ${services.length} e intentas importar ${encryptedItemsToInsert.length}).`
       });
       return;
     }
@@ -381,12 +626,19 @@ export default function Home() {
     try {
       const { data, error } = await supabase
         .from('services')
-        .insert(itemsToInsert)
+        .insert(encryptedItemsToInsert)
         .select();
 
       if (error) throw error;
       if (data) {
-        setServices((prev) => [...prev, ...data]);
+        const decryptedImported = data.map((dbRow, idx) => {
+          return {
+            ...newItems[idx],
+            id: dbRow.id,
+            created_at: dbRow.created_at,
+          };
+        });
+        setServices((prev) => [...prev, ...decryptedImported]);
       }
     } catch (err) {
       logger.error('Error al importar registros en Supabase:', err);
@@ -480,7 +732,6 @@ export default function Home() {
     for (let month = 0; month < 12; month++) {
       // 1. Sueldo (Income)
       demoServices.push({
-        user_id: userId,
         type: 'income',
         name: 'Sueldo',
         amount: getVariedAmount(150000),
@@ -492,7 +743,6 @@ export default function Home() {
       // Occasional freelance income (every 4 months)
       if (month === 0 || month === 4 || month === 8) {
         demoServices.push({
-          user_id: userId,
           type: 'income',
           name: 'Freelance Desarrollo',
           amount: getVariedAmount(35000),
@@ -505,7 +755,6 @@ export default function Home() {
       // Aguinaldo in June and December
       if (month === 5 || month === 11) {
         demoServices.push({
-          user_id: userId,
           type: 'income',
           name: 'Aguinaldo',
           amount: getVariedAmount(75000),
@@ -518,7 +767,6 @@ export default function Home() {
       // 2. Luz (Service - due on 15th)
       const isLuzPaid = month < currentMonthIndex;
       demoServices.push({
-        user_id: userId,
         type: 'service',
         name: 'Luz Edesur',
         amount: getVariedAmount(luzPrices[month]),
@@ -536,7 +784,6 @@ export default function Home() {
       // 3. Gas (Service - due on 20th)
       const isGasPaid = month < currentMonthIndex;
       demoServices.push({
-        user_id: userId,
         type: 'service',
         name: 'Gas Metrogas',
         amount: getVariedAmount(gasPrices[month]),
@@ -554,7 +801,6 @@ export default function Home() {
       // 4. Agua (Service - due on 10th)
       const isAguaPaid = month < currentMonthIndex;
       demoServices.push({
-        user_id: userId,
         type: 'service',
         name: 'Agua AySA',
         amount: getVariedAmount(aguaPrices[month]),
@@ -570,7 +816,6 @@ export default function Home() {
       // 5. Internet (Service - due on 22nd)
       const isInternetPaid = month <= currentMonthIndex;
       demoServices.push({
-        user_id: userId,
         type: 'service',
         name: 'Internet Fibertel',
         amount: getVariedAmount(12000),
@@ -587,7 +832,6 @@ export default function Home() {
       // 6. TV/Cable (Service - due on 10th)
       const isCablePaid = month <= currentMonthIndex;
       demoServices.push({
-        user_id: userId,
         type: 'service',
         name: 'Cablevisión Flow',
         amount: getVariedAmount(8500),
@@ -611,15 +855,67 @@ export default function Home() {
       return;
     }
 
+    // Encrypt demo payload before saving to DB
+    const encryptedDemo = await Promise.all(
+      demoServices.map(async (plainItem) => {
+        const dbItem = {
+          user_id: userId,
+          type: plainItem.type,
+          paymentMonth: plainItem.paymentMonth,
+          isPaid: plainItem.isPaid,
+          is_demo: true,
+          paymentSource: 'SELF',
+        };
+
+        if (encryptionKey) {
+          const sensitivePayload = {
+            name: plainItem.name,
+            amount: parseFloat(plainItem.amount) || 0,
+            dueDate: plainItem.dueDate || null,
+            consumptionMonth: plainItem.consumptionMonth !== undefined ? plainItem.consumptionMonth : null,
+            consumptionMonthEnd: plainItem.consumptionMonthEnd !== undefined ? plainItem.consumptionMonthEnd : null,
+            consumptionUnit: plainItem.consumptionUnit !== undefined ? plainItem.consumptionUnit : null,
+            nextMeasurementDate: plainItem.nextMeasurementDate || null,
+            billingCloseDate: plainItem.billingCloseDate || null,
+            creditor: plainItem.creditor || null,
+            currentInstallment: plainItem.currentInstallment || null,
+            totalInstallments: plainItem.totalInstallments || null,
+            titular: plainItem.titular || null,
+            paymentDate: plainItem.paymentDate || null,
+          };
+          const encryptedString = await encryptData(sensitivePayload, encryptionKey);
+
+          return {
+            ...dbItem,
+            name: 'Servicio Encriptado',
+            amount: 0,
+            encrypted_data: encryptedString,
+          };
+        } else {
+          return {
+            ...plainItem,
+            user_id: userId,
+          };
+        }
+      })
+    );
+
     try {
       const { data, error } = await supabase
         .from('services')
-        .insert(demoServices)
+        .insert(encryptedDemo)
         .select();
       if (error) throw error;
 
       if (data) {
-        const finalServices = [...updatedServices, ...data];
+        const decryptedDemo = data.map((dbRow, idx) => {
+          return {
+            ...demoServices[idx],
+            id: dbRow.id,
+            created_at: dbRow.created_at,
+          };
+        });
+        const finalServices = [...updatedServices, ...decryptedDemo];
         setServices(finalServices);
         showToast({
           type: 'success',
@@ -793,6 +1089,13 @@ export default function Home() {
         isOpen={isWelcomeOpen}
         onClose={handleCloseWelcome}
         onComplete={handleCompleteOnboarding}
+      />
+
+      {/* Prompt modal for Master Passphrase */}
+      <EncryptionKeyModal
+        isOpen={showKeyPrompt}
+        onSubmitKey={handleKeySubmitted}
+        onSignOut={handleSignOut}
       />
     </>
   );
