@@ -34,14 +34,12 @@ export default function Home() {
   const [encryptionKey, setEncryptionKey] = useState(null);
   const [showKeyPrompt, setShowKeyPrompt] = useState(false);
 
-  // 1. Authenticate user and setup session listener
+  // 1. Authenticate user and setup session listener (Runs once on mount)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
       if (session) {
-        // Prompt for encryption key when logged in
-        setShowKeyPrompt(true);
         const hasSeenOnboarding = session.user?.user_metadata?.has_seen_onboarding;
         if (!hasSeenOnboarding) {
           setIsWelcomeOpen(true);
@@ -57,11 +55,6 @@ export default function Home() {
         setIsRecovering(true);
       }
       if (session) {
-        if (!encryptionKey) {
-          setShowKeyPrompt(true);
-        } else {
-          loadData(session, encryptionKey);
-        }
         const hasSeenOnboarding = session.user?.user_metadata?.has_seen_onboarding;
         if (!hasSeenOnboarding) {
           setIsWelcomeOpen(true);
@@ -85,7 +78,23 @@ export default function Home() {
     }
 
     return () => subscription.unsubscribe();
-  }, [encryptionKey, loadData]);
+  }, []);
+
+  // 1.1 Trigger key prompt modal when session is active but no key is derived
+  useEffect(() => {
+    if (session && !encryptionKey && !isRecovering) {
+      setShowKeyPrompt(true);
+    } else {
+      setShowKeyPrompt(false);
+    }
+  }, [session, encryptionKey, isRecovering]);
+
+  // 1.2 Load data only when session and encryption key are both derived
+  useEffect(() => {
+    if (session && encryptionKey) {
+      loadData(session, encryptionKey);
+    }
+  }, [session, encryptionKey, loadData]);
 
   // 2. Load data from remote database (No client cache for financial data)
   const loadData = useCallback(async (activeSession, activeKey) => {
