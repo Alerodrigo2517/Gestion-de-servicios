@@ -37,7 +37,6 @@ function bufferToBase64(buffer) {
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  // Use global btoa (available in browsers and modern Node environments)
   if (typeof window !== 'undefined' && window.btoa) {
     return window.btoa(binary);
   } else {
@@ -66,9 +65,10 @@ function base64ToArrayBuffer(base64) {
  * Derives a CryptoKey (AES-GCM 256) from a passphrase and a salt (userId) using PBKDF2
  * @param {string} passphrase The secret passphrase entered by the user
  * @param {string} userId The Supabase UUID of the user (used as salt)
+ * @param {boolean} extractable If the generated key is allowed to be exported (default: false for RAM safety)
  * @returns {Promise<CryptoKey>} The derived symmetric key
  */
-export async function deriveKey(passphrase, userId) {
+export async function deriveKey(passphrase, userId, extractable = false) {
   if (!webCrypto || !webCrypto.subtle) {
     throw new Error('Web Crypto API subtle is not available');
   }
@@ -95,7 +95,7 @@ export async function deriveKey(passphrase, userId) {
     },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
-    false, // key is not extractable (highly secure)
+    extractable, // extractability is configured dynamically
     ['encrypt', 'decrypt']
   );
 }
@@ -167,4 +167,146 @@ export async function decryptData(encryptedString, key) {
 
   const plaintext = decoder.decode(decryptedBuffer);
   return JSON.parse(plaintext);
+}
+
+// --- INDEXEDDB STORAGE FOR KEY (Zero-Knowledge hybrid persistency indexed by userId) ---
+
+const DB_NAME = 'servitrack-crypto';
+const STORE_NAME = 'keys';
+
+/**
+ * Saves the derived AES-GCM key in raw binary format to IndexedDB associated to a userId
+ * @param {CryptoKey} key The CryptoKey object to save (must be extractable)
+ * @param {string} userId The unique user ID
+ * @returns {Promise<void>}
+ */
+export function saveKeyToIndexedDB(key, userId) {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      return reject(new Error('IndexedDB is not supported'));
+    }
+
+    const request = window.indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+
+    request.onsuccess = async (e) => {
+      const db = e.target.result;
+      try {
+        const rawKey = await webCrypto.subtle.exportKey('raw', key);
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        store.put(rawKey, userId);
+
+        transaction.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        transaction.onerror = (err) => {
+          db.close();
+          reject(err);
+        };
+      } catch (err) {
+        db.close();
+        reject(err);
+      }
+    };
+
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/**
+ * Loads and imports the stored raw AES-GCM key from IndexedDB for a given userId
+ * @param {string} userId The unique user ID
+ * @returns {Promise<CryptoKey|null>} The CryptoKey (imported as non-extractable in RAM), or null if not found
+ */
+export function loadKeyFromIndexedDB(userId) {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      return resolve(null);
+    }
+
+    const request = window.indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+
+    request.onsuccess = (e) => {
+      const db = e.target.result;
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const getRequest = store.get(userId);
+
+      getRequest.onsuccess = async () => {
+        const rawKey = getRequest.result;
+        if (!rawKey) {
+          db.close();
+          return resolve(null);
+        }
+
+        try {
+          // Import the raw AES key, making it non-extractable in memory for security
+          const key = await webCrypto.subtle.importKey(
+            'raw',
+            rawKey,
+            { name: 'AES-GCM', length: 256 },
+            false, // key is non-extractable after import
+            ['encrypt', 'decrypt']
+          );
+          db.close();
+          resolve(key);
+        } catch (err) {
+          db.close();
+          reject(err);
+        }
+      };
+
+      getRequest.onerror = () => {
+        db.close();
+        reject(getRequest.error);
+      };
+    };
+
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/**
+ * Deletes the stored raw AES key from IndexedDB for a given userId
+ * @param {string} userId The unique user ID
+ * @returns {Promise<void>}
+ */
+export function deleteKeyFromIndexedDB(userId) {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      return resolve();
+    }
+
+    const request = window.indexedDB.open(DB_NAME, 1);
+    request.onsuccess = (e) => {
+      const db = e.target.result;
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      store.delete(userId);
+
+      transaction.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      transaction.onerror = (err) => {
+        db.close();
+        reject(err);
+      };
+    };
+
+    request.onerror = (e) => reject(e.target.error);
+  });
 }

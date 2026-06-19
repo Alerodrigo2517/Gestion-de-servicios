@@ -18,6 +18,7 @@ describe('Servicios Criptográficos - Web Crypto API (Client-Side)', () => {
     expect(key.algorithm.name).toBe('AES-GCM');
     expect(key.usages).toContain('encrypt');
     expect(key.usages).toContain('decrypt');
+    expect(key.extractable).toBe(false); // Inextractable por defecto en memoria
   });
 
   test('La derivación de claves es determinista (misma frase y usuario generan la misma clave)', async () => {
@@ -61,5 +62,37 @@ describe('Servicios Criptográficos - Web Crypto API (Client-Side)', () => {
     expect(decrypted).toEqual(mockData);
     expect(decrypted.amount).toBe(15430.5); // Conserva el tipo numérico
     expect(decrypted.name).toBe('Luz Edesur');
+  });
+
+  test('La clave derivada es exportable a raw y se puede volver a importar de forma inextractable (flujo IndexedDB)', async () => {
+    const key = await deriveKey(mockPassphrase, mockUserId, true);
+    expect(key.extractable).toBe(true);
+
+    // Export key to raw format (ArrayBuffer)
+    let webCrypto;
+    if (typeof window !== 'undefined' && window.crypto) {
+      webCrypto = window.crypto;
+    } else {
+      webCrypto = require('crypto').webcrypto || require('crypto');
+    }
+    
+    const rawKey = await webCrypto.subtle.exportKey('raw', key);
+    expect(rawKey.byteLength).toBe(32); // 256 bits = 32 bytes
+
+    // Import the raw key back as non-extractable
+    const importedKey = await webCrypto.subtle.importKey(
+      'raw',
+      rawKey,
+      { name: 'AES-GCM', length: 256 },
+      false, // non-extractable
+      ['encrypt', 'decrypt']
+    );
+
+    expect(importedKey.extractable).toBe(false);
+
+    // Verify imported key can decrypt data encrypted with original key
+    const encrypted = await encryptData(mockData, key);
+    const decrypted = await decryptData(encrypted, importedKey);
+    expect(decrypted).toEqual(mockData);
   });
 });

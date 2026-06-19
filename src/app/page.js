@@ -7,13 +7,21 @@ import SimulationModal from '@/components/SimulationModal';
 import ChartsModal from '@/components/ChartsModal';
 import ResetPasswordView from '@/components/ResetPasswordView';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
+import ChangePassphraseModal from '@/components/ChangePassphraseModal';
 import logger from '@/lib/logger';
 import { getSafeDate, formatDateToString } from '@/lib/statusHelper';
 import { useToast } from '@/components/ToastProvider';
 import { useConfirm } from '@/components/ConfirmProvider';
 import WelcomeModal from '@/components/WelcomeModal';
 import EncryptionKeyModal from '@/components/EncryptionKeyModal';
-import { deriveKey, encryptData, decryptData } from '@/lib/crypto';
+import {
+  deriveKey,
+  encryptData,
+  decryptData,
+  saveKeyToIndexedDB,
+  loadKeyFromIndexedDB,
+  deleteKeyFromIndexedDB,
+} from '@/lib/crypto';
 
 export default function Home() {
   const { showToast } = useToast();
@@ -28,52 +36,13 @@ export default function Home() {
   const [activeModal, setActiveModal] = useState(null); // 'projection' | 'consumption' | 'simulation' | null
   const [isRecovering, setIsRecovering] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isChangePassphraseOpen, setIsChangePassphraseOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
 
   // Client-Side Encryption States
   const [encryptionKey, setEncryptionKey] = useState(null);
   const [showKeyPrompt, setShowKeyPrompt] = useState(false);
-
-  // 2. Load data from remote database (No client cache for financial data)
-  const loadData = useCallback(async (activeSession, activeKey) => {
-    const userSession = activeSession || session;
-    if (!userSession) return;
-    const key = activeKey || encryptionKey;
-    if (!key) return; // Wait for encryption key derivation
-
-    try {
-      const { data, error } = await supabase.from('services').select('*');
-      if (error) throw error;
-      if (data) {
-        // Decrypt services client-side if they are encrypted
-        const decryptedData = await Promise.all(
-          data.map(async (item) => {
-            if (item.encrypted_data) {
-              try {
-                const decryptedPayload = await decryptData(item.encrypted_data, key);
-                return {
-                  ...item,
-                  ...decryptedPayload,
-                };
-              } catch (decryptionError) {
-                logger.error('Error al desencriptar registro:', decryptionError);
-                return {
-                  ...item,
-                  name: '[Error de Desencriptación]',
-                  amount: 0,
-                  _decryptionError: true,
-                };
-              }
-            }
-            return item; // Legacy unencrypted item
-          })
-        );
-        setServices(decryptedData);
-      }
-    } catch (err) {
-      logger.error('Error cargando de Supabase:', err);
-    }
-  }, [session, encryptionKey]);
+  const [isRemembered, setIsRemembered] = useState(false);
 
   // 1. Authenticate user and setup session listener (Runs once on mount)
   useEffect(() => {
@@ -107,6 +76,7 @@ export default function Home() {
         setIsRecovering(false);
         setEncryptionKey(null);
         setShowKeyPrompt(false);
+        setIsRemembered(false);
       }
     });
 
@@ -121,29 +91,136 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 1.1 Trigger key prompt modal when session is active but no key is derived
+  // 1.1 Trigger key prompt modal or auto-login when session is active
   useEffect(() => {
-    if (session && !encryptionKey && !isRecovering) {
-      setShowKeyPrompt(true);
-    } else {
-      setShowKeyPrompt(false);
-    }
+    const handleInitKey = async () => {
+      if (session && !encryptionKey && !isRecovering) {
+        try {
+          const storedKey = await loadKeyFromIndexedDB(session.user.id);
+          if (storedKey) {
+            setEncryptionKey(storedKey);
+            setIsRemembered(true);
+            setShowKeyPrompt(false);
+          } else {
+            setShowKeyPrompt(true);
+          }
+        } catch (err) {
+          logger.error('Error al restaurar clave de IndexedDB:', err);
+          setShowKeyPrompt(true);
+        }
+      } else {
+        setShowKeyPrompt(false);
+      }
+    };
+
+    handleInitKey();
   }, [session, encryptionKey, isRecovering]);
 
-  // 1.2 Load data only when session and encryption key are both derived
+  // 1.2 Handlers for key corruption (automatic validation rollback)
+  const handleKeyCorrupted = useCallback(async () => {
+    if (!session) return;
+    const userId = session.user.id;
+    try {
+      await deleteKeyFromIndexedDB(userId);
+    } catch (e) {
+      logger.error('Error al eliminar clave corrupta de IndexedDB:', e);
+    }
+    setEncryptionKey(null);
+    setIsRemembered(false);
+    setServices([]);
+    showToast({
+      type: 'error',
+      message: 'Error de descifrado: La clave es incorrecta o está corrupta. Ingresa tu frase clave de nuevo.'
+    });
+  }, [session, showToast]);
+
+  // 2. Load data from remote database (No client cache for financial data)
+  const loadData = useCallback(async (activeSession, activeKey) => {
+    const userSession = activeSession || session;
+    if (!userSession) return;
+    const key = activeKey || encryptionKey;
+    if (!key) return; // Wait for encryption key derivation
+
+    try {
+      const { data, error } = await supabase.from('services').select('*');
+      if (error) throw error;
+      if (data) {
+        let hasCorruptedData = false;
+        
+        // Decrypt services client-side if they are encrypted
+        const decryptedData = await Promise.all(
+          data.map(async (item) => {
+            if (item.encrypted_data) {
+              try {
+                const decryptedPayload = await decryptData(item.encrypted_data, key);
+                return {
+                  ...item,
+                  ...decryptedPayload,
+                };
+              } catch (decryptionError) {
+                logger.error('Error al desencriptar registro:', decryptionError);
+                hasCorruptedData = true;
+                return {
+                  ...item,
+                  name: '[Error de Desencriptación]',
+                  amount: 0,
+                  _decryptionError: true,
+                };
+              }
+            }
+            return item; // Legacy unencrypted item
+          })
+        );
+
+        if (hasCorruptedData) {
+          // Trigger rollback if key was incorrect
+          await handleKeyCorrupted();
+        } else {
+          setServices(decryptedData);
+        }
+      }
+    } catch (err) {
+      logger.error('Error cargando de Supabase:', err);
+    }
+  }, [session, encryptionKey, handleKeyCorrupted]);
+
+  // 1.3 Load data only when session and encryption key are both derived
   useEffect(() => {
     if (session && encryptionKey) {
       loadData(session, encryptionKey);
     }
   }, [session, encryptionKey, loadData]);
 
-  const handleKeySubmitted = async (passphrase) => {
+  const handleKeySubmitted = async (passphrase, rememberDevice) => {
     if (!session) return;
     const userId = session.user.id;
     try {
-      const key = await deriveKey(passphrase, userId);
+      // 1. Derive key as non-extractable in memory for high security
+      const key = await deriveKey(passphrase, userId, false);
       setEncryptionKey(key);
       setShowKeyPrompt(false);
+
+      // 2. If remembered, derive an extractable key temporarily just to export to IndexedDB
+      if (rememberDevice) {
+        try {
+          const exportableKey = await deriveKey(passphrase, userId, true);
+          await saveKeyToIndexedDB(exportableKey, userId);
+          setIsRemembered(true);
+          showToast({
+            type: 'success',
+            message: 'Se ha recordado este dispositivo con encriptación local segura.'
+          });
+        } catch (dbErr) {
+          logger.error('Error guardando clave en IndexedDB:', dbErr);
+          showToast({
+            type: 'warning',
+            message: 'No se pudo guardar la clave local en este dispositivo.'
+          });
+        }
+      } else {
+        setIsRemembered(false);
+      }
+
       await loadData(session, key);
     } catch (err) {
       logger.error('Error al derivar clave:', err);
@@ -983,6 +1060,151 @@ export default function Home() {
     }
   };
 
+  const handleChangePassphrase = async (newPassphrase, rememberDevice) => {
+    if (!session || !encryptionKey) return;
+    const userId = session.user.id;
+
+    try {
+      // 1. Derive the new key (inextractable in memory for safety)
+      const newKey = await deriveKey(newPassphrase, userId, false);
+
+      // 2. Re-encrypt all current services in state (which are currently decrypted in RAM)
+      const reEncryptedItems = await Promise.all(
+        services.map(async (plainItem) => {
+          if (plainItem._decryptionError) return null; // Skip corrupted ones
+
+          const dbItem = {
+            id: plainItem.id,
+            user_id: userId,
+            type: plainItem.type,
+            paymentMonth: plainItem.paymentMonth,
+            isPaid: plainItem.isPaid,
+            is_demo: plainItem.is_demo || false,
+            paymentSource: plainItem.paymentSource || 'SELF',
+          };
+
+          const sensitivePayload = {
+            name: plainItem.name,
+            amount: parseFloat(plainItem.amount) || 0,
+            dueDate: plainItem.dueDate || null,
+            consumptionMonth: plainItem.consumptionMonth !== undefined ? plainItem.consumptionMonth : null,
+            consumptionMonthEnd: plainItem.consumptionMonthEnd !== undefined ? plainItem.consumptionMonthEnd : null,
+            consumptionUnit: plainItem.consumptionUnit !== undefined ? plainItem.consumptionUnit : null,
+            nextMeasurementDate: plainItem.nextMeasurementDate || null,
+            billingCloseDate: plainItem.billingCloseDate || null,
+            creditor: plainItem.creditor || null,
+            currentInstallment: plainItem.currentInstallment || null,
+            totalInstallments: plainItem.totalInstallments || null,
+            titular: plainItem.titular || null,
+            paymentDate: plainItem.paymentDate || null,
+          };
+
+          const encryptedString = await encryptData(sensitivePayload, newKey);
+
+          return {
+            ...dbItem,
+            name: 'Servicio Encriptado',
+            amount: 0,
+            encrypted_data: encryptedString,
+            // Clear legacy columns
+            dueDate: null,
+            consumptionMonth: null,
+            consumptionMonthEnd: null,
+            consumptionUnit: null,
+            nextMeasurementDate: null,
+            billingCloseDate: null,
+            creditor: null,
+            currentInstallment: null,
+            totalInstallments: null,
+            titular: null,
+            paymentDate: null,
+          };
+        })
+      );
+
+      const validItemsToSave = reEncryptedItems.filter((item) => item !== null);
+
+      // 3. Batch upsert re-encrypted records to Supabase
+      if (validItemsToSave.length > 0) {
+        const { error } = await supabase.from('services').upsert(validItemsToSave);
+        if (error) throw error;
+      }
+
+      // 4. Update the key in IndexedDB if rememberDevice is checked
+      if (rememberDevice) {
+        const exportableNewKey = await deriveKey(newPassphrase, userId, true);
+        await saveKeyToIndexedDB(exportableNewKey, userId);
+        setIsRemembered(true);
+      } else {
+        await deleteKeyFromIndexedDB(userId);
+        setIsRemembered(false);
+      }
+
+      // 5. Update local state key
+      setEncryptionKey(newKey);
+      showToast({
+        type: 'success',
+        message: 'Frase clave actualizada y registros re-encriptados con éxito.'
+      });
+    } catch (err) {
+      logger.error('Error al cambiar la frase maestra:', err);
+      showToast({
+        type: 'error',
+        message: 'Hubo un error al guardar los registros re-encriptados en el servidor.'
+      });
+      throw err;
+    }
+  };
+
+  const handleForgetDevice = async () => {
+    if (!session) return;
+    const userId = session.user.id;
+
+    const confirmed = await showConfirm({
+      title: 'Olvidar este Dispositivo',
+      message: '¿Estás seguro de que deseas olvidar la frase clave en este dispositivo? Deberás ingresarla de nuevo la próxima vez que entres.',
+      confirmText: 'Olvidar Dispositivo',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+
+    try {
+      await deleteKeyFromIndexedDB(userId);
+      setIsRemembered(false);
+      setEncryptionKey(null);
+      setServices([]);
+      showToast({
+        type: 'success',
+        message: 'Se ha eliminado la clave local de este dispositivo.'
+      });
+    } catch (err) {
+      logger.error('Error al olvidar dispositivo:', err);
+      showToast({
+        type: 'error',
+        message: 'No se pudo eliminar la clave local del dispositivo.'
+      });
+    }
+  };
+
+  const handleRememberDeviceRequest = useCallback(async () => {
+    if (!session) return;
+
+    const confirmed = await showConfirm({
+      title: 'Recordar este Dispositivo',
+      message: 'Para recordar este dispositivo, se te solicitará ingresar tu frase clave de nuevo. Tus datos se volverán a cargar una vez ingresada. ¿Deseas continuar?',
+      confirmText: 'Continuar',
+      cancelText: 'Cancelar',
+      type: 'primary',
+      initialFocus: 'confirm'
+    });
+    if (!confirmed) return;
+
+    setEncryptionKey(null);
+    setServices([]);
+    setShowKeyPrompt(true);
+  }, [session, showConfirm]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -1069,6 +1291,11 @@ export default function Home() {
         onDeleteDemoData={handleDeleteDemoData}
         onChangePassword={() => setIsChangePasswordOpen(true)}
         onShowWelcome={() => setIsWelcomeOpen(true)}
+        // Encryption 10/10 parameters
+        isRemembered={isRemembered}
+        onForgetDevice={handleForgetDevice}
+        onChangePassphraseClick={() => setIsChangePassphraseOpen(true)}
+        onRememberDevice={handleRememberDeviceRequest}
       />
 
       {/* Simulador de Bajas Modal */}
@@ -1091,6 +1318,13 @@ export default function Home() {
       <ChangePasswordModal
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
+      />
+
+      {/* Modal Cambiar Frase Maestra (Doble Encriptación) */}
+      <ChangePassphraseModal
+        isOpen={isChangePassphraseOpen}
+        onClose={() => setIsChangePassphraseOpen(false)}
+        onChangePassphrase={handleChangePassphrase}
       />
 
       {/* Modal de Bienvenida y Privacidad */}

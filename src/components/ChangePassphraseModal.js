@@ -1,11 +1,11 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
-  const [passphrase, setPassphrase] = useState('');
+export default function ChangePassphraseModal({ isOpen, onClose, onChangePassphrase }) {
+  const [newPassphrase, setNewPassphrase] = useState('');
+  const [confirmPassphrase, setConfirmPassphrase] = useState('');
+  const [rememberDevice, setRememberDevice] = useState(true);
   const [error, setError] = useState('');
-  const [acceptedWarning, setAcceptedWarning] = useState(false);
-  const [rememberDevice, setRememberDevice] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const modalRef = useRef(null);
 
@@ -13,12 +13,12 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
   useEffect(() => {
     if (isOpen) {
       setError('');
-      setPassphrase('');
-      setAcceptedWarning(false);
-      setRememberDevice(false);
+      setNewPassphrase('');
+      setConfirmPassphrase('');
+      setRememberDevice(true);
       setIsSubmitting(false);
       
-      // Focus on input
+      // Focus on first input
       setTimeout(() => {
         if (modalRef.current) {
           const input = modalRef.current.querySelector('input[type="password"]');
@@ -31,6 +31,11 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
+
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
 
       if (e.key === 'Tab') {
         if (!modalRef.current) return;
@@ -60,7 +65,7 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -68,42 +73,53 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
     e.preventDefault();
     setError('');
 
-    if (!passphrase.trim()) {
-      setError('La frase de paso no puede estar vacía.');
+    if (!newPassphrase.trim()) {
+      setError('La nueva frase de paso no puede estar vacía.');
       return;
     }
 
-    if (passphrase.length < 8) {
+    if (newPassphrase.length < 8) {
       setError('Por seguridad, la frase debe tener al menos 8 caracteres.');
       return;
     }
 
-    if (!acceptedWarning) {
-      setError('Debes aceptar la advertencia de pérdida de datos.');
+    if (newPassphrase !== confirmPassphrase) {
+      setError('Las frases de encriptación ingresadas no coinciden.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await onSubmitKey(passphrase.trim(), rememberDevice);
+      await onChangePassphrase(newPassphrase.trim(), rememberDevice);
+      onClose();
     } catch (err) {
-      setError('Error al procesar la clave de encriptación. Inténtalo de nuevo.');
+      setError('Error al migrar y encriptar tus datos. Inténtalo de nuevo.');
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[2000] p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[2000] p-4 animate-fade-in">
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="encryption-title"
+        aria-labelledby="change-crypto-title"
         className="glass-premium border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 max-w-md w-full relative overflow-hidden animate-slide-up"
       >
         {/* Glow corner */}
         <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+        <button
+          className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors text-2xl"
+          onClick={onClose}
+          aria-label="Cerrar modal"
+          type="button"
+          disabled={isSubmitting}
+        >
+          &times;
+        </button>
 
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-12 h-12 bg-sky-500/10 border border-sky-500/30 rounded-xl flex items-center justify-center mb-4 text-sky-400">
@@ -117,32 +133,46 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
             </svg>
           </div>
           
           <h2
-            id="encryption-title"
+            id="change-crypto-title"
             className="text-lg font-black text-white mb-2 tracking-tight uppercase"
           >
-            Doble Encriptación Activa
+            Cambiar Frase Maestra
           </h2>
           <p className="text-xs text-slate-400 leading-relaxed font-semibold">
-            Tus datos financieros serán encriptados en este navegador antes de ser guardados en la base de datos. Solo tú podrás verlos.
+            Tus datos financieros actuales serán desencriptados con la clave antigua y re-encriptados con la nueva frase maestra.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
-              Frase Clave de Encriptación
+              Nueva Frase Maestra
             </label>
             <input
               type="password"
-              placeholder="Ingresa tu frase maestra (mínimo 8 caracteres)"
-              value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
+              placeholder="Ingresa la nueva frase (mínimo 8 caracteres)"
+              value={newPassphrase}
+              onChange={(e) => setNewPassphrase(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all font-semibold"
+              disabled={isSubmitting}
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
+              Confirmar Nueva Frase Maestra
+            </label>
+            <input
+              type="password"
+              placeholder="Repite la nueva frase de paso"
+              value={confirmPassphrase}
+              onChange={(e) => setConfirmPassphrase(e.target.value)}
               className="w-full px-4 py-3 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all font-semibold"
               disabled={isSubmitting}
               autoComplete="new-password"
@@ -151,7 +181,7 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
 
           <div className="flex items-center gap-2.5 px-1 py-1">
             <input
-              id="remember-checkbox"
+              id="change-remember-checkbox"
               type="checkbox"
               checked={rememberDevice}
               onChange={(e) => setRememberDevice(e.target.checked)}
@@ -159,30 +189,11 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
               disabled={isSubmitting}
             />
             <label
-              htmlFor="remember-checkbox"
+              htmlFor="change-remember-checkbox"
               className="text-[10px] text-slate-300 leading-relaxed font-bold cursor-pointer select-none"
             >
-              Recordar esta frase en este dispositivo
+              Recordar esta nueva frase en este dispositivo
             </label>
-          </div>
-
-          <div className="p-3.5 bg-rose-500/5 border border-rose-500/15 rounded-xl space-y-2">
-            <div className="flex items-start gap-2.5">
-              <input
-                id="warning-checkbox"
-                type="checkbox"
-                checked={acceptedWarning}
-                onChange={(e) => setAcceptedWarning(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded bg-slate-950 border-white/10 text-rose-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
-                disabled={isSubmitting}
-              />
-              <label
-                htmlFor="warning-checkbox"
-                className="text-[10px] text-rose-300 leading-relaxed font-semibold cursor-pointer select-none"
-              >
-                <strong>ADVERTENCIA DE SEGURIDAD:</strong> Entiendo que si olvido mi frase clave, mis datos financieros se cifrarán permanentemente y serán irrecuperables. El administrador no puede restablecer esta clave.
-              </label>
-            </div>
           </div>
 
           {error && (
@@ -197,16 +208,16 @@ export default function EncryptionKeyModal({ isOpen, onSubmitKey, onSignOut }) {
               disabled={isSubmitting}
               className="w-full py-3 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-sky-500/10 hover:shadow-sky-500/25 transition duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed uppercase"
             >
-              {isSubmitting ? 'Derivando claves...' : 'Activar Encriptación'}
+              {isSubmitting ? 'Migrando y Cifrando...' : 'Actualizar Frase Clave'}
             </button>
             
             <button
               type="button"
-              onClick={onSignOut}
+              onClick={onClose}
               disabled={isSubmitting}
               className="w-full py-2.5 bg-transparent border border-white/5 hover:bg-white/5 text-slate-400 hover:text-white font-bold text-xs rounded-xl transition duration-200 cursor-pointer active:scale-[0.98]"
             >
-              Cerrar Sesión
+              Cancelar
             </button>
           </div>
         </form>

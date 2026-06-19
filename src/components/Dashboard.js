@@ -46,6 +46,10 @@ export default function Dashboard({
   onDeleteDemoData,
   onChangePassword,
   onShowWelcome,
+  isRemembered,
+  onForgetDevice,
+  onChangePassphraseClick,
+  onRememberDevice,
 }) {
   const { showToast } = useToast();
   const fileInputRef = useRef(null);
@@ -523,6 +527,65 @@ export default function Dashboard({
                 </button>
                 <div className="border-t border-white/5 my-1"></div>
                 <button
+                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
+                  onClick={() => {
+                    onChangePassphraseClick();
+                    setIsProfileOpen(false);
+                  }}
+                  type="button"
+                >
+                  <svg
+                    className="text-amber-400"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                  Cambiar Frase Maestra
+                </button>
+                <div className="border-t border-white/5 my-1"></div>
+                <div className="px-3.5 py-2 space-y-1.5">
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase flex items-center gap-1">
+                    <span>🔒</span> Cifrado Zero-Knowledge
+                  </p>
+                  <div className="text-[11px] font-semibold text-slate-300">
+                    Estado:{' '}
+                    {isRemembered ? (
+                      <span className="text-emerald-400 font-bold">✓ Recordado</span>
+                    ) : (
+                      <span className="text-rose-400 font-bold">✗ No recordado</span>
+                    )}
+                  </div>
+                  {isRemembered ? (
+                    <button
+                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition duration-200 cursor-pointer"
+                      onClick={() => {
+                        onForgetDevice();
+                        setIsProfileOpen(false);
+                      }}
+                      type="button"
+                    >
+                      Olvidar dispositivo
+                    </button>
+                  ) : (
+                    <button
+                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 rounded-md transition duration-200 cursor-pointer"
+                      onClick={() => {
+                        onRememberDevice();
+                        setIsProfileOpen(false);
+                      }}
+                      type="button"
+                    >
+                      Recordar dispositivo
+                    </button>
+                  )}
+                </div>
+                <div className="border-t border-white/5 my-1"></div>
+                <button
                   className="w-full text-left px-3.5 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2.5 transition font-bold cursor-pointer"
                   onClick={() => {
                     onSignOut();
@@ -834,6 +897,65 @@ export default function Dashboard({
                   </svg>
                   Información y Privacidad
                 </button>
+                <div className="border-t border-white/5 my-1"></div>
+                <button
+                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
+                  onClick={() => {
+                    onChangePassphraseClick();
+                    setIsProfileOpen(false);
+                  }}
+                  type="button"
+                >
+                  <svg
+                    className="text-amber-400"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                  Cambiar Frase Maestra
+                </button>
+                <div className="border-t border-white/5 my-1"></div>
+                <div className="px-3.5 py-2 space-y-1.5">
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase flex items-center gap-1">
+                    <span>🔒</span> Cifrado Zero-Knowledge
+                  </p>
+                  <div className="text-[11px] font-semibold text-slate-300">
+                    Estado:{' '}
+                    {isRemembered ? (
+                      <span className="text-emerald-400 font-bold">✓ Recordado</span>
+                    ) : (
+                      <span className="text-rose-400 font-bold">✗ No recordado</span>
+                    )}
+                  </div>
+                  {isRemembered ? (
+                    <button
+                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition duration-200 cursor-pointer"
+                      onClick={() => {
+                        onForgetDevice();
+                        setIsProfileOpen(false);
+                      }}
+                      type="button"
+                    >
+                      Olvidar dispositivo
+                    </button>
+                  ) : (
+                    <button
+                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 rounded-md transition duration-200 cursor-pointer"
+                      onClick={() => {
+                        onRememberDevice();
+                        setIsProfileOpen(false);
+                      }}
+                      type="button"
+                    >
+                      Recordar dispositivo
+                    </button>
+                  )}
+                </div>
                 <div className="border-t border-white/5 my-1"></div>
                 <button
                   className="w-full text-left px-3.5 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2.5 transition font-bold cursor-pointer"
