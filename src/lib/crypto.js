@@ -4,16 +4,18 @@
  * Compatible with browsers and Node.js (for Jest testing)
  */
 
-let webCrypto;
+let webCrypto = null;
 if (typeof window !== 'undefined' && window.crypto) {
   webCrypto = window.crypto;
+} else if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+  webCrypto = globalThis.crypto;
 } else {
   try {
-    // Fallback for Node/Jest testing environment
-    const nodeCrypto = require('crypto');
+    // Hide node crypto module loading from Webpack compiler to avoid runtime crashes in the browser
+    const nodeCrypto = eval('require')('crypto');
     webCrypto = nodeCrypto.webcrypto || nodeCrypto;
   } catch (e) {
-    console.error('Web Crypto API is not supported in this environment');
+    // Web Crypto is not supported or we are in a non-Node server context
   }
 }
 
