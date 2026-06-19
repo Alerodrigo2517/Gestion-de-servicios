@@ -34,6 +34,47 @@ export default function Home() {
   const [encryptionKey, setEncryptionKey] = useState(null);
   const [showKeyPrompt, setShowKeyPrompt] = useState(false);
 
+  // 2. Load data from remote database (No client cache for financial data)
+  const loadData = useCallback(async (activeSession, activeKey) => {
+    const userSession = activeSession || session;
+    if (!userSession) return;
+    const key = activeKey || encryptionKey;
+    if (!key) return; // Wait for encryption key derivation
+
+    try {
+      const { data, error } = await supabase.from('services').select('*');
+      if (error) throw error;
+      if (data) {
+        // Decrypt services client-side if they are encrypted
+        const decryptedData = await Promise.all(
+          data.map(async (item) => {
+            if (item.encrypted_data) {
+              try {
+                const decryptedPayload = await decryptData(item.encrypted_data, key);
+                return {
+                  ...item,
+                  ...decryptedPayload,
+                };
+              } catch (decryptionError) {
+                logger.error('Error al desencriptar registro:', decryptionError);
+                return {
+                  ...item,
+                  name: '[Error de Desencriptación]',
+                  amount: 0,
+                  _decryptionError: true,
+                };
+              }
+            }
+            return item; // Legacy unencrypted item
+          })
+        );
+        setServices(decryptedData);
+      }
+    } catch (err) {
+      logger.error('Error cargando de Supabase:', err);
+    }
+  }, [session, encryptionKey]);
+
   // 1. Authenticate user and setup session listener (Runs once on mount)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -95,47 +136,6 @@ export default function Home() {
       loadData(session, encryptionKey);
     }
   }, [session, encryptionKey, loadData]);
-
-  // 2. Load data from remote database (No client cache for financial data)
-  const loadData = useCallback(async (activeSession, activeKey) => {
-    const userSession = activeSession || session;
-    if (!userSession) return;
-    const key = activeKey || encryptionKey;
-    if (!key) return; // Wait for encryption key derivation
-
-    try {
-      const { data, error } = await supabase.from('services').select('*');
-      if (error) throw error;
-      if (data) {
-        // Decrypt services client-side if they are encrypted
-        const decryptedData = await Promise.all(
-          data.map(async (item) => {
-            if (item.encrypted_data) {
-              try {
-                const decryptedPayload = await decryptData(item.encrypted_data, key);
-                return {
-                  ...item,
-                  ...decryptedPayload,
-                };
-              } catch (decryptionError) {
-                logger.error('Error al desencriptar registro:', decryptionError);
-                return {
-                  ...item,
-                  name: '[Error de Desencriptación]',
-                  amount: 0,
-                  _decryptionError: true,
-                };
-              }
-            }
-            return item; // Legacy unencrypted item
-          })
-        );
-        setServices(decryptedData);
-      }
-    } catch (err) {
-      logger.error('Error cargando de Supabase:', err);
-    }
-  }, [session, encryptionKey]);
 
   const handleKeySubmitted = async (passphrase) => {
     if (!session) return;
