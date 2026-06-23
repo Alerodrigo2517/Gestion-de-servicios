@@ -235,27 +235,6 @@ export default function Dashboard({
     ? unpaidServices
     : unpaidServices.slice(0, 5);
 
-  const nextVencimientos = displayedVencimientos.map((item) => {
-    const isOverdue = item.statusInfo.status === 'VENCIDO';
-    const dateFormatted = `${String(item.dueDateObj.getDate()).padStart(2, '0')}/${String(item.dueDateObj.getMonth() + 1).padStart(2, '0')}`;
-    return (
-      <li
-        key={`venc-${item.id}`}
-        className="flex justify-between items-center text-xs py-1.5 border-b border-white/5 last:border-0"
-      >
-        <span className="flex items-center gap-2">
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${isOverdue ? 'bg-rose-500 animate-pulse' : 'bg-amber-400'}`}
-          ></span>
-          <span className="text-slate-200 font-semibold">{item.name}</span>
-        </span>
-        <span className="text-slate-400 font-bold">
-          {dateFormatted} ({formatCurrency(item.amount)})
-        </span>
-      </li>
-    );
-  });
-
   // Insights calculation
   let showInsights = false;
   let insightContent = null;
@@ -300,24 +279,24 @@ export default function Dashboard({
           </h4>
           {Math.abs(diff) > 100 ? (
             diff > 0 ? (
-              <p className="mt-2 text-slate-300 font-medium">
+              <p className="mt-2 text-slate-600 font-medium">
                 Tus gastos regulares subieron{' '}
-                <strong className="text-rose-400 font-bold">
+                <strong className="text-rose-600 font-extrabold">
                   {formatCurrency(diff)}
                 </strong>{' '}
                 respecto a {months[currentMonthIndex - 1]}.
               </p>
             ) : (
-              <p className="mt-2 text-emerald-400 font-medium">
+              <p className="mt-2 text-emerald-700 font-medium">
                 ¡Excelente! Tus gastos bajaron{' '}
-                <strong className="font-bold text-emerald-300">
+                <strong className="font-extrabold text-emerald-600">
                   {formatCurrency(Math.abs(diff))}
                 </strong>{' '}
                 respecto a {months[currentMonthIndex - 1]}.
               </p>
             )
           ) : (
-            <p className="mt-2 text-slate-300 font-medium">
+            <p className="mt-2 text-slate-600 font-medium">
               Tus gastos se mantienen estables respecto al mes anterior.
             </p>
           )}
@@ -575,21 +554,23 @@ export default function Dashboard({
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-white bg-slate-800/60 border border-white/5 shadow-sm transition"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-emerald-500 text-white bg-gradient-to-r from-emerald-500/10 to-slate-800/40 shadow-sm transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             Inicio
-          </button>          <button
+          </button>
+
+          <button
             type="button"
             onClick={() => {
               const el = document.getElementById('services-list-container');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -606,7 +587,7 @@ export default function Dashboard({
               onOpenModal('projection');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <circle cx="12" cy="12" r="10" />
@@ -622,7 +603,7 @@ export default function Dashboard({
               if (el) el.scrollIntoView({ behavior: 'smooth' });
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M17 1l4 4-4 4" />
@@ -640,7 +621,7 @@ export default function Dashboard({
               if (el) el.scrollIntoView({ behavior: 'smooth' });
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -656,7 +637,7 @@ export default function Dashboard({
               onOpenModal('projection');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="18" y1="20" x2="18" y2="10" />
@@ -855,33 +836,35 @@ export default function Dashboard({
         </header>
 
         {/* Month Navigation */}
-        <nav className="w-full px-6 flex gap-1.5 overflow-x-auto py-3 bg-white border-b border-slate-200/60 scrollbar-none sticky top-0 z-20">
-          {months.map((month, index) => {
-            const isActive = index === currentMonthIndex;
-            const pendingCount = getPendingCountForMonth(index);
-            const btnClass = isActive
-              ? 'px-4 py-2.5 text-center text-xs font-black bg-slate-900 text-white rounded-xl shadow-sm transition-all duration-200'
-              : 'px-4 py-2.5 text-center text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-all duration-200';
+        <nav className="w-full px-6 flex py-3 bg-white border-b border-slate-200/60 sticky top-0 z-20 lg:py-4 lg:bg-slate-50/50 lg:border-b-0 lg:static lg:z-10 justify-center">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-none w-full lg:w-auto lg:bg-slate-200/50 lg:border lg:border-slate-200/60 lg:p-1 lg:rounded-2xl lg:shadow-inner lg:shadow-slate-300/30">
+            {months.map((month, index) => {
+              const isActive = index === currentMonthIndex;
+              const pendingCount = getPendingCountForMonth(index);
+              const btnClass = isActive
+                ? 'px-4 py-2.5 text-center text-xs font-black bg-slate-900 text-white rounded-xl shadow-sm lg:bg-white lg:text-slate-900 lg:shadow-md lg:shadow-slate-200/60 transition-all duration-200'
+                : 'px-4 py-2.5 text-center text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hover:bg-white/40 lg:hover:text-slate-800 rounded-xl transition-all duration-200';
 
-            return (
-              <button
-                key={month}
-                className={`${btnClass} relative`}
-                onClick={() => {
-                  setCurrentMonthIndex(index);
-                  setEditingItem(null);
-                }}
-                type="button"
-              >
-                {month.substring(0, 3)}
-                {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white shadow-sm shadow-rose-500/35">
-                    {pendingCount}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={month}
+                  className={`${btnClass} relative shrink-0`}
+                  onClick={() => {
+                    setCurrentMonthIndex(index);
+                    setEditingItem(null);
+                  }}
+                  type="button"
+                >
+                  {month.substring(0, 3)}
+                  {pendingCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white shadow-sm shadow-rose-500/35 lg:top-0 lg:right-0 lg:translate-x-1 lg:-translate-y-1">
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
         {/* Main Body content wrapper */}
@@ -1005,55 +988,74 @@ export default function Dashboard({
           {/* Three Summary Cards (Balance, Income, Expenses) */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Balance Total Card */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 hover:shadow-md transition duration-300 flex flex-col justify-between min-h-[140px]">
-              <div>
-                <span className="text-xs font-bold text-slate-500 tracking-wide uppercase">
+            <div className="bg-white border-l-4 border-l-emerald-500 border border-slate-200/60 rounded-2xl p-6 hover-lift transition duration-300 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <span className="text-xs font-black text-slate-500 tracking-wide uppercase">
                   Balance Total
                 </span>
                 <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                   Liquidez total disponible
                 </p>
+                <h3 className="text-3xl font-extrabold text-emerald-600 tracking-tight mt-3 truncate">
+                  {formatCurrency(liquidity)}
+                </h3>
               </div>
-              <h3 className="text-3xl font-bold text-emerald-600 tracking-tight mt-4 truncate">
-                {formatCurrency(liquidity)}
-              </h3>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0 shadow-sm shadow-emerald-100/50">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
+                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
+                  <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
+                </svg>
+              </div>
             </div>
 
             {/* Ingresos este Mes Card */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 hover:shadow-md transition duration-300 flex flex-col justify-between min-h-[140px]">
-              <div>
-                <span className="text-xs font-bold text-slate-500 tracking-wide uppercase">
+            <div className="bg-white border-l-4 border-l-emerald-500 border border-slate-200/60 rounded-2xl p-6 hover-lift transition duration-300 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <span className="text-xs font-black text-slate-500 tracking-wide uppercase">
                   Ingresos este Mes
                 </span>
                 <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                   Monto total reportado
                 </p>
+                <h3 className="text-3xl font-extrabold text-emerald-600 tracking-tight mt-3 truncate">
+                  +{formatCurrency(totalIncome)}
+                </h3>
               </div>
-              <h3 className="text-3xl font-bold text-emerald-600 tracking-tight mt-4 truncate">
-                +{formatCurrency(totalIncome)}
-              </h3>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0 shadow-sm shadow-emerald-100/50">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+              </div>
             </div>
 
             {/* Gastos este Mes Card */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 hover:shadow-md transition duration-300 flex flex-col justify-between min-h-[140px]">
-              <div>
-                <span className="text-xs font-bold text-slate-500 tracking-wide uppercase">
+            <div className="bg-white border-l-4 border-l-indigo-500 border border-slate-200/60 rounded-2xl p-6 hover-lift transition duration-300 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <span className="text-xs font-black text-slate-500 tracking-wide uppercase">
                   Gastos este Mes
                 </span>
                 <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                   Servicios y obligaciones
                 </p>
+                <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-3 truncate">
+                  -{formatCurrency(totalGeneral)}
+                </h3>
               </div>
-              <h3 className="text-3xl font-bold text-slate-900 tracking-tight mt-4 truncate">
-                -{formatCurrency(totalGeneral)}
-              </h3>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-50 text-indigo-600 border border-indigo-100 shrink-0 shadow-sm shadow-indigo-100/50">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                  <polyline points="17 18 23 18 23 12"></polyline>
+                </svg>
+              </div>
             </div>
           </section>
 
           {/* Donut Chart & Alerts Row */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Category Expenses Donut Chart Card */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100">
+            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm hover:shadow-md transition duration-300">
               <h3 className="text-sm font-bold text-slate-800 tracking-wider uppercase mb-6 flex items-center justify-between">
                 <span>Gráfico de Gastos por Categoría</span>
                 <span className="text-[10px] text-slate-400 font-semibold">Este Mes</span>
@@ -1099,7 +1101,7 @@ export default function Dashboard({
             </div>
 
             {/* Resumen de Cuentas (Vencimientos & Insights) */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 flex flex-col justify-between">
+            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-800 tracking-wider uppercase mb-4 flex items-center justify-between">
                   <span>Resumen de Cuentas</span>
@@ -1107,25 +1109,42 @@ export default function Dashboard({
                 </h3>
 
                 {/* Vencimientos list */}
-                {nextVencimientos.length > 0 ? (
-                  <ul className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                    {nextVencimientos.map((vNode, idx) => {
-                      const item = unpaidServices[idx];
-                      if (!item) return null;
-                      const dateStr = item.dueDate ? item.dueDate.split('-').reverse().slice(0,2).join('/') : '';
-                      return (
-                        <li key={idx} className="py-2.5 flex justify-between items-center">
-                          <span className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${item.statusInfo.status === 'VENCIDO' ? 'bg-rose-500' : 'bg-amber-400'}`}></span>
-                            <span className="text-slate-800 font-bold">{item.name}</span>
-                          </span>
-                          <span className="text-slate-500 font-bold">
-                            {dateStr} ({formatCurrency(item.amount)})
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                {unpaidServices.length > 0 ? (
+                  <div className="space-y-2">
+                    <ul className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                      {displayedVencimientos.map((item, idx) => {
+                        const isOverdue = item.statusInfo.status === 'VENCIDO';
+                        const dateFormatted = item.dueDate ? item.dueDate.split('-').reverse().slice(0,2).join('/') : '';
+                        return (
+                          <li key={idx} className="py-2.5 flex justify-between items-center hover:bg-slate-50/80 px-2 rounded-xl transition duration-150">
+                            <span className="flex items-center gap-2.5 min-w-0">
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${isOverdue ? 'bg-rose-500 animate-pulse' : 'bg-amber-500'}`}></span>
+                              <span className="text-slate-850 font-bold truncate">{item.name}</span>
+                            </span>
+                            <span className="flex items-center gap-2 shrink-0">
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                                isOverdue ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-slate-100 text-slate-650 border border-slate-200'
+                              }`}>
+                                {isOverdue ? 'Vencido' : dateFormatted}
+                              </span>
+                              <span className="text-slate-900 font-black">
+                                {formatCurrency(item.amount)}
+                              </span>
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {unpaidServices.length > 5 && (
+                      <button
+                        onClick={() => setShowAllVencimientos(!showAllVencimientos)}
+                        className="w-full mt-2 text-center text-[10px] font-bold text-slate-500 hover:text-slate-800 transition py-1.5 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200/50 cursor-pointer"
+                        type="button"
+                      >
+                        {showAllVencimientos ? 'Mostrar menos' : `Ver todos (${unpaidServices.length})`}
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <div className="py-8 text-center text-xs font-bold text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
                     Ninguna cuenta o vencimiento pendiente
@@ -1135,7 +1154,7 @@ export default function Dashboard({
 
               {/* Insights / Inteligencia block */}
               {showInsights && (
-                <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                <div className="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
                   <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-1.5">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-sky-500">
                       <circle cx="12" cy="12" r="10" />

@@ -319,7 +319,7 @@ export default function ServiceCard({
       'bg-slate-50/70 border border-slate-100 opacity-60 hover:opacity-100 hover:bg-slate-100/50';
   } else {
     cardClass +=
-      'bg-white border border-slate-100 shadow-sm shadow-slate-100/40 hover:border-slate-200 hover:-translate-y-0.5 hover:shadow-md';
+      'bg-white border border-slate-100 shadow-sm hover-lift';
   }
 
   let metaText = '';
