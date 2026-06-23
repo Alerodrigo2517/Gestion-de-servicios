@@ -985,72 +985,167 @@ export default function Dashboard({
             </div>
           )}
 
-          {/* Three Summary Cards (Balance, Income, Expenses) */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Balance Total Card */}
-            <div className="bg-white border-l-4 border-l-emerald-500 border border-slate-200/60 rounded-2xl p-6 hover-lift transition duration-300 flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <span className="text-xs font-black text-slate-500 tracking-wide uppercase">
-                  Balance Total
+          {/* Tarjetas de Hero (Liquidez y Proyección) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
+            {/* Liquidez Card */}
+            <div className="relative overflow-hidden bg-white border-l-4 border-l-emerald-500 border border-slate-200/60 rounded-2xl p-6 flex items-center justify-between gap-5 hover-lift transition duration-300">
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-black text-slate-500 tracking-wider uppercase">
+                  Liquidez (Dinero en Mano)
                 </span>
                 <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                   Liquidez total disponible
                 </p>
-                <h3 className="text-3xl font-extrabold text-emerald-600 tracking-tight mt-3 truncate">
+                <h3 className="text-3xl sm:text-4xl font-extrabold text-emerald-600 mt-1.5 tracking-tight truncate">
                   {formatCurrency(liquidity)}
                 </h3>
               </div>
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0 shadow-sm shadow-emerald-100/50">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
-                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
-                  <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-emerald-50 border border-emerald-100 text-emerald-600 relative z-10 shrink-0 shadow-sm shadow-emerald-100/50">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                  <circle cx="12" cy="12" r="2"></circle>
+                  <path d="M6 12h.01M18 12h.01"></path>
                 </svg>
               </div>
             </div>
 
-            {/* Ingresos este Mes Card */}
-            <div className="bg-white border-l-4 border-l-emerald-500 border border-slate-200/60 rounded-2xl p-6 hover-lift transition duration-300 flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <span className="text-xs font-black text-slate-500 tracking-wide uppercase">
-                  Ingresos este Mes
+            {/* Proyección Card */}
+            <div
+              className={`relative overflow-hidden bg-white border-l-4 border border-slate-200/60 rounded-2xl p-6 flex items-center justify-between gap-5 hover-lift transition duration-300 ${
+                remaining < 0 ? 'border-l-rose-500' : 'border-l-sky-500'
+              }`}
+            >
+              <div className="min-w-0 flex-1">
+                <span
+                  className={`text-xs font-black tracking-wider uppercase ${
+                    remaining < 0 ? 'text-rose-500/80' : 'text-sky-500/80'
+                  }`}
+                >
+                  Proyección Fin de Mes
                 </span>
                 <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                  Monto total reportado
+                  Estimación de saldo neto
                 </p>
-                <h3 className="text-3xl font-extrabold text-emerald-600 tracking-tight mt-3 truncate">
-                  +{formatCurrency(totalIncome)}
+                <h3
+                  className={`text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-tight truncate ${
+                    remaining < 0 ? 'text-rose-600' : 'text-sky-600'
+                  }`}
+                >
+                  {formatCurrency(remaining)}
                 </h3>
               </div>
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0 shadow-sm shadow-emerald-100/50">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                  <polyline points="17 6 23 6 23 12"></polyline>
-                </svg>
+              <div
+                className={`w-14 h-14 rounded-xl flex items-center justify-center relative z-10 shrink-0 shadow-sm ${
+                  remaining < 0
+                    ? 'bg-rose-50 border border-rose-100 text-rose-600 shadow-rose-100/50'
+                    : 'bg-sky-50 border border-sky-100 text-sky-600 shadow-sky-100/50'
+                }`}
+              >
+                {remaining < 0 ? (
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M22 17l-6-6-4 4-8-8"></path>
+                    <polyline points="16 17 22 17 22 11"></polyline>
+                  </svg>
+                ) : (
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M22 7l-6 6-4-4-8 8"></path>
+                    <polyline points="22 13 22 7 16 7"></polyline>
+                  </svg>
+                )}
               </div>
+            </div>
+          </div>
+
+          {/* Indicadores Secundarios */}
+          <div
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 animate-slide-up"
+          >
+            {/* Ingresos */}
+            <div className="bg-white border border-slate-200/60 p-4 rounded-xl flex flex-col justify-between hover-lift transition-all duration-300 min-h-[96px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
+                  Ingresos
+                </span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
+              </div>
+              <h4 className="text-xl font-black text-slate-900 truncate">
+                {formatCurrency(totalIncome)}
+              </h4>
             </div>
 
-            {/* Gastos este Mes Card */}
-            <div className="bg-white border-l-4 border-l-indigo-500 border border-slate-200/60 rounded-2xl p-6 hover-lift transition duration-300 flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <span className="text-xs font-black text-slate-500 tracking-wide uppercase">
-                  Gastos este Mes
+            {/* Gastos Totales */}
+            <div className="bg-white border border-slate-200/60 p-4 rounded-xl flex flex-col justify-between hover-lift transition-all duration-300 min-h-[96px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
+                  Gastos
                 </span>
-                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                  Servicios y obligaciones
-                </p>
-                <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-3 truncate">
-                  -{formatCurrency(totalGeneral)}
-                </h3>
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.4)]"></span>
               </div>
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-50 text-indigo-600 border border-indigo-100 shrink-0 shadow-sm shadow-indigo-100/50">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
-                  <polyline points="17 18 23 18 23 12"></polyline>
-                </svg>
-              </div>
+              <h4 className="text-xl font-black text-slate-900 truncate">
+                {formatCurrency(totalGeneral)}
+              </h4>
             </div>
-          </section>
+
+            {/* Deuda Pendiente */}
+            <div className="bg-white border border-slate-200/60 p-4 rounded-xl flex flex-col justify-between hover-lift transition-all duration-300 min-h-[96px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
+                  Por Pagar
+                </span>
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></span>
+              </div>
+              <h4 className="text-xl font-black text-slate-900 truncate">
+                {formatCurrency(totalDebt)}
+              </h4>
+            </div>
+
+            {/* Total Pagado */}
+            <div className="bg-white border border-slate-200/60 p-4 rounded-xl flex flex-col justify-between hover-lift transition-all duration-300 min-h-[96px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
+                  Pagados
+                </span>
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.4)]"></span>
+              </div>
+              <h4 className="text-xl font-black text-slate-900 truncate">
+                {formatCurrency(totalPaid)}
+              </h4>
+            </div>
+
+            {/* Serv. Atrasados */}
+            <div className="bg-white border border-slate-200/60 p-4 rounded-xl flex flex-col justify-between hover-lift transition-all duration-300 min-h-[96px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-rose-500 tracking-wider uppercase">
+                  Atrasado
+                </span>
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)] animate-pulse"></span>
+              </div>
+              <h4 className="text-xl font-black text-rose-600 truncate">
+                {formatCurrency(totalOverdue)}
+              </h4>
+            </div>
+          </div>
 
           {/* Donut Chart & Alerts Row */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
