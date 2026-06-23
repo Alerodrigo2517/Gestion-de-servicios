@@ -59,6 +59,7 @@ export default function Dashboard({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null);
   const [showAllVencimientos, setShowAllVencimientos] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const toolsRef = useRef(null);
   const profileRef = useRef(null);
   const profileRefDesktop = useRef(null);
@@ -475,8 +476,53 @@ export default function Dashboard({
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row animate-fade-in text-slate-800 bg-[#f8fafc]">
-      {/* Sidebar: Navy Left Column on Desktop */}
-      <aside className="w-full lg:w-64 bg-[#090f1d] text-slate-300 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-slate-800/20 z-30">
+      {/* Mobile Top Header Bar */}
+      <header className="lg:hidden w-full px-5 py-4 bg-[#090f1d] text-white flex items-center justify-between sticky top-0 z-30 shadow-md">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition cursor-pointer"
+            aria-label="Abrir menú"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs">
+              F
+            </div>
+            <h1 className="text-sm font-black tracking-tight text-white flex items-center gap-1 select-none">
+              <span className="text-emerald-400">FINANZAS</span>
+              <span>YA</span>
+            </h1>
+          </div>
+        </div>
+        <div 
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white font-extrabold text-xs cursor-pointer select-none"
+        >
+          {userName.substring(0, 2).toUpperCase()}
+        </div>
+      </header>
+
+      {/* Overlay behind sidebar on mobile when open */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar: Navy Left Column on Desktop, Drawer on Mobile */}
+      <aside
+        className={`fixed inset-y-0 left-0 w-64 bg-[#090f1d] text-slate-300 shrink-0 flex flex-col border-r border-slate-800/20 z-50 transition-transform duration-300 lg:static lg:translate-x-0 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         {/* Brand/Logo Section */}
         <div className="px-6 py-6 border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -494,21 +540,41 @@ export default function Dashboard({
               </svg>
             </div>
             <div>
-              <h1 className="text-md font-black tracking-tight text-white flex items-center gap-1">
+              <h1 className="text-md font-black tracking-tight text-white flex items-center gap-1 select-none">
                 <span className="text-emerald-400">FINANZAS</span>
                 <span>YA</span>
               </h1>
-              <p className="text-[9px] font-bold text-slate-500 tracking-wider uppercase">
+              <p className="text-[9px] font-bold text-slate-500 tracking-wider uppercase select-none">
                 ServiTrack Panel
               </p>
             </div>
           </div>
+          {/* Close button on mobile */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition cursor-pointer"
+            aria-label="Cerrar menú"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
         {/* Navigation list */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           <button
             type="button"
+            onClick={() => setIsMobileMenuOpen(false)}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-white bg-slate-800/60 border border-white/5 shadow-sm transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400">
@@ -516,13 +582,12 @@ export default function Dashboard({
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             Inicio
-          </button>
-          
-          <button
+          </button>          <button
             type="button"
             onClick={() => {
               const el = document.getElementById('services-list-container');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
+              setIsMobileMenuOpen(false);
             }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
@@ -537,7 +602,10 @@ export default function Dashboard({
 
           <button
             type="button"
-            onClick={() => onOpenModal('projection')}
+            onClick={() => {
+              onOpenModal('projection');
+              setIsMobileMenuOpen(false);
+            }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -552,6 +620,7 @@ export default function Dashboard({
             onClick={() => {
               const el = document.getElementById('services-list-container');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
+              setIsMobileMenuOpen(false);
             }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
@@ -569,6 +638,7 @@ export default function Dashboard({
             onClick={() => {
               const el = document.getElementById('services-list-container');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
+              setIsMobileMenuOpen(false);
             }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
@@ -582,7 +652,10 @@ export default function Dashboard({
 
           <button
             type="button"
-            onClick={() => onOpenModal('projection')}
+            onClick={() => {
+              onOpenModal('projection');
+              setIsMobileMenuOpen(false);
+            }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -601,14 +674,20 @@ export default function Dashboard({
           </p>
           <div className="space-y-1">
             <button
-              onClick={() => onOpenModal('projection')}
+              onClick={() => {
+                onOpenModal('projection');
+                setIsMobileMenuOpen(false);
+              }}
               className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
               type="button"
             >
               Proyección Anual
             </button>
             <button
-              onClick={() => onOpenModal('simulation')}
+              onClick={() => {
+                onOpenModal('simulation');
+                setIsMobileMenuOpen(false);
+              }}
               className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
               type="button"
             >
@@ -616,7 +695,10 @@ export default function Dashboard({
             </button>
             {currentItems.some((item) => item.consumptionUnit !== undefined && item.consumptionUnit !== null) && (
               <button
-                onClick={() => onOpenModal('consumption')}
+                onClick={() => {
+                  onOpenModal('consumption');
+                  setIsMobileMenuOpen(false);
+                }}
                 className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
                 type="button"
               >
@@ -657,7 +739,10 @@ export default function Dashboard({
             <div className="bg-slate-900/60 border border-white/5 rounded-xl p-1.5 space-y-1 text-slate-300">
               <button
                 className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
-                onClick={onGenerateDemoData}
+                onClick={() => {
+                  onGenerateDemoData();
+                  setIsMobileMenuOpen(false);
+                }}
                 type="button"
               >
                 Cargar Demo Anual
@@ -665,7 +750,10 @@ export default function Dashboard({
               {services && services.some((s) => s.is_demo) && (
                 <button
                   className="w-full text-left px-3 py-2 text-[11px] font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2 transition cursor-pointer"
-                  onClick={onDeleteDemoData}
+                  onClick={() => {
+                    onDeleteDemoData();
+                    setIsMobileMenuOpen(false);
+                  }}
                   type="button"
                 >
                   Eliminar Demo Anual
@@ -673,21 +761,30 @@ export default function Dashboard({
               )}
               <button
                 className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
-                onClick={onChangePassword}
+                onClick={() => {
+                  onChangePassword();
+                  setIsMobileMenuOpen(false);
+                }}
                 type="button"
               >
                 Cambiar Contraseña
               </button>
               <button
                 className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
-                onClick={onChangePassphraseClick}
+                onClick={() => {
+                  onChangePassphraseClick();
+                  setIsMobileMenuOpen(false);
+                }}
                 type="button"
               >
                 Frase Maestra
               </button>
               <button
                 className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
-                onClick={onShowWelcome}
+                onClick={() => {
+                  onShowWelcome();
+                  setIsMobileMenuOpen(false);
+                }}
                 type="button"
               >
                 Ayuda / Privacidad
@@ -714,7 +811,7 @@ export default function Dashboard({
               Hola, {userName}! 👋
             </h2>
             <p className="text-xs font-semibold text-slate-500 mt-0.5">
-              text-3xl, font-semibold, text-slate-900
+              Aquí tienes el resumen y control de tus finanzas para este mes.
             </p>
           </div>
 
@@ -914,7 +1011,7 @@ export default function Dashboard({
                   Balance Total
                 </span>
                 <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                  text-4xl, font-bold, text-emerald-600
+                  Liquidez total disponible
                 </p>
               </div>
               <h3 className="text-3xl font-bold text-emerald-600 tracking-tight mt-4 truncate">
