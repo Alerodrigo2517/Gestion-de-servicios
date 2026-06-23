@@ -274,15 +274,15 @@ export default function ServiceForm({
   const getFocusRing = () => {
     switch (type) {
       case 'income':
-        return 'focus:ring-emerald-500/30 focus:border-emerald-500 hover:border-emerald-500/40 focus:bg-emerald-950/10';
+        return 'focus:ring-emerald-500/20 focus:border-emerald-500 hover:border-emerald-500/40 focus:bg-emerald-50/10';
       case 'service':
-        return 'focus:ring-sky-500/30 focus:border-sky-500 hover:border-sky-500/40 focus:bg-sky-950/10';
+        return 'focus:ring-sky-500/20 focus:border-sky-500 hover:border-sky-500/40 focus:bg-sky-50/10';
       case 'loan':
-        return 'focus:ring-purple-500/30 focus:border-purple-500 hover:border-purple-500/40 focus:bg-purple-950/10';
+        return 'focus:ring-purple-500/20 focus:border-purple-500 hover:border-purple-500/40 focus:bg-purple-50/10';
       case 'overdue':
-        return 'focus:ring-rose-500/30 focus:border-rose-500 hover:border-rose-500/40 focus:bg-rose-950/10';
+        return 'focus:ring-rose-500/20 focus:border-rose-500 hover:border-rose-500/40 focus:bg-rose-50/10';
       default:
-        return 'focus:ring-sky-500/30 focus:border-sky-500';
+        return 'focus:ring-sky-500/20 focus:border-sky-500';
     }
   };
 
@@ -319,7 +319,7 @@ export default function ServiceForm({
   };
 
   return (
-    <section ref={formRef} className="glass-premium rounded-2xl p-6 self-start shadow-2xl relative overflow-hidden transition-all duration-300 hover:border-white/10 w-full animate-slide-up">
+    <section ref={formRef} className="bg-white border border-slate-100 rounded-2xl p-6 self-start shadow-sm shadow-slate-100 hover:shadow-md transition-all duration-300 w-full animate-slide-up relative overflow-hidden">
       {/* Glow Line indicator on top */}
       <div
         className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r transition-all duration-500 ${
@@ -342,21 +342,21 @@ export default function ServiceForm({
           }
         }}
       >
-        <h3 className="text-sm font-black text-slate-200 tracking-wider uppercase flex items-center gap-2">
+        <h3 className="text-sm font-black text-slate-800 tracking-wider uppercase flex items-center gap-2">
           <span
             className={`w-2 h-2 rounded-full transition-all duration-500 bg-gradient-to-r ${
               type === 'income'
-                ? 'from-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]'
+                ? 'from-emerald-400 to-teal-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
                 : type === 'service'
-                  ? 'from-sky-400 to-indigo-500 shadow-[0_0_8px_rgba(56,189,248,0.7)]'
+                  ? 'from-sky-400 to-indigo-500 shadow-[0_0_8px_rgba(56,189,248,0.5)]'
                   : type === 'loan'
-                    ? 'from-purple-400 to-indigo-500 shadow-[0_0_8px_rgba(168,85,247,0.7)]'
-                    : 'from-rose-400 to-red-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
+                    ? 'from-purple-400 to-indigo-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]'
+                    : 'from-rose-400 to-red-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
             }`}
           ></span>
           {editingItem ? 'Editar Registro' : 'Nuevo Registro'}
         </h3>
-        <span className="lg:hidden text-slate-400 p-1 hover:text-white transition">
+        <span className="lg:hidden text-slate-400 p-1 hover:text-slate-600 transition">
           {isCollapsed ? (
             <svg
               width="16"
@@ -390,31 +390,31 @@ export default function ServiceForm({
         className={`${isCollapsed ? 'hidden lg:block' : 'block'} mt-5 animate-fade-in`}
       >
         {/* Tabs Selector Segmented Control */}
-        <div className="flex p-1 bg-black/30 rounded-xl mb-6 gap-1 border border-white/5">
+        <div className="flex p-1 bg-slate-100 rounded-xl mb-6 gap-1 border border-slate-200/50">
           {[
             {
               key: 'income',
               label: 'Ingreso',
               activeClass:
-                'bg-emerald-500/25 border-emerald-500/30 text-emerald-400 font-black',
+                'bg-white border-slate-200/60 text-emerald-600 font-black shadow-sm',
             },
             {
               key: 'service',
               label: 'Servicio',
               activeClass:
-                'bg-sky-500/25 border-sky-500/30 text-sky-400 font-black',
+                'bg-white border-slate-200/60 text-sky-600 font-black shadow-sm',
             },
             {
               key: 'loan',
               label: 'Préstamo',
               activeClass:
-                'bg-purple-500/25 border-purple-500/30 text-purple-400 font-black',
+                'bg-white border-slate-200/60 text-purple-600 font-black shadow-sm',
             },
             {
               key: 'overdue',
               label: 'Atrasado',
               activeClass:
-                'bg-rose-500/25 border-rose-500/30 text-rose-400 font-black',
+                'bg-white border-slate-200/60 text-rose-600 font-black shadow-sm',
             },
           ].map((tab) => {
             const isActive = type === tab.key;
@@ -426,7 +426,7 @@ export default function ServiceForm({
                 className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent cursor-pointer ${
                   isActive
                     ? tab.activeClass + ' scale-[1.01]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 {tab.label}
@@ -440,7 +440,7 @@ export default function ServiceForm({
           <div>
             <label
               htmlFor="item-name"
-              className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+              className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
             >
               {type === 'income'
                 ? 'Origen del Ingreso'
@@ -449,7 +449,7 @@ export default function ServiceForm({
                   : 'Nombre Servicio'}
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <svg
                   width="14"
                   height="14"
@@ -478,7 +478,7 @@ export default function ServiceForm({
                 maxLength={100}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
               />
             </div>
           </div>
@@ -487,7 +487,7 @@ export default function ServiceForm({
           <div>
             <label
               htmlFor="item-amount"
-              className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+              className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
             >
               {type === 'income'
                 ? 'Monto neto ($)'
@@ -496,7 +496,7 @@ export default function ServiceForm({
                   : 'Monto Estimado ($)'}
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 font-bold text-xs select-none">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-xs select-none">
                 $
               </span>
               <input
@@ -511,14 +511,14 @@ export default function ServiceForm({
                 aria-describedby={amountError ? 'amount-error' : undefined}
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
               />
             </div>
             {amountError && (
               <div
                 id="amount-error"
                 role="alert"
-                className="mt-1.5 text-[10px] text-rose-400 font-bold"
+                className="mt-1.5 text-[10px] text-rose-500 font-bold"
               >
                 {amountError}
               </div>
@@ -527,12 +527,12 @@ export default function ServiceForm({
 
           {/* Service/Overdue Specific Fields */}
           {(type === 'service' || type === 'overdue') && (
-            <div className="space-y-4 pt-2 border-t border-white/5 animate-fade-in">
+            <div className="space-y-4 pt-2 border-t border-slate-100 animate-fade-in">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label
                     htmlFor="consumption-month"
-                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                   >
                     Consumo De
                   </label>
@@ -542,13 +542,13 @@ export default function ServiceForm({
                     onChange={(e) =>
                       setConsumptionMonth(parseInt(e.target.value))
                     }
-                    className={`w-full px-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    className={`w-full px-3 py-2.5 bg-white border border-slate-200/80 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   >
                     {months.map((m, idx) => (
                       <option
                         key={idx}
                         value={idx}
-                        className="bg-slate-950 text-white"
+                        className="bg-white text-slate-800"
                       >
                         {m}
                       </option>
@@ -558,7 +558,7 @@ export default function ServiceForm({
                 <div>
                   <label
                     htmlFor="consumption-month-end"
-                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                   >
                     Hasta (Opc.)
                   </label>
@@ -566,16 +566,16 @@ export default function ServiceForm({
                     id="consumption-month-end"
                     value={consumptionMonthEnd}
                     onChange={(e) => setConsumptionMonthEnd(e.target.value)}
-                    className={`w-full px-3 py-2.5 bg-slate-950/80 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    className={`w-full px-3 py-2.5 bg-white border border-slate-200/80 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   >
-                    <option value="" className="bg-slate-950 text-white">
+                    <option value="" className="bg-white text-slate-800">
                       -- Mismo mes --
                     </option>
                     {months.map((m, idx) => (
                       <option
                         key={idx}
                         value={idx}
-                        className="bg-slate-950 text-white"
+                        className="bg-white text-slate-800"
                       >
                         {m}
                       </option>
@@ -585,16 +585,16 @@ export default function ServiceForm({
               </div>
 
               {/* Vencimientos y consumo */}
-              <div className="space-y-3 pt-3 border-t border-white/5 animate-slide-up">
+              <div className="space-y-3 pt-3 border-t border-slate-100 animate-slide-up">
                 <div>
                   <label
                     htmlFor="consumption-unit"
-                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                   >
                     Consumo Físico (kWh / m³ / etc. - Opcional)
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                       <svg
                         width="14"
                         height="14"
@@ -616,7 +616,7 @@ export default function ServiceForm({
                       step="0.1"
                       value={consumptionUnit}
                       onChange={(e) => setConsumptionUnit(e.target.value)}
-                      className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                      className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                     />
                   </div>
                 </div>
@@ -624,12 +624,12 @@ export default function ServiceForm({
                 <div>
                   <label
                     htmlFor="due-date"
-                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                   >
                     Fecha de Vencimiento
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                       <svg
                         width="14"
                         height="14"
@@ -658,7 +658,7 @@ export default function ServiceForm({
                       required
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
-                      className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                      className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                     />
                   </div>
                 </div>
@@ -667,7 +667,7 @@ export default function ServiceForm({
                   <div>
                     <label
                       htmlFor="next-measurement-date"
-                      className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                      className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                     >
                       Día Medición (1-31, Opc.)
                     </label>
@@ -679,13 +679,13 @@ export default function ServiceForm({
                       placeholder="Ej. 15"
                       value={nextMeasurementDate}
                       onChange={(e) => setNextMeasurementDate(e.target.value)}
-                      className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                      className={`w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                     />
                   </div>
                   <div>
                     <label
                       htmlFor="billing-close-date"
-                      className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                      className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                     >
                       Día Cierre (1-31, Opc.)
                     </label>
@@ -697,7 +697,7 @@ export default function ServiceForm({
                       placeholder="Ej. 27"
                       value={billingCloseDate}
                       onChange={(e) => setBillingCloseDate(e.target.value)}
-                      className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                      className={`w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                     />
                   </div>
                 </div>
@@ -707,16 +707,16 @@ export default function ServiceForm({
 
           {/* Loan specific fields */}
           {type === 'loan' && (
-            <div className="space-y-4 pt-2 border-t border-white/5 animate-fade-in">
+            <div className="space-y-4 pt-2 border-t border-slate-100 animate-fade-in">
               <div>
                 <label
                   htmlFor="loan-creditor"
-                  className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                 >
                   Entidad / Acreedor
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg
                       width="14"
                       height="14"
@@ -746,7 +746,7 @@ export default function ServiceForm({
                     maxLength={100}
                     value={creditor}
                     onChange={(e) => setCreditor(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   />
                 </div>
               </div>
@@ -755,7 +755,7 @@ export default function ServiceForm({
                 <div>
                   <label
                     htmlFor="loan-current-installment"
-                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                   >
                     Cuota N°
                   </label>
@@ -766,13 +766,13 @@ export default function ServiceForm({
                     placeholder="1"
                     value={currentInstallment}
                     onChange={(e) => setCurrentInstallment(e.target.value)}
-                    className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    className={`w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="loan-total-installments"
-                    className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                    className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                   >
                     Total Cuotas
                   </label>
@@ -783,7 +783,7 @@ export default function ServiceForm({
                     placeholder="12"
                     value={totalInstallments}
                     onChange={(e) => setTotalInstallments(e.target.value)}
-                    className={`w-full px-3 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    className={`w-full px-3 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   />
                 </div>
               </div>
@@ -791,12 +791,12 @@ export default function ServiceForm({
               <div>
                 <label
                   htmlFor="loan-titular"
-                  className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest"
+                  className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest"
                 >
                   Nombre del Titular
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg
                       width="14"
                       height="14"
@@ -817,7 +817,7 @@ export default function ServiceForm({
                     maxLength={100}
                     value={titular}
                     onChange={(e) => setTitular(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
                   />
                 </div>
               </div>
@@ -826,18 +826,18 @@ export default function ServiceForm({
 
           {/* Origen de Fondos Selector */}
           {type !== 'income' && (
-            <div className="pt-4 border-t border-white/5 animate-fade-in">
-              <label className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">
+            <div className="pt-4 border-t border-slate-100 animate-fade-in">
+              <label className="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest">
                 ¿Quién pagó este servicio?
               </label>
-              <div className="flex p-1 bg-black/30 rounded-xl gap-1 border border-white/5 mb-2">
+              <div className="flex p-1 bg-slate-100 rounded-xl gap-1 border border-slate-200/50 mb-2">
                 <button
                   type="button"
                   onClick={() => setPaymentSource('SELF')}
                   className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent cursor-pointer ${
                     paymentSource === 'SELF'
-                      ? 'bg-sky-500/25 border-sky-500/30 text-sky-400 font-black scale-[1.01]'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                      ? 'bg-white border-slate-200/60 text-sky-600 font-black shadow-sm scale-[1.01]'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   Yo
@@ -847,14 +847,14 @@ export default function ServiceForm({
                   onClick={() => setPaymentSource('THIRD_PARTY')}
                   className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent cursor-pointer ${
                     paymentSource === 'THIRD_PARTY'
-                      ? 'bg-sky-500/25 border-sky-500/30 text-sky-400 font-black scale-[1.01]'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                      ? 'bg-white border-slate-200/60 text-sky-600 font-black shadow-sm scale-[1.01]'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   Otra persona
                 </button>
               </div>
-              <span className="block text-[10px] text-slate-500 italic mt-1 font-semibold">
+              <span className="block text-[10px] text-slate-400 italic mt-1 font-semibold">
                 *Esta opción solo afecta el cálculo de tu liquidez personal.
               </span>
             </div>
@@ -865,7 +865,7 @@ export default function ServiceForm({
               <button
                 type="button"
                 onClick={onCancelEdit}
-                className="flex-1 py-3 border border-white/10 hover:bg-white/5 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 text-slate-500 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm bg-white"
               >
                 Cancelar
               </button>
@@ -879,12 +879,12 @@ export default function ServiceForm({
         {showImportButton && (
           <div
             id="import-prev-container"
-            className="mt-6 border-t border-white/5 pt-4"
+            className="mt-6 border-t border-slate-100 pt-4"
           >
             <button
               onClick={onImportPrevious}
               type="button"
-              className="w-full py-3 px-4 rounded-xl text-xs font-bold border border-white/10 bg-slate-900/60 hover:bg-white/10 text-slate-300 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.99] shadow-md cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.99] shadow-sm cursor-pointer"
             >
               <svg
                 width="14"

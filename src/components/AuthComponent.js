@@ -66,20 +66,20 @@ export default function AuthComponent() {
   return (
     <div
       id="auth-container"
-      className="flex items-center justify-center min-h-screen p-4 animate-fade-in relative"
+      className="flex items-center justify-center min-h-screen p-4 animate-fade-in relative bg-[#f8fafc]"
     >
       {/* Decorative Glow Blobs */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
       <div
-        className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"
+        className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none animate-pulse-glow"
         style={{ animationDelay: '2s' }}
       ></div>
 
-      <div className="w-full max-w-md p-8 glass-premium border-white/10 rounded-2xl shadow-2xl relative z-10 hover:border-white/15 transition-all duration-300">
+      <div className="w-full max-w-md p-8 bg-white border border-slate-100 rounded-2xl shadow-xl shadow-slate-200/50 relative z-10 hover:border-slate-200/80 transition-all duration-300">
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center items-center gap-3 mb-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-400 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/10">
               <svg
                 width="20"
                 height="20"
@@ -93,8 +93,9 @@ export default function AuthComponent() {
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
             </div>
-            <h2 className="text-3xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent tracking-tight">
-              ServiTrack
+            <h2 className="text-3xl font-black tracking-tight text-slate-800 flex items-center gap-1 select-none">
+              <span className="text-emerald-500">FINANZAS</span>
+              <span>YA</span>
             </h2>
           </div>
           <p
@@ -112,7 +113,7 @@ export default function AuthComponent() {
           <div
             id="auth-error-alert"
             role="alert"
-            className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in"
+            className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold animate-fade-in"
           >
             {error}
           </div>
@@ -122,13 +123,13 @@ export default function AuthComponent() {
         <form id="auth-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
-              className="block text-slate-400 text-[10px] font-bold mb-1.5 uppercase tracking-widest"
+              className="block text-slate-500 text-[10px] font-bold mb-1.5 uppercase tracking-widest"
               htmlFor="auth-email"
             >
               Correo Electrónico
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <svg
                   width="14"
                   height="14"
@@ -143,7 +144,7 @@ export default function AuthComponent() {
                 </svg>
               </span>
               <input
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 hover:border-white/20 transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 hover:border-slate-300 transition-all duration-200"
                 type="email"
                 id="auth-email"
                 placeholder="ejemplo@correo.com"
@@ -159,7 +160,7 @@ export default function AuthComponent() {
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label
-                  className="text-slate-400 text-[10px] font-bold uppercase tracking-widest"
+                  className="text-slate-500 text-[10px] font-bold uppercase tracking-widest"
                   htmlFor="auth-password"
                 >
                   Contraseña
@@ -171,14 +172,14 @@ export default function AuthComponent() {
                       setError('');
                       setMode('forgot');
                     }}
-                    className="text-[10px] font-bold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
+                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-500 transition-colors cursor-pointer"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
                 )}
               </div>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <svg
                     width="14"
                     height="14"
@@ -200,7 +201,7 @@ export default function AuthComponent() {
                   </svg>
                 </span>
                 <input
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-white text-xs placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 hover:border-white/20 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 hover:border-slate-300 transition-all duration-200"
                   type="password"
                   id="auth-password"
                   placeholder="••••••••"
@@ -217,7 +218,7 @@ export default function AuthComponent() {
             type="submit"
             disabled={loading}
             id="auth-submit-btn"
-            className="w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-500/10 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 cursor-pointer mt-2"
+            className="w-full py-3 bg-gradient-to-tr from-emerald-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 cursor-pointer mt-2"
           >
             {loading
               ? mode === 'login'
@@ -234,14 +235,14 @@ export default function AuthComponent() {
         </form>
 
         {/* View toggles */}
-        <div className="mt-6 text-center text-xs text-slate-400 font-semibold select-none border-t border-white/5 pt-5">
+        <div className="mt-6 text-center text-xs text-slate-400 font-semibold select-none border-t border-slate-100 pt-5">
           {mode === 'forgot' ? (
             <button
               onClick={() => {
                 setError('');
                 setMode('login');
               }}
-              className="text-sky-400 hover:text-sky-300 font-bold focus:outline-none cursor-pointer"
+              className="text-emerald-600 hover:text-emerald-500 font-bold focus:outline-none cursor-pointer"
             >
               Volver al inicio de sesión
             </button>
@@ -255,19 +256,19 @@ export default function AuthComponent() {
               <button
                 id="auth-toggle-btn"
                 onClick={toggleMode}
-                className="text-sky-400 hover:text-sky-300 font-bold focus:outline-none cursor-pointer"
+                className="text-emerald-600 hover:text-emerald-500 font-bold focus:outline-none cursor-pointer"
               >
                 {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
               </button>
             </div>
           )}
         </div>
-        <footer className="w-full text-center mt-6 text-[10px] text-slate-500 font-semibold tracking-wider select-none flex flex-col sm:flex-row justify-center items-center gap-1">
+        <footer className="w-full text-center mt-6 text-[10px] text-slate-400 font-semibold tracking-wider select-none flex flex-col sm:flex-row justify-center items-center gap-1">
           <span>ServiTrack v1.3.0</span>
-          <span className="hidden sm:inline">|</span>
+          <span className="hidden sm:inline text-slate-300">|</span>
           <span>
             Creado por{' '}
-            <span className="text-slate-400">
+            <span className="text-slate-500">
               Rodrigo Alejandro Aguirre Tevez
             </span>
           </span>

@@ -24,7 +24,7 @@ const getCategoryIconAndColor = (name, type) => {
   if (type === 'income') {
     return {
       colorClass:
-        'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 glow-emerald',
+        'text-emerald-600 bg-emerald-50 border-emerald-100/80 shadow-sm shadow-emerald-50',
       icon: (
         <svg
           width="16"
@@ -45,7 +45,7 @@ const getCategoryIconAndColor = (name, type) => {
   if (type === 'loan') {
     return {
       colorClass:
-        'text-purple-400 bg-purple-500/10 border-purple-500/20 glow-purple',
+        'text-purple-600 bg-purple-50 border-purple-100/80 shadow-sm shadow-purple-50',
       icon: (
         <svg
           width="16"
@@ -73,7 +73,7 @@ const getCategoryIconAndColor = (name, type) => {
   ) {
     return {
       colorClass:
-        'text-amber-400 bg-amber-500/10 border-amber-500/20 glow-amber',
+        'text-amber-600 bg-amber-50 border-amber-100/80 shadow-sm shadow-amber-50',
       icon: (
         <svg
           width="16"
@@ -91,7 +91,7 @@ const getCategoryIconAndColor = (name, type) => {
   }
   if (n.includes('gas') || n.includes('metrogas') || n.includes('camuzzi')) {
     return {
-      colorClass: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+      colorClass: 'text-orange-600 bg-orange-50 border-orange-100/80',
       icon: (
         <svg
           width="16"
@@ -114,7 +114,7 @@ const getCategoryIconAndColor = (name, type) => {
     n.includes('irrigacion')
   ) {
     return {
-      colorClass: 'text-sky-400 bg-sky-500/10 border-sky-500/20 glow-sky',
+      colorClass: 'text-sky-600 bg-sky-50 border-sky-100/80 shadow-sm shadow-sky-50',
       icon: (
         <svg
           width="16"
@@ -143,7 +143,7 @@ const getCategoryIconAndColor = (name, type) => {
     n.includes('claro')
   ) {
     return {
-      colorClass: 'text-blue-400 bg-blue-500/10 border-blue-500/20 glow-sky',
+      colorClass: 'text-blue-600 bg-blue-50 border-blue-100/80 shadow-sm shadow-blue-50',
       icon: (
         <svg
           width="16"
@@ -175,7 +175,7 @@ const getCategoryIconAndColor = (name, type) => {
   ) {
     return {
       colorClass:
-        'text-indigo-400 bg-indigo-500/10 border-indigo-500/20 glow-purple',
+        'text-indigo-600 bg-indigo-50 border-indigo-100/80 shadow-sm shadow-indigo-50',
       icon: (
         <svg
           width="16"
@@ -207,7 +207,7 @@ const getCategoryIconAndColor = (name, type) => {
   ) {
     return {
       colorClass:
-        'text-violet-400 bg-violet-500/10 border-violet-500/20 glow-purple',
+        'text-violet-600 bg-violet-50 border-violet-100/80 shadow-sm shadow-violet-50',
       icon: (
         <svg
           width="16"
@@ -232,7 +232,7 @@ const getCategoryIconAndColor = (name, type) => {
     n.includes('inmobiliaria')
   ) {
     return {
-      colorClass: 'text-rose-400 bg-rose-500/10 border-rose-500/20 glow-rose',
+      colorClass: 'text-rose-600 bg-rose-50 border-rose-100/80 shadow-sm shadow-rose-50',
       icon: (
         <svg
           width="16"
@@ -262,7 +262,7 @@ const getCategoryIconAndColor = (name, type) => {
   ) {
     return {
       colorClass:
-        'text-teal-400 bg-teal-500/10 border-teal-500/20 glow-emerald',
+        'text-teal-600 bg-teal-50 border-teal-100/80 shadow-sm shadow-teal-50',
       icon: (
         <svg
           width="16"
@@ -281,7 +281,7 @@ const getCategoryIconAndColor = (name, type) => {
     };
   }
   return {
-    colorClass: 'text-slate-400 bg-slate-500/10 border-slate-500/20',
+    colorClass: 'text-slate-600 bg-slate-100 border-slate-200',
     icon: (
       <svg
         width="16"
@@ -316,10 +316,10 @@ export default function ServiceCard({
     'flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-2xl transition-all duration-300 gap-4 ';
   if (isPaid) {
     cardClass +=
-      'bg-slate-950/20 border border-white/5 opacity-60 hover:opacity-100 hover:bg-slate-900/40';
+      'bg-slate-50/70 border border-slate-100 opacity-60 hover:opacity-100 hover:bg-slate-100/50';
   } else {
     cardClass +=
-      'glass-premium border-white/10 hover:border-white/20 hover:bg-slate-900/60 hover:-translate-y-0.5 shadow-lg';
+      'bg-white border border-slate-100 shadow-sm shadow-slate-100/40 hover:border-slate-200 hover:-translate-y-0.5 hover:shadow-md';
   }
 
   let metaText = '';
@@ -335,12 +335,12 @@ export default function ServiceCard({
 
     metaText = `Titular: ${item.titular || 'N/A'} | Cuota ${item.currentInstallment || 1} de ${item.totalInstallments || 1}`;
     progressBarHtml = (
-      <div className="w-full bg-black/40 rounded-full h-1.5 mt-2.5 overflow-hidden border border-white/5 flex">
+      <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2.5 overflow-hidden border border-slate-200/50 flex">
         <div
           className="h-full bg-gradient-to-r from-purple-500 to-sky-400 rounded-full transition-all duration-300"
           style={{ width: `${progressPercent}%` }}
         ></div>
-        <span className="text-[9px] text-slate-400 font-bold ml-2 -mt-1 select-none">
+        <span className="text-[9px] text-slate-500 font-bold ml-2 -mt-1 select-none">
           {progressPercent}%
         </span>
       </div>
@@ -390,19 +390,19 @@ export default function ServiceCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {type === 'loan' ? (
-              <h4 className="text-white font-bold text-sm tracking-tight truncate">
+              <h4 className="text-slate-800 font-bold text-sm tracking-tight truncate">
                 {item.name}{' '}
                 <span className="text-[10px] text-slate-400 font-normal">
                   ({item.creditor || 'N/A'})
                 </span>
               </h4>
             ) : type === 'income' ? (
-              <h4 className="text-emerald-400 font-extrabold text-sm tracking-tight truncate">
+              <h4 className="text-emerald-600 font-extrabold text-sm tracking-tight truncate">
                 {item.name}
               </h4>
             ) : (
               <h4
-                className={`text-sm font-bold tracking-tight truncate ${isPaid ? 'text-slate-500 line-through' : 'text-white'}`}
+                className={`text-sm font-bold tracking-tight truncate ${isPaid ? 'text-slate-400 line-through' : 'text-slate-800'}`}
               >
                 {item.name}
               </h4>
@@ -412,7 +412,7 @@ export default function ServiceCard({
             {type !== 'income' &&
               (isPaid ? (
                 <div className="flex gap-1.5 shrink-0 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-0.5">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100/80 flex items-center gap-0.5">
                     <svg
                       width="8"
                       height="8"
@@ -426,7 +426,7 @@ export default function ServiceCard({
                     PAGADO
                   </span>
                   {item.paymentSource === 'THIRD_PARTY' && (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-500/20 text-slate-400 border border-white/10 flex items-center gap-0.5">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200 flex items-center gap-0.5">
                       TERCEROS
                     </span>
                   )}
@@ -440,7 +440,7 @@ export default function ServiceCard({
               ))}
           </div>
 
-          <p className="text-[11px] text-slate-400 mt-1 font-medium truncate">
+          <p className="text-[11px] text-slate-500 mt-1 font-medium truncate">
             {metaText}
           </p>
 
@@ -449,10 +449,10 @@ export default function ServiceCard({
       </div>
 
       {/* Amount and Actions wrapper */}
-      <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto shrink-0 border-t border-white/5 sm:border-0 pt-3 sm:pt-0">
+      <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto shrink-0 border-t border-slate-100 sm:border-0 pt-3 sm:pt-0">
         {/* Amount */}
         <div
-          className={`text-base font-extrabold text-slate-100 ${type === 'income' ? 'text-emerald-400' : ''}`}
+          className={`text-base font-extrabold text-slate-800 ${type === 'income' ? 'text-emerald-600' : ''}`}
         >
           {formatCurrency(item.amount)}
         </div>
@@ -461,7 +461,7 @@ export default function ServiceCard({
         <div className="flex items-center gap-1.5">
           {type !== 'income' && (
             <button
-              className="w-9 h-9 rounded-xl bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/20 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer"
+              className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 hover:bg-sky-600 hover:text-white border border-sky-100 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-sm"
               onClick={() => onSimulate(item.id)}
               title="Simular Baja"
               aria-label={`Simular baja de ${item.name}`}
@@ -483,7 +483,7 @@ export default function ServiceCard({
           )}
 
           <button
-            className="w-9 h-9 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/20 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer"
+            className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white border border-amber-100 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-sm"
             onClick={() => onEdit(item.id)}
             title="Editar"
             aria-label={`Editar ${item.name}`}
@@ -505,10 +505,10 @@ export default function ServiceCard({
 
           {type !== 'income' && (
             <button
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer ${
+              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-sm ${
                 isPaid
-                  ? 'bg-slate-500/10 hover:bg-slate-500 text-slate-400 hover:text-white border-slate-500/20'
-                  : 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border-emerald-500/25'
+                  ? 'bg-slate-100 hover:bg-slate-500 text-slate-500 hover:text-white border-slate-200'
+                  : 'bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white border-emerald-100'
               }`}
               onClick={() => onTogglePaid(item.id)}
               title={isPaid ? 'Marcar como pendiente' : 'Marcar como pagado'}
@@ -534,7 +534,7 @@ export default function ServiceCard({
           )}
 
           <button
-            className="w-9 h-9 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer"
+            className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-100 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-sm"
             onClick={() => onDelete(item.id)}
             title="Eliminar"
             aria-label={`Eliminar ${item.name}`}

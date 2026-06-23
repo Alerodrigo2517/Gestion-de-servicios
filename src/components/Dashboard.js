@@ -12,6 +12,8 @@ import {
 } from '@/lib/statusHelper';
 import logger from '@/lib/logger';
 import { useToast } from '@/components/ToastProvider';
+import Chart from 'chart.js/auto';
+import { supabase } from '@/lib/supabase';
 
 const months = [
   'Enero',
@@ -60,6 +62,19 @@ export default function Dashboard({
   const toolsRef = useRef(null);
   const profileRef = useRef(null);
   const profileRefDesktop = useRef(null);
+
+  const [userName, setUserName] = useState('Alejandro');
+  const donutCanvasRef = useRef(null);
+  const donutChartRef = useRef(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        const namePart = session.user.email.split('@')[0];
+        setUserName(namePart.charAt(0).toUpperCase() + namePart.slice(1));
+      }
+    });
+  }, []);
 
   // Reset selected day filter when active month changes
   useEffect(() => {
@@ -362,29 +377,113 @@ export default function Dashboard({
     e.target.value = ''; // Reset input
   };
 
-  // Calculate active panels count for dynamic grid column allocation
-  const activePanelsCount =
-    (showInsights ? 1 : 0) +
-    (nextVencimientos.length > 0 ? 1 : 0) +
-    (reminders.length > 0 ? 1 : 0);
+  // Group expenses by category
+  const expenseItems = currentItems.filter((item) => item.type !== 'income');
+  const totalExpenses = expenseItems.reduce((sum, item) => sum + item.amount, 0);
 
-  const gridColsClass =
-    activePanelsCount === 3
-      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-      : activePanelsCount === 2
-      ? 'grid-cols-1 md:grid-cols-2'
-      : 'grid-cols-1';
+  const categoriesMap = {
+    comida: { name: 'Comida', amount: 0, color: '#2e3b85', count: 0 },
+    transporte: { name: 'Transporte', amount: 0, color: '#0d9488', count: 0 },
+    servicios: { name: 'Servicios', amount: 0, color: '#0ea5e9', count: 0 },
+    ocio: { name: 'Ocio', amount: 0, color: '#10b981', count: 0 },
+    otros: { name: 'Otros', amount: 0, color: '#6366f1', count: 0 }
+  };
+
+  expenseItems.forEach(item => {
+    const n = item.name.toLowerCase();
+    if (n.includes('coto') || n.includes('super') || n.includes('comida') || n.includes('carrefour') || n.includes('alimento') || n.includes('dia') || n.includes('jumbo') || n.includes('disco') || n.includes('cencosud') || n.includes('mercado') || n.includes('almacen')) {
+      categoriesMap.comida.amount += item.amount;
+      categoriesMap.comida.count++;
+    } else if (n.includes('transporte') || n.includes('subte') || n.includes('nafta') || n.includes('auto') || n.includes('colectivo') || n.includes('uber') || n.includes('cabify') || n.includes('peaje') || n.includes('estacionamiento') || n.includes('cochera')) {
+      categoriesMap.transporte.amount += item.amount;
+      categoriesMap.transporte.count++;
+    } else if (n.includes('luz') || n.includes('gas') || n.includes('agua') || n.includes('aysa') || n.includes('internet') || n.includes('wifi') || n.includes('telefono') || n.includes('celular') || n.includes('edenor') || n.includes('edesur') || n.includes('metrogas') || n.includes('camuzzi') || n.includes('aysa') || n.includes('flow') || n.includes('telecentro') || n.includes('cable') || n.includes('fibertel')) {
+      categoriesMap.servicios.amount += item.amount;
+      categoriesMap.servicios.count++;
+    } else if (n.includes('netflix') || n.includes('spotify') || n.includes('disney') || n.includes('cine') || n.includes('salida') || n.includes('ocio') || n.includes('prime') || n.includes('hbo') || n.includes('youtube') || n.includes('streaming') || n.includes('club') || n.includes('gimnasio')) {
+      categoriesMap.ocio.amount += item.amount;
+      categoriesMap.ocio.count++;
+    } else {
+      categoriesMap.otros.amount += item.amount;
+      categoriesMap.otros.count++;
+    }
+  });
+
+  const activeCategories = Object.values(categoriesMap)
+    .filter(cat => cat.amount > 0)
+    .map(cat => ({
+      ...cat,
+      percentage: totalExpenses > 0 ? Math.round((cat.amount / totalExpenses) * 100) : 0
+    }));
+
+  useEffect(() => {
+    if (!donutCanvasRef.current) return;
+    
+    // Destroy previous chart
+    if (donutChartRef.current) {
+      donutChartRef.current.destroy();
+      donutChartRef.current = null;
+    }
+
+    if (activeCategories.length === 0) return;
+
+    const ctx = donutCanvasRef.current.getContext('2d');
+    donutChartRef.current = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: activeCategories.map(c => c.name),
+        datasets: [{
+          data: activeCategories.map(c => c.amount),
+          backgroundColor: activeCategories.map(c => c.color),
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(9, 15, 29, 0.95)',
+            titleFont: { family: 'var(--font-inter)', size: 12, weight: 'bold' },
+            bodyFont: { family: 'var(--font-inter)', size: 11 },
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const percent = totalExpenses > 0 ? Math.round((value / totalExpenses) * 100) : 0;
+                return ` ${label}: ${formatCurrency(value)} (${percent}%)`;
+              }
+            }
+          }
+        },
+        cutout: '70%'
+      }
+    });
+
+    return () => {
+      if (donutChartRef.current) {
+        donutChartRef.current.destroy();
+        donutChartRef.current = null;
+      }
+    };
+  }, [currentMonthIndex, services]);
 
   return (
-    <div className="w-full animate-fade-in">
-      <header className="w-full max-w-7xl mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-white/5">
-        {/* Top Header Row (Logo on Left, Profile Avatar on Right for Mobile) */}
-        <div className="w-full sm:w-auto flex justify-between items-center">
+    <div className="min-h-screen flex flex-col lg:flex-row animate-fade-in text-slate-800 bg-[#f8fafc]">
+      {/* Sidebar: Navy Left Column on Desktop */}
+      <aside className="w-full lg:w-64 bg-[#090f1d] text-slate-300 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-slate-800/20 z-30">
+        {/* Brand/Logo Section */}
+        <div className="px-6 py-6 border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-400 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-emerald-500/10">
               <svg
-                width="20"
-                height="20"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -395,1098 +494,638 @@ export default function Dashboard({
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-black bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent tracking-tight">
-                ServiTrack
+              <h1 className="text-md font-black tracking-tight text-white flex items-center gap-1">
+                <span className="text-emerald-400">FINANZAS</span>
+                <span>YA</span>
               </h1>
-              <p className="text-[10px] font-bold text-sky-400 tracking-widest uppercase">
-                Panel de Control
+              <p className="text-[9px] font-bold text-slate-500 tracking-wider uppercase">
+                ServiTrack Panel
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Profile Trigger - Mobile (visible only on mobile) */}
-          <div className="sm:hidden relative" ref={profileRef}>
+        {/* Navigation list */}
+        <nav className="flex-1 px-4 py-6 space-y-1.5">
+          <button
+            type="button"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-white bg-slate-800/60 border border-white/5 shadow-sm transition"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            Inicio
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('services-list-container');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Cuentas
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOpenModal('projection')}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            Presupuestos
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('services-list-container');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M17 1l4 4-4 4" />
+              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+              <path d="M7 23l-4-4 4-4" />
+              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
+            Transacciones
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('services-list-container');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+            Metas
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOpenModal('projection')}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            Reportes
+          </button>
+        </nav>
+
+        {/* Sidebar Herramientas list */}
+        <div className="px-4 py-4 border-t border-white/5">
+          <p className="px-4 text-[10px] font-bold text-slate-500 tracking-wider uppercase mb-2 select-none">
+            Análisis
+          </p>
+          <div className="space-y-1">
             <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 border border-white/20 flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg cursor-pointer"
+              onClick={() => onOpenModal('projection')}
+              className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
               type="button"
-              title="Mi Cuenta"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+              Proyección Anual
             </button>
-
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-slate-950/95 border border-white/10 backdrop-blur-md p-1.5 shadow-2xl z-[500] animate-slide-up">
-                <div className="px-3.5 py-2 border-b border-white/5 mb-1">
-                  <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
-                    Sesión activa
-                  </p>
-                  <p className="text-xs text-slate-200 truncate font-semibold">
-                    Mi Cuenta
-                  </p>
-                </div>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onGenerateDemoData();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-emerald-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
-                  Cargar Demo Anual
-                </button>
-                {services && services.some((s) => s.is_demo) && (
-                  <button
-                    className="w-full text-left px-3.5 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                    onClick={() => {
-                      onDeleteDemoData();
-                      setIsProfileOpen(false);
-                    }}
-                    type="button"
-                  >
-                    <svg
-                      className="text-rose-400"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      <line x1="10" y1="11" x2="10" y2="17" />
-                      <line x1="14" y1="11" x2="14" y2="17" />
-                    </svg>
-                    Eliminar Demo Anual
-                  </button>
-                )}
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onChangePassword();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-sky-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Cambiar Contraseña
-                </button>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onShowWelcome();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-violet-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                  Información y Privacidad
-                </button>
-                <div className="border-t border-white/5 my-1"></div>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onChangePassphraseClick();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-amber-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                  </svg>
-                  Cambiar Frase Maestra
-                </button>
-                <div className="border-t border-white/5 my-1"></div>
-                <div className="px-3.5 py-2 space-y-1.5">
-                  <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase flex items-center gap-1">
-                    <span>🔒</span> Cifrado Zero-Knowledge
-                  </p>
-                  <div className="text-[11px] font-semibold text-slate-300">
-                    Estado:{' '}
-                    {isRemembered ? (
-                      <span className="text-emerald-400 font-bold">✓ Recordado</span>
-                    ) : (
-                      <span className="text-rose-400 font-bold">✗ No recordado</span>
-                    )}
-                  </div>
-                  {isRemembered ? (
-                    <button
-                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition duration-200 cursor-pointer"
-                      onClick={() => {
-                        onForgetDevice();
-                        setIsProfileOpen(false);
-                      }}
-                      type="button"
-                    >
-                      Olvidar dispositivo
-                    </button>
-                  ) : (
-                    <button
-                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 rounded-md transition duration-200 cursor-pointer"
-                      onClick={() => {
-                        onRememberDevice();
-                        setIsProfileOpen(false);
-                      }}
-                      type="button"
-                    >
-                      Recordar dispositivo
-                    </button>
-                  )}
-                </div>
-                <div className="border-t border-white/5 my-1"></div>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2.5 transition font-bold cursor-pointer"
-                  onClick={() => {
-                    onSignOut();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  Cerrar Sesión
-                </button>
-              </div>
+            <button
+              onClick={() => onOpenModal('simulation')}
+              className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
+              type="button"
+            >
+              Simulador de Bajas
+            </button>
+            {currentItems.some((item) => item.consumptionUnit !== undefined && item.consumptionUnit !== null) && (
+              <button
+                onClick={() => onOpenModal('consumption')}
+                className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                type="button"
+              >
+                Consumo Físico
+              </button>
             )}
           </div>
         </div>
 
-        {/* Action Controls list (Flex wrap layout, static on desktop) */}
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end py-1">
-          <input
-            type="file"
-            id="import-excel"
-            accept=".xlsx"
-            ref={fileInputRef}
-            onChange={handleImportExcel}
-            className="hidden"
-          />
-
-          <button
-            className="px-4 py-2.5 text-xs font-semibold glass-premium hover:bg-white/10 text-slate-300 rounded-xl flex items-center gap-2 transition duration-200 cursor-pointer shrink-0"
-            onClick={() => fileInputRef.current.click()}
-            type="button"
+        {/* Sidebar Bottom Profile/Settings */}
+        <div className="p-4 border-t border-white/5 space-y-2 mt-auto">
+          <div 
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition"
           >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white font-extrabold text-xs">
+              {userName.substring(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-white font-bold truncate">Mi Cuenta</p>
+              <p className="text-[10px] text-slate-500 truncate font-semibold">{userName}</p>
+            </div>
             <svg
-              width="14"
-              height="14"
+              className={`transition-transform duration-200 text-slate-500 ${isProfileOpen ? 'rotate-180' : ''}`}
+              width="10"
+              height="10"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2.5"
+              strokeWidth="3"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
+              <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
-            Importar
-          </button>
-
-          <button
-            className="px-4 py-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl flex items-center gap-2 transition duration-200 shadow-md shadow-emerald-600/10 active:scale-[0.98] cursor-pointer shrink-0"
-            onClick={handleExportExcel}
-            type="button"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Excel
-          </button>
-
-          {/* Menú de Herramientas de Análisis */}
-          <div className="relative shrink-0" ref={toolsRef}>
-            <button
-              onClick={() => setIsToolsOpen(!isToolsOpen)}
-              className="px-4 py-2.5 text-xs font-semibold glass-premium hover:bg-white/10 text-slate-300 rounded-xl flex items-center gap-2 transition duration-200 cursor-pointer"
-              type="button"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-              </svg>
-              Herramientas
-              <svg
-                className={`transition-transform duration-200 ${isToolsOpen ? 'rotate-180' : ''}`}
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-              >
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-
-            {isToolsOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-slate-950/90 border border-white/10 backdrop-blur-md p-1.5 shadow-2xl z-[500] animate-slide-up">
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onOpenModal('projection');
-                    setIsToolsOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-sky-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                  </svg>
-                  Proyección Anual
-                </button>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onOpenModal('simulation');
-                    setIsToolsOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-purple-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="16"></line>
-                    <line x1="8" y1="12" x2="16" y2="12"></line>
-                  </svg>
-                  Simulador de Bajas
-                </button>
-                {currentItems.some(
-                  (item) =>
-                    item.consumptionUnit !== undefined &&
-                    item.consumptionUnit !== null
-                ) && (
-                  <button
-                    className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                    onClick={() => {
-                      onOpenModal('consumption');
-                      setIsToolsOpen(false);
-                    }}
-                    type="button"
-                  >
-                    <svg
-                      className="text-amber-400"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                    </svg>
-                    Consumo Físico
-                  </button>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Desktop Profile Trigger (hidden on mobile, visible on desktop) */}
-          <div
-            className="hidden sm:block relative shrink-0"
-            ref={profileRefDesktop}
-          >
-            <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 border border-white/20 flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg cursor-pointer"
-              type="button"
-              title="Mi Cuenta"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
+          {/* Profile options menu inside sidebar */}
+          {isProfileOpen && (
+            <div className="bg-slate-900/60 border border-white/5 rounded-xl p-1.5 space-y-1 text-slate-300">
+              <button
+                className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                onClick={onGenerateDemoData}
+                type="button"
               >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </button>
-
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-slate-950/90 border border-white/10 backdrop-blur-md p-1.5 shadow-2xl z-[500] animate-slide-up">
-                <div className="px-3.5 py-2 border-b border-white/5 mb-1">
-                  <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
-                    Sesión activa
-                  </p>
-                  <p className="text-xs text-slate-200 truncate font-semibold">
-                    Mi Cuenta
-                  </p>
-                </div>
+                Cargar Demo Anual
+              </button>
+              {services && services.some((s) => s.is_demo) && (
                 <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onGenerateDemoData();
-                    setIsProfileOpen(false);
-                  }}
+                  className="w-full text-left px-3 py-2 text-[11px] font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                  onClick={onDeleteDemoData}
                   type="button"
                 >
-                  <svg
-                    className="text-emerald-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
-                  Cargar Demo Anual
+                  Eliminar Demo Anual
                 </button>
-                {services && services.some((s) => s.is_demo) && (
-                  <button
-                    className="w-full text-left px-3.5 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                    onClick={() => {
-                      onDeleteDemoData();
-                      setIsProfileOpen(false);
-                    }}
-                    type="button"
-                  >
-                    <svg
-                      className="text-rose-400"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      <line x1="10" y1="11" x2="10" y2="17" />
-                      <line x1="14" y1="11" x2="14" y2="17" />
-                    </svg>
-                    Eliminar Demo Anual
-                  </button>
-                )}
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onChangePassword();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-sky-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Cambiar Contraseña
-                </button>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onShowWelcome();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-violet-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                  Información y Privacidad
-                </button>
-                <div className="border-t border-white/5 my-1"></div>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2.5 transition cursor-pointer"
-                  onClick={() => {
-                    onChangePassphraseClick();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    className="text-amber-400"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                  </svg>
-                  Cambiar Frase Maestra
-                </button>
-                <div className="border-t border-white/5 my-1"></div>
-                <div className="px-3.5 py-2 space-y-1.5">
-                  <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase flex items-center gap-1">
-                    <span>🔒</span> Cifrado Zero-Knowledge
-                  </p>
-                  <div className="text-[11px] font-semibold text-slate-300">
-                    Estado:{' '}
-                    {isRemembered ? (
-                      <span className="text-emerald-400 font-bold">✓ Recordado</span>
-                    ) : (
-                      <span className="text-rose-400 font-bold">✗ No recordado</span>
-                    )}
-                  </div>
-                  {isRemembered ? (
-                    <button
-                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition duration-200 cursor-pointer"
-                      onClick={() => {
-                        onForgetDevice();
-                        setIsProfileOpen(false);
-                      }}
-                      type="button"
-                    >
-                      Olvidar dispositivo
-                    </button>
-                  ) : (
-                    <button
-                      className="mt-1 w-full text-center py-1.5 text-[10px] font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 rounded-md transition duration-200 cursor-pointer"
-                      onClick={() => {
-                        onRememberDevice();
-                        setIsProfileOpen(false);
-                      }}
-                      type="button"
-                    >
-                      Recordar dispositivo
-                    </button>
-                  )}
-                </div>
-                <div className="border-t border-white/5 my-1"></div>
-                <button
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2.5 transition font-bold cursor-pointer"
-                  onClick={() => {
-                    onSignOut();
-                    setIsProfileOpen(false);
-                  }}
-                  type="button"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  Cerrar Sesión
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Navegación de Meses */}
-      <nav className="w-full max-w-7xl mx-auto px-4 md:px-6 flex gap-1.5 overflow-x-auto py-3 border-b border-white/5 scrollbar-none">
-        {months.map((month, index) => {
-          const isActive = index === currentMonthIndex;
-          const pendingCount = getPendingCountForMonth(index);
-          const btnClass = isActive
-            ? 'flex-1 min-w-[75px] sm:min-w-[90px] py-3.5 text-center text-xs font-black bg-slate-900/60 border-b-2 border-sky-400 text-sky-400 rounded-t-xl transition-all duration-200'
-            : 'flex-1 min-w-[75px] sm:min-w-[90px] py-3.5 text-center text-xs font-bold text-slate-400 hover:bg-slate-900/20 hover:text-slate-200 rounded-t-xl transition-all duration-200';
-
-          return (
-            <button
-              key={month}
-              className={`${btnClass} relative`}
-              onClick={() => {
-                setCurrentMonthIndex(index);
-                setEditingItem(null);
-              }}
-              type="button"
-            >
-              {month.substring(0, 3)}
-              {pendingCount > 0 && (
-                <span className="absolute top-1 right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white shadow-sm shadow-rose-500/50">
-                  {pendingCount}
-                </span>
               )}
-            </button>
-          );
-        })}
-      </nav>
-
-      <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-8 glass-premium border-t-0 rounded-b-2xl shadow-2xl mb-12 animate-fade-in">
-        {/* Welcome Onboarding Banner for empty database */}
-        {services && services.length === 0 && (
-          <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-sky-500/10 via-indigo-500/5 to-slate-900 border border-sky-500/20 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                  <path d="M12 16v-4" />
-                  <path d="M12 8h.01" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-base font-bold text-white">¡Te damos la bienvenida a ServiTrack! 👋</h4>
-                <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                  Para que puedas explorar los gráficos interactivos, alertas de vencimiento, cálculos de liquidez y simular bajas de gastos, te recomendamos cargar nuestro conjunto de **datos de demostración anual**.
-                </p>
-              </div>
+              <button
+                className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                onClick={onChangePassword}
+                type="button"
+              >
+                Cambiar Contraseña
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                onClick={onChangePassphraseClick}
+                type="button"
+              >
+                Frase Maestra
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                onClick={onShowWelcome}
+                type="button"
+              >
+                Ayuda / Privacidad
+              </button>
+              <div className="border-t border-white/5 my-1"></div>
+              <button
+                className="w-full text-left px-3 py-2 text-[11px] font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                onClick={onSignOut}
+                type="button"
+              >
+                Cerrar Sesión
+              </button>
             </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Main Header */}
+        <header className="w-full px-6 py-6 bg-white border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Hola, {userName}! 👋
+            </h2>
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              text-3xl, font-semibold, text-slate-900
+            </p>
+          </div>
+
+          {/* Action buttons (Import, Excel) */}
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              id="import-excel"
+              accept=".xlsx"
+              ref={fileInputRef}
+              onChange={handleImportExcel}
+              className="hidden"
+            />
+
             <button
-              onClick={onGenerateDemoData}
-              className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-xs font-bold text-white hover:from-emerald-400 hover:to-teal-500 transition duration-300 shadow-md shadow-emerald-500/20 active:scale-95 shrink-0 flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200/80 text-slate-700 rounded-xl flex items-center gap-2 border border-slate-200 transition duration-200 cursor-pointer"
+              onClick={() => fileInputRef.current.click()}
               type="button"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-              Cargar Demo Anual
+              Importar
+            </button>
+
+            <button
+              className="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl flex items-center gap-2 transition duration-200 shadow-sm active:scale-[0.98] cursor-pointer"
+              onClick={handleExportExcel}
+              type="button"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Excel
             </button>
           </div>
-        )}
+        </header>
 
-        {/* Demo Active Notice Banner */}
-        {services && services.length > 0 && services.some((s) => s.is_demo) && (
-          <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-slate-900 border border-amber-500/20 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
-            <div className="flex items-center gap-3">
-              <span className="flex h-2.5 w-2.5 relative shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-              </span>
-              <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                Estás visualizando los **datos de demostración anual**. Puedes explorar libremente todas las pantallas o borrarlos para cargar tus propios gastos reales.
-              </p>
-            </div>
-            <div className="flex gap-2 shrink-0">
+        {/* Month Navigation */}
+        <nav className="w-full px-6 flex gap-1.5 overflow-x-auto py-3 bg-white border-b border-slate-200/60 scrollbar-none sticky top-0 z-20">
+          {months.map((month, index) => {
+            const isActive = index === currentMonthIndex;
+            const pendingCount = getPendingCountForMonth(index);
+            const btnClass = isActive
+              ? 'px-4 py-2.5 text-center text-xs font-black bg-slate-900 text-white rounded-xl shadow-sm transition-all duration-200'
+              : 'px-4 py-2.5 text-center text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-all duration-200';
+
+            return (
+              <button
+                key={month}
+                className={`${btnClass} relative`}
+                onClick={() => {
+                  setCurrentMonthIndex(index);
+                  setEditingItem(null);
+                }}
+                type="button"
+              >
+                {month.substring(0, 3)}
+                {pendingCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white shadow-sm shadow-rose-500/35">
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Main Body content wrapper */}
+        <main className="flex-1 p-6 md:p-8 space-y-8 max-w-7xl w-full mx-auto">
+          {/* Welcome Onboarding Banner */}
+          {services && services.length === 0 && (
+            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-sky-500/10 text-sky-600 border border-sky-100 shrink-0">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-base font-black text-slate-900">¡Te damos la bienvenida a ServiTrack! 👋</h4>
+                  <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed font-semibold">
+                    Para explorar los gráficos interactivos, alertas de vencimiento, cálculos de liquidez y simular bajas de gastos, te recomendamos cargar nuestro conjunto de **datos de demostración anual**.
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={onGenerateDemoData}
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-slate-200 hover:bg-white/10 hover:text-white transition duration-200 cursor-pointer"
+                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition duration-300 shadow-md shadow-emerald-600/10 active:scale-95 shrink-0 flex items-center gap-2 cursor-pointer"
                 type="button"
               >
-                Recargar Demo
+                Cargar Demo Anual
               </button>
-              <button
-                onClick={onDeleteDemoData}
-                className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[11px] font-bold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition duration-200 cursor-pointer flex items-center gap-1.5"
-                type="button"
-              >
+            </div>
+          )}
+
+          {/* Demo Active Notice */}
+          {services && services.length > 0 && services.some((s) => s.is_demo) && (
+            <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 relative shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                </span>
+                <p className="text-xs text-amber-800 font-semibold leading-relaxed">
+                  Estás visualizando los **datos de demostración anual**. Puedes explorar libremente o borrarlos para cargar tus propios gastos.
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={onGenerateDemoData}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition duration-200 cursor-pointer shadow-sm"
+                  type="button"
+                >
+                  Recargar Demo
+                </button>
+                <button
+                  onClick={onDeleteDemoData}
+                  className="px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-[11px] font-bold text-rose-600 hover:bg-rose-100/50 transition duration-200 cursor-pointer flex items-center gap-1.5 shadow-sm"
+                  type="button"
+                >
+                  Eliminar Demo
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Global immediate overdue alerts */}
+          {globalAlertServices.length > 0 && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="p-5 rounded-2xl bg-white border border-rose-100 shadow-sm flex items-start gap-4 animate-slide-up relative z-10"
+            >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-50 text-rose-500 border border-rose-100 shrink-0">
                 <svg
-                  width="11"
-                  height="11"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
+                  className="animate-pulse"
+                  aria-hidden="true"
                 >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
-                Eliminar Demo
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Global header alert banner */}
-        {globalAlertServices.length > 0 && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-rose-500/20 via-orange-500/10 to-rose-950/20 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)] flex items-start gap-4 animate-slide-up relative z-10"
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/20 text-rose-400 border border-rose-500/30 shrink-0">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className="animate-pulse"
-                aria-hidden="true"
-              >
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-black text-rose-400 uppercase tracking-widest">
-                Atención: Vencimientos Inmediatos
-              </h4>
-              <p className="text-xs text-slate-300 font-semibold mt-1">
-                Tienes {globalAlertServices.length}{' '}
-                {globalAlertServices.length === 1
-                  ? 'servicio vencido o que vence hoy'
-                  : 'servicios vencidos o que vencen hoy'}
-                . Por favor, regístralo o realízalo cuanto antes:
-              </p>
-              <ul className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-400 font-bold">
-                {globalAlertServices.map((s) => {
-                  const statusInfo = getServiceStatus(s);
-                  return (
-                    <li
-                      key={s.id}
-                      className="px-2.5 py-1 rounded-md bg-black/40 border border-white/5 flex items-center gap-1.5 hover:border-white/10 transition duration-200"
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${statusInfo.status === 'VENCIDO' ? 'bg-rose-500 animate-pulse' : 'bg-orange-500 animate-pulse'}`}
-                      ></span>
-                      <span className="text-slate-300">{s.name}</span>
-                      <span className="text-slate-500 font-semibold">
-                        ({months[s.paymentMonth]})
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-col items-center gap-6 mb-8 pb-6 border-b border-white/10">
-          <h2 className="text-3xl font-black text-white tracking-tight">
-            {months[currentMonthIndex]}
-          </h2>
-
-          <div className="w-full flex flex-col gap-6">
-            {/* Tarjetas de Hero */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
-              {/* Liquidez Card */}
-              <div className="relative overflow-hidden glass-premium bg-gradient-to-br from-emerald-950/20 via-slate-900/60 to-slate-950 border border-emerald-500/20 hover:border-emerald-500/40 rounded-2xl p-6 flex items-center gap-5 shadow-lg glow-emerald group hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
-                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all duration-300"></div>
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 relative z-10 shrink-0">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                    <circle cx="12" cy="12" r="2"></circle>
-                    <path d="M6 12h.01M18 12h.01"></path>
-                  </svg>
-                </div>
-                <div className="flex flex-col relative z-10 overflow-hidden">
-                  <span className="text-xs font-bold text-emerald-400/80 tracking-wider uppercase">
-                    Liquidez (Dinero en Mano)
-                  </span>
-                  <h3 className="text-3xl sm:text-4xl font-extrabold text-white mt-1.5 tracking-tight truncate">
-                    {formatCurrency(liquidity)}
-                  </h3>
-                </div>
               </div>
-
-              {/* Proyección Card */}
-              <div
-                className={`relative overflow-hidden glass-premium bg-gradient-to-br ${remaining < 0 ? 'from-rose-950/20 border-rose-500/20 hover:border-rose-500/40 glow-rose' : 'from-sky-950/20 border-sky-500/20 hover:border-sky-500/40 glow-sky'} via-slate-900/60 to-slate-950 rounded-2xl p-6 flex items-center gap-5 shadow-lg group hover:-translate-y-1 hover:shadow-2xl transition-all duration-300`}
-              >
-                <div
-                  className={`absolute -right-6 -bottom-6 w-24 h-24 ${remaining < 0 ? 'bg-rose-500/10 group-hover:bg-rose-500/20' : 'bg-sky-500/10 group-hover:bg-sky-500/20'} rounded-full blur-2xl transition-all duration-300`}
-                ></div>
-                <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center ${remaining < 0 ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-sky-500/10 border-sky-500/20 text-sky-400'} relative z-10 shrink-0`}
-                >
-                  {remaining < 0 ? (
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <path d="M22 17l-6-6-4 4-8-8"></path>
-                      <polyline points="16 17 22 17 22 11"></polyline>
-                    </svg>
-                  ) : (
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <path d="M22 7l-6 6-4-4-8 8"></path>
-                      <polyline points="22 13 22 7 16 7"></polyline>
-                    </svg>
-                  )}
-                </div>
-                <div className="flex flex-col relative z-10 overflow-hidden">
-                  <span
-                    className={`text-xs font-bold ${remaining < 0 ? 'text-rose-400/80' : 'text-sky-400/80'} tracking-wider uppercase`}
-                  >
-                    Proyección Fin de Mes
-                  </span>
-                  <h3
-                    className={`text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-tight truncate ${remaining < 0 ? 'text-rose-400' : 'text-sky-400'}`}
-                  >
-                    {formatCurrency(remaining)}
-                  </h3>
-                </div>
-              </div>
-            </div>
-
-            {/* Indicadores Secundarios */}
-            <div
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 animate-slide-up"
-              style={{ animationDelay: '0.1s' }}
-            >
-              {/* Ingresos */}
-              <div className="glass-premium border-white/5 hover:border-emerald-500/30 hover:bg-slate-900/70 p-4 rounded-xl flex flex-col justify-between hover:shadow-lg hover:shadow-emerald-500/5 hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
-                    Ingresos
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"></span>
-                </div>
-                <h4 className="text-xl font-black text-white">
-                  {formatCurrency(totalIncome)}
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-black text-rose-600 uppercase tracking-wider">
+                  Atención: Vencimientos Inmediatos
                 </h4>
-              </div>
-
-              {/* Gastos Totales */}
-              <div className="glass-premium border-white/5 hover:border-sky-500/30 hover:bg-slate-900/70 p-4 rounded-xl flex flex-col justify-between hover:shadow-lg hover:shadow-sky-500/5 hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
-                    Gastos
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.7)]"></span>
-                </div>
-                <h4 className="text-xl font-black text-white">
-                  {formatCurrency(totalGeneral)}
-                </h4>
-              </div>
-
-              {/* Deuda Pendiente */}
-              <div className="glass-premium border-white/5 hover:border-purple-500/30 hover:bg-slate-900/70 p-4 rounded-xl flex flex-col justify-between hover:shadow-lg hover:shadow-purple-500/5 hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
-                    Por Pagar
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.7)]"></span>
-                </div>
-                <h4 className="text-xl font-black text-white">
-                  {formatCurrency(totalDebt)}
-                </h4>
-              </div>
-
-              {/* Total Pagado */}
-              <div className="glass-premium border-white/5 hover:border-teal-500/30 hover:bg-slate-900/70 p-4 rounded-xl flex flex-col justify-between hover:shadow-lg hover:shadow-teal-500/5 hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
-                    Pagados
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.7)]"></span>
-                </div>
-                <h4 className="text-xl font-black text-white">
-                  {formatCurrency(totalPaid)}
-                </h4>
-              </div>
-
-              {/* Serv. Atrasados */}
-              <div className="col-span-2 sm:col-span-1 glass-premium border-white/5 bg-rose-500/5 hover:border-rose-500/40 hover:bg-rose-500/10 p-4 rounded-xl flex flex-col justify-between hover:shadow-lg hover:shadow-rose-500/10 hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-rose-400 tracking-wider uppercase">
-                    Atrasado
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]"></span>
-                </div>
-                <h4 className="text-xl font-black text-rose-400">
-                  {formatCurrency(totalOverdue)}
-                </h4>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Alertas e Insights */}
-        {activePanelsCount > 0 && (
-          <div className={`grid ${gridColsClass} gap-6 mb-8`}>
-            {showInsights && (
-              <div
-                id="insights-panel"
-                className="p-5 rounded-2xl text-sm glass-premium bg-sky-500/5 border-l-4 border-sky-500 text-sky-200 animate-slide-up flex flex-col justify-center"
-              >
-                {insightContent}
-              </div>
-            )}
-
-            {nextVencimientos.length > 0 && (
-              <div
-                id="vencimientos-panel"
-                className="p-5 rounded-2xl text-sm glass-premium bg-amber-500/5 border-l-4 border-amber-500 animate-slide-up flex flex-col justify-between"
-              >
-                <div className="flex flex-col">
-                  <h4 className="flex items-center gap-2 font-bold text-amber-400 mb-3">
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"
-                      ></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    Próximos Vencimientos del Mes
-                  </h4>
-                  <ul className="space-y-1 text-slate-300 font-semibold mb-2 max-h-[150px] overflow-y-auto pr-1">
-                    {nextVencimientos}
-                  </ul>
-                </div>
-                {unpaidServices.length > 5 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowAllVencimientos(!showAllVencimientos)
-                    }
-                    className="text-[10px] text-amber-400 hover:text-amber-300 font-bold uppercase tracking-wider mt-1.5 transition cursor-pointer self-start focus:outline-none"
-                  >
-                    {showAllVencimientos
-                      ? 'Mostrar menos'
-                      : `Ver todos (+${unpaidServices.length - 5})`}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {reminders.length > 0 && (
-              <div
-                id="reminders-panel"
-                className="p-5 rounded-2xl text-sm glass-premium bg-indigo-500/5 border-l-4 border-indigo-500 animate-slide-up flex flex-col"
-              >
-                <h4 className="flex items-center gap-2 font-bold text-indigo-400 mb-2">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                  </svg>
-                  Recordatorios y Avisos
-                </h4>
-                <ul
-                  id="reminders-list"
-                  className="space-y-1.5 text-indigo-200/80 list-disc pl-5 font-semibold"
-                >
-                  {reminders.map((r, index) => (
-                    <li key={index} className="marker:text-indigo-500">
-                      {r}
-                    </li>
-                  ))}
+                <p className="text-xs text-slate-600 font-semibold mt-1">
+                  Tienes {globalAlertServices.length}{' '}
+                  {globalAlertServices.length === 1
+                    ? 'servicio vencido o que vence hoy'
+                    : 'servicios vencidos o que vencen hoy'}
+                  . Regístralo o realízalo cuanto antes:
+                </p>
+                <ul className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-500 font-bold">
+                  {globalAlertServices.map((s) => {
+                    const statusInfo = getServiceStatus(s);
+                    return (
+                      <li
+                        key={s.id}
+                        className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center gap-1.5 hover:border-slate-300 transition duration-200"
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${statusInfo.status === 'VENCIDO' ? 'bg-rose-500 animate-pulse' : 'bg-orange-500 animate-pulse'}`}
+                        ></span>
+                        <span className="text-slate-700">{s.name}</span>
+                        <span className="text-slate-400 font-semibold">
+                          ({months[s.paymentMonth]})
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Grid de Formulario y Listas */}
-        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8">
-          <div className="space-y-6">
-            {/* <CalendarWidget
-              services={services}
-              currentMonthIndex={currentMonthIndex}
-              selectedDay={selectedDay}
-              onSelectDay={setSelectedDay}
-            /> */}
-            <ServiceForm
-              onSubmit={onSaveItem}
-              editingItem={editingItem}
-              onCancelEdit={() => setEditingItem(null)}
-              currentMonthIndex={currentMonthIndex}
-              onImportPrevious={onImportPrevious}
-              showImportButton={showImportButton}
-              previousMonthName={previousMonthName}
-            />
-          </div>
+          {/* Three Summary Cards (Balance, Income, Expenses) */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Balance Total Card */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 hover:shadow-md transition duration-300 flex flex-col justify-between min-h-[140px]">
+              <div>
+                <span className="text-xs font-bold text-slate-500 tracking-wide uppercase">
+                  Balance Total
+                </span>
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                  text-4xl, font-bold, text-emerald-600
+                </p>
+              </div>
+              <h3 className="text-3xl font-bold text-emerald-600 tracking-tight mt-4 truncate">
+                {formatCurrency(liquidity)}
+              </h3>
+            </div>
 
-          <section className="space-y-8">
-            <ServiceList
-              title={getListTitle('Ingresos del Mes', 'income')}
-              items={getFilteredItems('income')}
-              type="income"
-              onEdit={onEdit}
-              onDelete={onDeleteItem}
-              onTogglePaid={onTogglePaid}
-              onSimulate={onOpenModal}
-            />
+            {/* Ingresos este Mes Card */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 hover:shadow-md transition duration-300 flex flex-col justify-between min-h-[140px]">
+              <div>
+                <span className="text-xs font-bold text-slate-500 tracking-wide uppercase">
+                  Ingresos este Mes
+                </span>
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                  Monto total reportado
+                </p>
+              </div>
+              <h3 className="text-3xl font-bold text-emerald-600 tracking-tight mt-4 truncate">
+                +{formatCurrency(totalIncome)}
+              </h3>
+            </div>
 
-            <ServiceList
-              title={getListTitle('Servicios Regulares', 'service')}
-              items={getFilteredItems('service')}
-              type="service"
-              onEdit={onEdit}
-              onDelete={onDeleteItem}
-              onTogglePaid={onTogglePaid}
-              onSimulate={onOpenModal}
-            />
-
-            <ServiceList
-              title={getListTitle('Préstamos Activos', 'loan')}
-              items={getFilteredItems('loan')}
-              type="loan"
-              onEdit={onEdit}
-              onDelete={onDeleteItem}
-              onTogglePaid={onTogglePaid}
-              onSimulate={onOpenModal}
-            />
-
-            <ServiceList
-              title={getListTitle('Servicios Atrasados', 'overdue')}
-              items={getFilteredItems('overdue')}
-              type="overdue"
-              onEdit={onEdit}
-              onDelete={onDeleteItem}
-              onTogglePaid={onTogglePaid}
-              onSimulate={onOpenModal}
-            />
+            {/* Gastos este Mes Card */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 hover:shadow-md transition duration-300 flex flex-col justify-between min-h-[140px]">
+              <div>
+                <span className="text-xs font-bold text-slate-500 tracking-wide uppercase">
+                  Gastos este Mes
+                </span>
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                  Servicios y obligaciones
+                </p>
+              </div>
+              <h3 className="text-3xl font-bold text-slate-900 tracking-tight mt-4 truncate">
+                -{formatCurrency(totalGeneral)}
+              </h3>
+            </div>
           </section>
-        </div>
-      </main>
-      <footer className="w-full text-center py-6 text-[10px] text-slate-500 font-semibold tracking-wider select-none flex flex-col sm:flex-row justify-center items-center gap-1">
-        <span>ServiTrack v1.3.0</span>
-        <span className="hidden sm:inline">|</span>
-        <span>
-          Creado por{' '}
-          <span className="text-slate-400">
-            Rodrigo Alejandro Aguirre Tevez
+
+          {/* Donut Chart & Alerts Row */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Category Expenses Donut Chart Card */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100">
+              <h3 className="text-sm font-bold text-slate-800 tracking-wider uppercase mb-6 flex items-center justify-between">
+                <span>Gráfico de Gastos por Categoría</span>
+                <span className="text-[10px] text-slate-400 font-semibold">Este Mes</span>
+              </h3>
+              
+              {activeCategories.length === 0 ? (
+                <div className="h-[200px] flex flex-col items-center justify-center text-slate-400 select-none border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="mb-2 text-slate-300">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <p className="text-xs font-bold">Sin Gastos Registrados</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Agrega servicios para ver el gráfico.</p>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-6 min-h-[200px]">
+                  {/* Canvas Container */}
+                  <div className="relative w-40 h-40 shrink-0">
+                    <canvas ref={donutCanvasRef}></canvas>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Total</span>
+                      <span className="text-sm font-extrabold text-slate-800">{formatCurrency(totalExpenses)}</span>
+                    </div>
+                  </div>
+
+                  {/* Legend list */}
+                  <ul className="flex-1 w-full space-y-2 text-xs font-semibold text-slate-600">
+                    {activeCategories.map((cat, idx) => (
+                      <li key={idx} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-b-0">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }}></span>
+                          <span>{cat.name}</span>
+                        </span>
+                        <span className="text-slate-800 font-bold">
+                          {cat.percentage}% ({formatCurrency(cat.amount)})
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Resumen de Cuentas (Vencimientos & Insights) */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm shadow-slate-100 flex flex-col justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 tracking-wider uppercase mb-4 flex items-center justify-between">
+                  <span>Resumen de Cuentas</span>
+                  <span className="text-[10px] text-slate-400 font-semibold">Obligaciones</span>
+                </h3>
+
+                {/* Vencimientos list */}
+                {nextVencimientos.length > 0 ? (
+                  <ul className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                    {nextVencimientos.map((vNode, idx) => {
+                      const item = unpaidServices[idx];
+                      if (!item) return null;
+                      const dateStr = item.dueDate ? item.dueDate.split('-').reverse().slice(0,2).join('/') : '';
+                      return (
+                        <li key={idx} className="py-2.5 flex justify-between items-center">
+                          <span className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${item.statusInfo.status === 'VENCIDO' ? 'bg-rose-500' : 'bg-amber-400'}`}></span>
+                            <span className="text-slate-800 font-bold">{item.name}</span>
+                          </span>
+                          <span className="text-slate-500 font-bold">
+                            {dateStr} ({formatCurrency(item.amount)})
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <div className="py-8 text-center text-xs font-bold text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    Ninguna cuenta o vencimiento pendiente
+                  </div>
+                )}
+              </div>
+
+              {/* Insights / Inteligencia block */}
+              {showInsights && (
+                <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                  <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-sky-500">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    Análisis Inteligente
+                  </h4>
+                  {insightContent}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Form and Main lists layout */}
+          <div id="services-list-container" className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8">
+            {/* Form card */}
+            <div className="space-y-6">
+              <ServiceForm
+                onSubmit={onSaveItem}
+                editingItem={editingItem}
+                onCancelEdit={() => setEditingItem(null)}
+                currentMonthIndex={currentMonthIndex}
+                onImportPrevious={onImportPrevious}
+                showImportButton={showImportButton}
+                previousMonthName={previousMonthName}
+              />
+            </div>
+
+            {/* List panels */}
+            <section className="space-y-8">
+              <ServiceList
+                title={getListTitle('Ingresos del Mes', 'income')}
+                items={getFilteredItems('income')}
+                type="income"
+                onEdit={onEdit}
+                onDelete={onDeleteItem}
+                onTogglePaid={onTogglePaid}
+                onSimulate={onOpenModal}
+              />
+
+              <ServiceList
+                title={getListTitle('Servicios Regulares', 'service')}
+                items={getFilteredItems('service')}
+                type="service"
+                onEdit={onEdit}
+                onDelete={onDeleteItem}
+                onTogglePaid={onTogglePaid}
+                onSimulate={onOpenModal}
+              />
+
+              <ServiceList
+                title={getListTitle('Préstamos Activos', 'loan')}
+                items={getFilteredItems('loan')}
+                type="loan"
+                onEdit={onEdit}
+                onDelete={onDeleteItem}
+                onTogglePaid={onTogglePaid}
+                onSimulate={onOpenModal}
+              />
+
+              <ServiceList
+                title={getListTitle('Servicios Atrasados', 'overdue')}
+                items={getFilteredItems('overdue')}
+                type="overdue"
+                onEdit={onEdit}
+                onDelete={onDeleteItem}
+                onTogglePaid={onTogglePaid}
+                onSimulate={onOpenModal}
+              />
+            </section>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="w-full text-center py-6 text-[10px] text-slate-400 font-semibold border-t border-slate-200/50 mt-12 bg-white flex flex-col sm:flex-row justify-center items-center gap-1">
+          <span>ServiTrack v1.3.0</span>
+          <span className="hidden sm:inline">|</span>
+          <span>
+            Creado por{' '}
+            <span className="text-slate-600">
+              Rodrigo Alejandro Aguirre Tevez
+            </span>
           </span>
-        </span>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }
+
