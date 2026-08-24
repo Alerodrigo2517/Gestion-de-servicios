@@ -313,13 +313,13 @@ export default function ServiceCard({
   const statusInfo = getServiceStatus(item);
 
   let cardClass =
-    'flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-2xl transition-all duration-300 gap-4 ';
+    'flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 rounded-3xl transition-all duration-300 gap-4 ';
   if (isPaid) {
     cardClass +=
-      'bg-slate-50/70 border border-slate-100 opacity-60 hover:opacity-100 hover:bg-slate-100/50';
+      'bg-slate-50/70 border border-slate-100 opacity-60 hover:opacity-100 hover:bg-slate-100/50 hover:shadow-md';
   } else {
     cardClass +=
-      'bg-white border border-slate-100 shadow-sm hover-lift';
+      'bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] hover:shadow-[0_8px_30px_-5px_rgba(6,81,237,0.15)] hover:-translate-y-1';
   }
 
   let metaText = '';
@@ -452,7 +452,7 @@ export default function ServiceCard({
       <div className="flex items-center justify-between sm:justify-end gap-5 w-full sm:w-auto shrink-0 border-t border-slate-100 sm:border-0 pt-3 sm:pt-0">
         {/* Amount */}
         <div
-          className={`text-base font-extrabold text-slate-800 ${type === 'income' ? 'text-emerald-600' : ''}`}
+          className={`text-xl font-black tracking-tight text-slate-800 ${type === 'income' ? 'text-emerald-600 drop-shadow-sm' : ''}`}
         >
           {formatCurrency(item.amount)}
         </div>

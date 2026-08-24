@@ -26,11 +26,11 @@ export default function ServiceList({
     switch (type) {
       case 'income':
         return (
-          <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center animate-fade-in select-none">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 mb-3.5 shadow-sm shadow-emerald-100/50">
+          <div className="flex flex-col items-center justify-center p-10 rounded-3xl bg-white/40 backdrop-blur-md border border-dashed border-slate-300/60 shadow-sm text-center animate-fade-in select-none">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 mb-4 shadow-[0_8px_30px_-5px_rgba(16,185,129,0.15)] transition-transform hover:scale-110">
               <svg
-                width="20"
-                height="20"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -50,11 +50,11 @@ export default function ServiceList({
         );
       case 'service':
         return (
-          <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center animate-fade-in select-none">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-sky-50 text-sky-600 border border-sky-100 mb-3.5 shadow-sm shadow-sky-100/50">
+          <div className="flex flex-col items-center justify-center p-10 rounded-3xl bg-white/40 backdrop-blur-md border border-dashed border-slate-300/60 shadow-sm text-center animate-fade-in select-none">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-sky-50 text-sky-600 border border-sky-100 mb-4 shadow-[0_8px_30px_-5px_rgba(14,165,233,0.15)] transition-transform hover:scale-110">
               <svg
-                width="20"
-                height="20"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -73,11 +73,11 @@ export default function ServiceList({
         );
       case 'loan':
         return (
-          <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center animate-fade-in select-none">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-50 text-purple-600 border border-purple-100 mb-3.5 shadow-sm shadow-purple-100/50">
+          <div className="flex flex-col items-center justify-center p-10 rounded-3xl bg-white/40 backdrop-blur-md border border-dashed border-slate-300/60 shadow-sm text-center animate-fade-in select-none">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-purple-50 text-purple-600 border border-purple-100 mb-4 shadow-[0_8px_30px_-5px_rgba(168,85,247,0.15)] transition-transform hover:scale-110">
               <svg
-                width="20"
-                height="20"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -99,11 +99,11 @@ export default function ServiceList({
         );
       case 'overdue':
         return (
-          <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-emerald-50/50 border border-dashed border-emerald-200 text-center animate-fade-in select-none">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 mb-3.5 shadow-sm shadow-emerald-100/50">
+          <div className="flex flex-col items-center justify-center p-10 rounded-3xl bg-white/40 backdrop-blur-md border border-dashed border-slate-300/60 shadow-sm text-center animate-fade-in select-none">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 mb-4 shadow-[0_8px_30px_-5px_rgba(16,185,129,0.15)] transition-transform hover:scale-110">
               <svg
-                width="20"
-                height="20"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"

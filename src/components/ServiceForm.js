@@ -319,7 +319,7 @@ export default function ServiceForm({
   };
 
   return (
-    <section ref={formRef} className="bg-white border border-slate-100 rounded-2xl p-6 self-start shadow-sm shadow-slate-100 hover:shadow-md transition-all duration-300 w-full animate-slide-up relative overflow-hidden">
+    <section ref={formRef} className="bg-white/80 backdrop-blur-2xl border border-white rounded-3xl p-8 self-start shadow-[0_8px_30px_-5px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_40px_-5px_rgba(6,81,237,0.15)] transition-all duration-500 w-full animate-slide-up relative overflow-hidden">
       {/* Glow Line indicator on top */}
       <div
         className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r transition-all duration-500 ${
@@ -390,31 +390,31 @@ export default function ServiceForm({
         className={`${isCollapsed ? 'hidden lg:block' : 'block'} mt-5 animate-fade-in`}
       >
         {/* Tabs Selector Segmented Control */}
-        <div className="flex p-1 bg-slate-100 rounded-xl mb-6 gap-1 border border-slate-200/50">
+        <div className="flex p-1.5 bg-slate-100/50 backdrop-blur-sm rounded-2xl mb-8 gap-1 border border-slate-200/50 shadow-inner">
           {[
             {
               key: 'income',
               label: 'Ingreso',
               activeClass:
-                'bg-white border-slate-200/60 text-emerald-600 font-black shadow-sm',
+                'bg-white border-white text-emerald-600 font-black shadow-[0_2px_10px_-3px_rgba(16,185,129,0.3)]',
             },
             {
               key: 'service',
               label: 'Servicio',
               activeClass:
-                'bg-white border-slate-200/60 text-sky-600 font-black shadow-sm',
+                'bg-white border-white text-sky-600 font-black shadow-[0_2px_10px_-3px_rgba(14,165,233,0.3)]',
             },
             {
               key: 'loan',
               label: 'Préstamo',
               activeClass:
-                'bg-white border-slate-200/60 text-purple-600 font-black shadow-sm',
+                'bg-white border-white text-purple-600 font-black shadow-[0_2px_10px_-3px_rgba(168,85,247,0.3)]',
             },
             {
               key: 'overdue',
               label: 'Atrasado',
               activeClass:
-                'bg-white border-slate-200/60 text-rose-600 font-black shadow-sm',
+                'bg-white border-white text-rose-600 font-black shadow-[0_2px_10px_-3px_rgba(244,63,94,0.3)]',
             },
           ].map((tab) => {
             const isActive = type === tab.key;
@@ -423,10 +423,10 @@ export default function ServiceForm({
                 key={tab.key}
                 type="button"
                 onClick={() => setType(tab.key)}
-                className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all duration-300 border border-transparent cursor-pointer ${
+                className={`flex-1 py-2.5 text-center text-[11px] font-bold rounded-xl transition-all duration-300 border border-transparent cursor-pointer ${
                   isActive
-                    ? tab.activeClass + ' scale-[1.01]'
-                    : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                    ? tab.activeClass + ' scale-[1.02]'
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-white/40'
                 }`}
               >
                 {tab.label}
@@ -478,7 +478,7 @@ export default function ServiceForm({
                 maxLength={100}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                className={`w-full pl-11 pr-4 py-3.5 bg-white/70 border border-slate-200/80 rounded-2xl text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-300 shadow-inner ${getFocusRing()}`}
               />
             </div>
           </div>
@@ -511,7 +511,7 @@ export default function ServiceForm({
                 aria-describedby={amountError ? 'amount-error' : undefined}
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-slate-800 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200 ${getFocusRing()}`}
+                className={`w-full pl-11 pr-4 py-3.5 bg-white/70 border border-slate-200/80 rounded-2xl text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-300 shadow-inner ${getFocusRing()}`}
               />
             </div>
             {amountError && (
