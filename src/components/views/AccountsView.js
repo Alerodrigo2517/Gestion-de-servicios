@@ -68,7 +68,7 @@ export default function AccountsView({
   }
 
   return (
-    <div id="services-list-container" className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8 animate-fade-in">
+    <div id="services-list-container" className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8 animate-fade-in pb-10">
       {/* Form card */}
       <div className="space-y-6">
         <ServiceForm

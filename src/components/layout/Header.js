@@ -70,18 +70,18 @@ export default function Header({
   return (
     <>
       {/* Main Header */}
-      <header className="w-full px-6 py-6 bg-white border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <header className="w-full px-8 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Hola, {userName}! 👋
+          <h2 className="text-3xl font-black text-slate-800 tracking-tighter">
+            Hola, {userName} 👋
           </h2>
-          <p className="text-xs font-semibold text-slate-500 mt-0.5">
-            Aquí tienes el resumen y control de tus finanzas para este mes.
+          <p className="text-sm font-semibold text-slate-400 mt-1">
+            Aquí tienes el resumen y control de tus finanzas.
           </p>
         </div>
 
-        {/* Action buttons (Import, Excel) */}
-        <div className="flex items-center gap-2">
+        {/* Action buttons (Import, Excel) - Sleek Ghost Style */}
+        <div className="flex items-center gap-3">
           <input
             type="file"
             id="import-excel"
@@ -92,42 +92,45 @@ export default function Header({
           />
 
           <button
-            className="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200/80 text-slate-700 rounded-xl flex items-center gap-2 border border-slate-200 transition duration-200 cursor-pointer"
+            className="group px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 bg-transparent hover:bg-slate-100 rounded-xl flex items-center gap-2 transition-all cursor-pointer"
             onClick={() => fileInputRef.current.click()}
             type="button"
+            title="Importar Excel"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform group-hover:-translate-y-0.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            Importar
+            <span className="hidden sm:inline">Importar</span>
           </button>
 
           <button
-            className="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl flex items-center gap-2 transition duration-200 shadow-sm active:scale-[0.98] cursor-pointer"
+            className="group px-4 py-2.5 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl flex items-center gap-2 transition-all cursor-pointer"
             onClick={handleExportExcel}
             type="button"
+            title="Exportar a Excel"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform group-hover:translate-y-0.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Excel
+            <span className="hidden sm:inline">Exportar</span>
           </button>
         </div>
       </header>
 
-      {/* Month Navigation */}
-      <nav className="w-full px-6 flex py-3 bg-white border-b border-slate-200/60 sticky top-0 z-20 lg:py-4 lg:bg-slate-50/50 lg:border-b-0 lg:static lg:z-10 justify-center">
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-none w-full lg:w-auto lg:bg-slate-200/50 lg:border lg:border-slate-200/60 lg:p-1 lg:rounded-2xl lg:shadow-inner lg:shadow-slate-300/30">
+      {/* Month Navigation (Sleek Tabs) */}
+      <nav className="w-full px-8 pb-4 sticky top-0 z-20 lg:static bg-[#f8fafc]/80 backdrop-blur-md">
+        <div className="flex gap-1 overflow-x-auto scrollbar-none w-full bg-slate-200/50 p-1.5 rounded-2xl">
           {months.map((month, index) => {
             const isActive = index === currentMonthIndex;
             const pendingCount = getPendingCountForMonth(index);
+            
             const btnClass = isActive
-              ? 'px-4 py-2.5 text-center text-xs font-black bg-slate-900 text-white rounded-xl shadow-sm lg:bg-white lg:text-slate-900 lg:shadow-md lg:shadow-slate-200/60 transition-all duration-200'
-              : 'px-4 py-2.5 text-center text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hover:bg-white/40 lg:hover:text-slate-800 rounded-xl transition-all duration-200';
+              ? 'px-5 py-2 text-center text-[11px] font-black bg-white text-slate-800 rounded-xl shadow-sm transition-all duration-300'
+              : 'px-5 py-2 text-center text-[11px] font-bold text-slate-500 hover:text-slate-700 hover:bg-white/40 rounded-xl transition-all duration-300';
 
             return (
               <button
@@ -141,8 +144,7 @@ export default function Header({
               >
                 {month.substring(0, 3)}
                 {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white shadow-sm shadow-rose-500/35 lg:top-0 lg:right-0 lg:translate-x-1 lg:-translate-y-1">
-                    {pendingCount}
+                  <span className={`absolute top-1 right-1 flex h-1.5 w-1.5 rounded-full ${isActive ? 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.6)] animate-pulse' : 'bg-rose-400'}`}>
                   </span>
                 )}
               </button>
