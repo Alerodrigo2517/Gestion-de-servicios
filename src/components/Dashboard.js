@@ -64,6 +64,8 @@ export default function Dashboard({
   const profileRef = useRef(null);
   const profileRefDesktop = useRef(null);
 
+  const [activeView, setActiveView] = useState('inicio');
+
   const [userName, setUserName] = useState('Alejandro');
   const donutCanvasRef = useRef(null);
   const donutChartRef = useRef(null);
@@ -553,10 +555,13 @@ export default function Dashboard({
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           <button
             type="button"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-emerald-500 text-white bg-gradient-to-r from-emerald-500/10 to-slate-800/40 shadow-sm transition"
+            onClick={() => {
+              setActiveView('inicio');
+              setIsMobileMenuOpen(false);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 transition ${activeView === 'inicio' ? 'border-emerald-500 text-white bg-gradient-to-r from-emerald-500/10 to-slate-800/40 shadow-sm' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={activeView === 'inicio' ? 'text-emerald-400' : ''}>
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
@@ -566,13 +571,12 @@ export default function Dashboard({
           <button
             type="button"
             onClick={() => {
-              const el = document.getElementById('services-list-container');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              setActiveView('cuentas');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 transition ${activeView === 'cuentas' ? 'border-emerald-500 text-white bg-gradient-to-r from-emerald-500/10 to-slate-800/40 shadow-sm' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={activeView === 'cuentas' ? 'text-emerald-400' : ''}>
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
               <line x1="8" y1="2" x2="8" y2="6" />
@@ -599,13 +603,12 @@ export default function Dashboard({
           <button
             type="button"
             onClick={() => {
-              const el = document.getElementById('services-list-container');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              setActiveView('cuentas');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 transition ${activeView === 'cuentas' ? 'border-emerald-500 text-white bg-gradient-to-r from-emerald-500/10 to-slate-800/40 shadow-sm' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={activeView === 'cuentas' ? 'text-emerald-400' : ''}>
               <path d="M17 1l4 4-4 4" />
               <path d="M3 11V9a4 4 0 0 1 4-4h14" />
               <path d="M7 23l-4-4 4-4" />
@@ -617,13 +620,12 @@ export default function Dashboard({
           <button
             type="button"
             onClick={() => {
-              const el = document.getElementById('services-list-container');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              setActiveView('cuentas');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-white/5 transition"
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-r-xl border-l-4 transition ${activeView === 'cuentas' ? 'border-emerald-500 text-white bg-gradient-to-r from-emerald-500/10 to-slate-800/40 shadow-sm' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={activeView === 'cuentas' ? 'text-emerald-400' : ''}>
               <polygon points="12 2 2 7 12 12 22 7 12 2" />
               <polyline points="2 17 12 22 22 17" />
               <polyline points="2 12 12 17 22 12" />
@@ -986,7 +988,9 @@ export default function Dashboard({
           )}
 
           {/* Tarjetas de Hero (Liquidez y Proyección) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
+          {activeView === 'inicio' && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
             {/* Liquidez Card */}
             <div className="relative overflow-hidden bg-white border-l-4 border-l-emerald-500 border border-slate-200/60 rounded-2xl p-6 flex items-center justify-between gap-5 hover-lift transition duration-300">
               <div className="min-w-0 flex-1">
@@ -1263,9 +1267,12 @@ export default function Dashboard({
               )}
             </div>
           </section>
+          </>
+          )}
 
           {/* Form and Main lists layout */}
-          <div id="services-list-container" className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8">
+          {activeView === 'cuentas' && (
+          <div id="services-list-container" className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8 animate-fade-in">
             {/* Form card */}
             <div className="space-y-6">
               <ServiceForm
@@ -1322,6 +1329,7 @@ export default function Dashboard({
               />
             </section>
           </div>
+          )}
         </main>
 
         {/* Footer */}
