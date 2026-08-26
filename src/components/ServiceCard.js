@@ -313,13 +313,13 @@ export default function ServiceCard({
   const statusInfo = getServiceStatus(item);
 
   let cardClass =
-    'flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 rounded-3xl transition-all duration-300 gap-4 ';
+    'flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 rounded-3xl transition-all duration-300 gap-4 group cursor-pointer ';
   if (isPaid) {
     cardClass +=
-      'bg-slate-50/70 border border-slate-100 opacity-60 hover:opacity-100 hover:bg-slate-100/50 hover:shadow-md';
+      'bg-white/40 backdrop-blur-md border border-white/40 shadow-sm opacity-60 hover:opacity-100 hover:bg-white/60 hover:-translate-y-0.5';
   } else {
     cardClass +=
-      'bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] hover:shadow-[0_8px_30px_-5px_rgba(6,81,237,0.15)] hover:-translate-y-1';
+      'bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.05)] hover:bg-white hover:border-slate-200/50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.08)] hover:-translate-y-1';
   }
 
   let metaText = '';

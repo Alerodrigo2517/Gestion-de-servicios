@@ -188,14 +188,14 @@ export default function HomeView({
 
     const ctx = donutCanvasRef.current.getContext('2d');
     donutChartRef.current = new Chart(ctx, {
-      type: 'doughnut',
+      type: 'bar',
       data: {
         labels: activeCategories.map(c => c.name),
         datasets: [{
           data: activeCategories.map(c => c.amount),
           backgroundColor: activeCategories.map(c => c.color),
+          borderRadius: 6,
           borderWidth: 0,
-          hoverOffset: 6
         }]
       },
       options: {
@@ -211,15 +211,30 @@ export default function HomeView({
             cornerRadius: 12,
             callbacks: {
               label: function(context) {
-                const label = context.label || '';
-                const value = context.parsed || 0;
+                const label = context.dataset.label || '';
+                const value = context.parsed.y || 0;
                 const percent = totalExpenses > 0 ? Math.round((value / totalExpenses) * 100) : 0;
                 return ` ${label}: ${formatCurrency(value)} (${percent}%)`;
               }
             }
           }
         },
-        cutout: '75%'
+        scales: {
+          y: {
+            display: false,
+            beginAtZero: true,
+          },
+          x: {
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              font: { family: 'var(--font-inter)', size: 11, weight: '600' },
+              color: '#94a3b8'
+            }
+          }
+        }
       }
     });
 
@@ -321,48 +336,65 @@ export default function HomeView({
         </div>
       )}
 
-      {/* Tarjetas de Hero (Liquidez y Proyección) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
-        {/* Liquidez Card */}
-        <div className="relative overflow-hidden bg-white rounded-3xl p-8 flex flex-col justify-between shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-500 group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500 transform group-hover:scale-110">
-            <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.7c.09 1.28 1.07 1.67 2.18 1.67 1.2 0 2.49-.61 2.49-1.95 0-1.71-3.95-1.4-3.95-4.11 0-1.58 1.2-2.58 2.85-2.93V5.41h2.67v1.95c1.4.3 2.5 1.23 2.65 2.9h-1.65c-.14-.99-.95-1.51-2.14-1.51-1.04 0-2.11.45-2.11 1.7 0 1.58 3.95 1.48 3.95 4.14 0 1.72-1.28 2.62-2.85 2.9z" />
-            </svg>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
-              <span className="text-xs font-black text-slate-400 tracking-widest uppercase">Liquidez Actual</span>
+      {/* Bento Grid layout */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-slide-up">
+        
+        {/* Main Hero Card (Total Balance/Liquidity) - Spans 8 cols */}
+        <div className="md:col-span-8 bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05)] rounded-3xl p-8 flex flex-col justify-between min-h-[240px] relative overflow-hidden group">
+          {/* Subtle mesh background effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-emerald-400/5 opacity-50 pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+          
+          <div className="relative z-10 flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+                <span className="text-xs font-black text-slate-500 tracking-widest uppercase">Liquidez Actual</span>
+              </div>
+              <h3 className="text-5xl sm:text-6xl font-black text-slate-800 tracking-tighter mt-1">
+                {formatCurrency(liquidity)}
+              </h3>
             </div>
-            <h3 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tighter mt-1">
-              {formatCurrency(liquidity)}
-            </h3>
+            
+            <div className="bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/80 shadow-sm flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${remaining >= 0 ? 'bg-emerald-400' : 'bg-rose-400 animate-pulse'}`}></span>
+              <span className="text-xs font-bold text-slate-600">
+                Proyección: {formatCurrency(remaining)}
+              </span>
+            </div>
           </div>
-          <p className="text-sm text-slate-500 font-medium mt-6 max-w-[200px] leading-snug">
-            Dinero real disponible en tus cuentas.
-          </p>
+
+          <div className="relative z-10 flex gap-4 mt-8">
+            <button className="flex-1 bg-white/70 backdrop-blur-md border border-white/80 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] text-slate-800 font-bold text-sm py-3.5 rounded-xl hover:bg-white transition-all hover:-translate-y-0.5 active:scale-95 flex justify-center items-center gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              Transferir
+            </button>
+            <button className="flex-1 bg-white/70 backdrop-blur-md border border-white/80 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] text-slate-800 font-bold text-sm py-3.5 rounded-xl hover:bg-white transition-all hover:-translate-y-0.5 active:scale-95 flex justify-center items-center gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+              Ingresar
+            </button>
+          </div>
         </div>
 
-        {/* Proyección Card */}
-        <div className="relative overflow-hidden bg-white rounded-3xl p-8 flex flex-col justify-between shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-500 group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-500 transform group-hover:scale-110">
-             <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
-            </svg>
-          </div>
+        {/* Proyección Card Mini (Savings Goal style) - Spans 4 cols */}
+        <div className="md:col-span-4 bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05)] rounded-3xl p-8 flex flex-col justify-between min-h-[240px] hover:-translate-y-1 transition-all duration-300">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${remaining < 0 ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]'}`}></span>
-              <span className="text-xs font-black text-slate-400 tracking-widest uppercase">Proyección a Fin de Mes</span>
-            </div>
-            <h3 className={`text-4xl sm:text-5xl font-black tracking-tighter mt-1 ${remaining < 0 ? 'text-rose-600' : 'text-slate-800'}`}>
-              {formatCurrency(remaining)}
-            </h3>
+            <div className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-1">Total Gastos (Pagados + Pendientes)</div>
+            <div className="font-black text-3xl text-slate-800 tracking-tight">{formatCurrency(totalGeneral)}</div>
+            <div className="font-bold text-xs text-rose-500 mt-2">Deuda pendiente: {formatCurrency(totalDebt)}</div>
           </div>
-          <p className="text-sm text-slate-500 font-medium mt-6 max-w-[200px] leading-snug">
-            Estimación de saldo tras pagar todas tus obligaciones.
-          </p>
+          
+          <div className="mt-6">
+            <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
+              <span>Pagado</span>
+              <span className="text-emerald-500">{totalGeneral > 0 ? Math.round((totalPaid / totalGeneral) * 100) : 0}%</span>
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden flex">
+              <div 
+                className="bg-gradient-to-r from-emerald-400 to-sky-400 h-full rounded-full transition-all duration-1000 ease-out" 
+                style={{ width: `${totalGeneral > 0 ? (totalPaid / totalGeneral) * 100 : 0}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -392,57 +424,35 @@ export default function HomeView({
         </div>
       </div>
 
-      {/* Donut Chart & Alerts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category Expenses Donut Chart Card */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col transition-all hover:shadow-md">
+      {/* Chart & Alerts Row */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        {/* Category Expenses Bar Chart Card - Spans 7 cols */}
+        <div className="md:col-span-7 bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05)] rounded-3xl p-8 flex flex-col transition-all hover:-translate-y-1 min-h-[320px]">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-sm font-black text-slate-800 tracking-wide">Gastos por Categoría</h3>
-            <span className="px-3 py-1 bg-slate-50 text-slate-500 rounded-full text-[10px] font-bold uppercase tracking-wider">Este Mes</span>
+            <h3 className="text-base font-black text-slate-800 tracking-wide">Gastos por Categoría</h3>
+            <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold uppercase tracking-wider">Este Mes</span>
           </div>
           
           {activeCategories.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-10">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mb-3 opacity-50">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M3 9h18" /><path d="M9 21V9" />
               </svg>
               <p className="text-sm font-bold text-slate-500">Sin datos registrados</p>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-10 flex-1">
-              {/* Canvas Container */}
-              <div className="relative w-48 h-48 shrink-0 drop-shadow-md">
-                <canvas ref={donutCanvasRef}></canvas>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total</span>
-                  <span className="text-lg font-black text-slate-800 mt-0.5">{formatCurrency(totalExpenses)}</span>
-                </div>
-              </div>
-
-              {/* Legend list */}
-              <ul className="flex-1 w-full space-y-3">
-                {activeCategories.map((cat, idx) => (
-                  <li key={idx} className="flex justify-between items-center group cursor-default">
-                    <span className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full shrink-0 shadow-sm transition-transform group-hover:scale-125" style={{ backgroundColor: cat.color }}></span>
-                      <span className="text-xs font-bold text-slate-600">{cat.name}</span>
-                    </span>
-                    <span className="text-xs text-slate-800 font-black">
-                      {cat.percentage}%
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex-1 flex flex-col justify-end min-h-0 w-full relative pt-4">
+              <canvas ref={donutCanvasRef} className="w-full h-full max-h-[220px]"></canvas>
             </div>
           )}
         </div>
 
-        {/* Resumen de Cuentas (Vencimientos & Insights) */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col transition-all hover:shadow-md">
+        {/* Resumen de Cuentas (Vencimientos & Insights) - Spans 5 cols */}
+        <div className="md:col-span-5 bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05)] rounded-3xl p-8 flex flex-col transition-all hover:-translate-y-1">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-sm font-black text-slate-800 tracking-wide">Próximos Vencimientos</h3>
+            <h3 className="text-base font-black text-slate-800 tracking-wide">Próximos Pagos</h3>
             {showInsights && insightContent && (
               <span className="flex items-center gap-1 text-[11px] font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -456,15 +466,15 @@ export default function HomeView({
           {/* Vencimientos list */}
           {unpaidServices.length > 0 ? (
             <div className="flex-1 flex flex-col">
-              <ul className="space-y-3 flex-1">
+              <ul className="space-y-2 flex-1">
                 {displayedVencimientos.map((item, idx) => {
                   const isOverdue = item.statusInfo.status === 'VENCIDO';
                   const dateFormatted = item.dueDate ? item.dueDate.split('-').reverse().slice(0,2).join('/') : '';
                   return (
-                    <li key={idx} className="flex justify-between items-center p-3 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isOverdue ? 'bg-rose-100 text-rose-500' : 'bg-white shadow-sm text-slate-400'}`}>
-                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <li key={idx} className="flex justify-between items-center p-3.5 rounded-2xl bg-white/60 hover:bg-white shadow-sm transition-all border border-slate-100/50">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isOverdue ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-500'}`}>
+                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                               <line x1="16" y1="2" x2="16" y2="6"></line>
                               <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -472,13 +482,13 @@ export default function HomeView({
                             </svg>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-800 truncate">{item.name}</p>
+                          <p className="text-sm font-black text-slate-800 truncate">{item.name}</p>
                           <p className={`text-[10px] font-bold mt-0.5 uppercase tracking-wide ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`}>
                             {isOverdue ? 'Vencido' : `Vence: ${dateFormatted}`}
                           </p>
                         </div>
                       </div>
-                      <span className="text-sm text-slate-900 font-black shrink-0 pl-4">
+                      <span className="text-sm text-slate-800 font-black shrink-0 pl-4">
                         {formatCurrency(item.amount)}
                       </span>
                     </li>
@@ -488,7 +498,7 @@ export default function HomeView({
               {unpaidServices.length > 5 && (
                 <button
                   onClick={() => setShowAllVencimientos(!showAllVencimientos)}
-                  className="w-full mt-4 text-center text-xs font-bold text-slate-500 hover:text-slate-800 transition py-3 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 cursor-pointer shadow-sm active:scale-95"
+                  className="w-full mt-4 text-center text-xs font-bold text-slate-600 hover:text-slate-800 transition py-3.5 bg-white/50 hover:bg-white rounded-xl border border-slate-200 cursor-pointer shadow-sm active:scale-95"
                   type="button"
                 >
                   {showAllVencimientos ? 'Mostrar menos' : `Ver todos los pendientes (${unpaidServices.length})`}

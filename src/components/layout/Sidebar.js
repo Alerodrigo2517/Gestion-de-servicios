@@ -28,9 +28,9 @@ export default function Sidebar({
         ></div>
       )}
 
-      {/* Sidebar: Navy Left Column on Desktop, Drawer on Mobile */}
+      {/* Sidebar: Glass Left Column on Desktop, Drawer on Mobile */}
       <aside
-        className={`fixed inset-y-0 left-0 w-[260px] bg-[#090f1d] text-slate-300 shrink-0 flex flex-col border-r border-white/5 z-50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 w-[260px] bg-white/60 backdrop-blur-2xl text-slate-600 shrink-0 flex flex-col border-r border-white/60 shadow-[4px_0_24px_-10px_rgba(0,0,0,0.05)] z-50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -45,9 +45,9 @@ export default function Sidebar({
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tighter text-white flex items-center gap-1">
+              <h1 className="text-lg font-black tracking-tighter text-slate-800 flex items-center gap-1">
                 <span>FINANZAS</span>
-                <span className="text-emerald-400">YA</span>
+                <span className="text-emerald-500">YA</span>
               </h1>
               <p className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">
                 ServiTrack Panel
@@ -58,7 +58,7 @@ export default function Sidebar({
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition cursor-pointer"
+            className="lg:hidden p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100/50 transition cursor-pointer"
             aria-label="Cerrar menú"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -76,15 +76,15 @@ export default function Sidebar({
               setActiveView('inicio');
               setIsMobileMenuOpen(false);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl transition-all duration-300 group ${activeView === 'inicio' ? 'text-white bg-white/10 shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl transition-all duration-300 group ${activeView === 'inicio' ? 'text-emerald-700 bg-emerald-50 shadow-inner' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'}`}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform duration-300 group-hover:scale-110 ${activeView === 'inicio' ? 'text-emerald-400' : ''}`}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform duration-300 group-hover:scale-110 ${activeView === 'inicio' ? 'text-emerald-600' : ''}`}>
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             Inicio
             {activeView === 'inicio' && (
-              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
             )}
           </button>
 
@@ -94,9 +94,9 @@ export default function Sidebar({
               setActiveView('cuentas');
               setIsMobileMenuOpen(false);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl transition-all duration-300 group ${activeView === 'cuentas' ? 'text-white bg-white/10 shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-2xl transition-all duration-300 group ${activeView === 'cuentas' ? 'text-emerald-700 bg-emerald-50 shadow-inner' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'}`}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform duration-300 group-hover:scale-110 ${activeView === 'cuentas' ? 'text-emerald-400' : ''}`}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform duration-300 group-hover:scale-110 ${activeView === 'cuentas' ? 'text-emerald-600' : ''}`}>
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
               <line x1="8" y1="2" x2="8" y2="6" />
@@ -104,12 +104,12 @@ export default function Sidebar({
             </svg>
             Obligaciones
             {activeView === 'cuentas' && (
-              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+              <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
             )}
           </button>
 
           <div className="pt-4 pb-2">
-            <p className="px-4 text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">
+            <p className="px-4 text-[9px] font-black text-slate-400 tracking-widest uppercase mb-1">
               Herramientas
             </p>
           </div>
@@ -120,7 +120,7 @@ export default function Sidebar({
               onOpenModal('projection');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all duration-300 group"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-white/50 rounded-2xl transition-all duration-300 group"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-300 group-hover:scale-110">
               <circle cx="12" cy="12" r="10" />
@@ -135,7 +135,7 @@ export default function Sidebar({
               onOpenModal('simulation');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all duration-300 group"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-white/50 rounded-2xl transition-all duration-300 group"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-300 group-hover:scale-110">
                <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -151,7 +151,7 @@ export default function Sidebar({
                 onOpenModal('consumption');
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all duration-300 group"
+              className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-white/50 rounded-2xl transition-all duration-300 group"
               type="button"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-300 group-hover:scale-110">
@@ -168,9 +168,9 @@ export default function Sidebar({
         <div className="p-4 relative">
           {/* Profile options menu floating */}
           {isProfileOpen && (
-            <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#121c33] border border-white/10 rounded-2xl p-2 shadow-2xl shadow-black/50 animate-slide-up z-50">
+            <div className="absolute bottom-full left-4 right-4 mb-2 bg-white/90 backdrop-blur-xl border border-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] rounded-2xl p-2 animate-slide-up z-50">
               <button
-                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 rounded-xl transition-colors"
                 onClick={() => {
                   onGenerateDemoData();
                   setIsProfileOpen(false);
@@ -182,7 +182,7 @@ export default function Sidebar({
               </button>
               {services && services.some((s) => s.is_demo) && (
                 <button
-                  className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-colors"
+                  className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors"
                   onClick={() => {
                     onDeleteDemoData();
                     setIsProfileOpen(false);
@@ -193,9 +193,9 @@ export default function Sidebar({
                   Eliminar Demo
                 </button>
               )}
-              <div className="h-px w-full bg-white/5 my-1"></div>
+              <div className="h-px w-full bg-slate-100 my-1"></div>
               <button
-                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 rounded-xl transition-colors"
                 onClick={() => {
                   onChangePassword();
                   setIsProfileOpen(false);
@@ -206,7 +206,7 @@ export default function Sidebar({
                 Cambiar Contraseña
               </button>
               <button
-                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 rounded-xl transition-colors"
                 onClick={() => {
                   onChangePassphraseClick();
                   setIsProfileOpen(false);
@@ -217,7 +217,7 @@ export default function Sidebar({
                 Frase Maestra
               </button>
               <button
-                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 rounded-xl transition-colors"
                 onClick={() => {
                   onShowWelcome();
                   setIsProfileOpen(false);
@@ -227,9 +227,9 @@ export default function Sidebar({
               >
                 Ayuda / Privacidad
               </button>
-              <div className="h-px w-full bg-white/5 my-1"></div>
+              <div className="h-px w-full bg-slate-100 my-1"></div>
               <button
-                className="w-full text-left px-4 py-2.5 text-[11px] font-black text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors"
+                className="w-full text-left px-4 py-2.5 text-[11px] font-black text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                 onClick={onSignOut}
                 type="button"
               >
@@ -240,14 +240,14 @@ export default function Sidebar({
 
           <div 
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer transition-all duration-300 ${isProfileOpen ? 'bg-white/10 ring-1 ring-white/20' : 'bg-[#121c33] border border-white/5 hover:border-white/10 hover:bg-[#16213b]'}`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer transition-all duration-300 ${isProfileOpen ? 'bg-white shadow-sm ring-1 ring-slate-100' : 'bg-white/40 border border-white/60 hover:bg-white/80 hover:shadow-sm'}`}
           >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-md">
               {userName.substring(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] text-white font-black truncate">Mi Cuenta</p>
-              <p className="text-[10px] text-slate-400 truncate font-semibold">{userName}</p>
+              <p className="text-[11px] text-slate-800 font-black truncate">Mi Cuenta</p>
+              <p className="text-[10px] text-slate-500 truncate font-semibold">{userName}</p>
             </div>
             <svg
               className={`text-slate-500 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
